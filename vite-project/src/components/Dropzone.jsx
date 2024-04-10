@@ -154,54 +154,51 @@ function Dropzone() {
 
 
   return (
-    
     <Container className="mt-5">
-      <Helmet>
+    <Helmet>
       <title>Upload Files</title>
-      <meta name='description' content='Upload files for process resuemes'/>
-      </Helmet>
-      <Form onSubmit={handleSubmit}>
-        <div {...getRootProps({ className: 'dropzone p-3 mb-2 border border-dashed border-secondary rounded'})}>
-          <input {...getInputProps()} />
-          <p>Drag and drop some files here, or click to select files</p>
-          <em>(Only *.pdf, *.docx, and *.doc files will be accepted)</em>
-          <Button variant="outline-secondary" type="button" onClick={open} className="mt-2">Add File</Button>
-        </div>
-        <br></br>
-        <aside>
-          {showFileRejectionMessage && (
-            <div className="alert alert-warning mt-2">Some files were rejected. Only *.pdf, *.docx files are accepted and you cannot upload more than 200 files at once.
-              <CloseButton variant="" onClick={() => setUploadSuccess(false)} className="ms-2"></CloseButton>
-            </div>
-          )}
-          {uploadSuccess && (
-            <Alert variant="success">
-              Files are uploaded successfully. You can continue or upload more files.<CloseButton variant="" onClick={() => setUploadSuccess(false)} className="ms-2"></CloseButton>
-            </Alert>
-          )}
-          <div style={{ display: 'flex', justifyContent: 'center' }}>
-            <h4>
-              Uploaded Resumes ({files.length} files)
-              <Button variant="danger" type="button" onClick={clearFiles} className="ms-2">Delete All</Button>
-            </h4>
-          </div>
-          <br></br>
-          {renderFileGrid()}
-        </aside>
+      <meta name='description' content='Upload files for process resumes'/>
+    </Helmet>
+    <Form onSubmit={handleSubmit}>
+      <div {...getRootProps({ className: 'dropzone'})}>
+        <input {...getInputProps()} />
+        <p>Drag and drop some files here, or click to select files</p>
+        <em>(Only *.pdf, *.docx, and *.doc files will be accepted)</em>
+        <Button variant="outline-secondary" onClick={open} className="mt-2">Add File</Button>
+      </div>
+      
+      {showFileRejectionMessage && (
+        <Alert variant="warning" className="mt-2">
+          Some files were rejected. Only *.pdf, *.docx files are accepted and you cannot upload more than 200 files at once.
+          <CloseButton onClick={() => setShowFileRejectionMessage(false)} className="ms-2" />
+        </Alert>
+      )}
+      {uploadSuccess && (
+        <Alert variant="success">
+          Files are uploaded successfully. You can continue or upload more files.
+          <CloseButton onClick={() => setUploadSuccess(false)} className="ms-2" />
+        </Alert>
+      )}
+      
+      <div className="uploaded-resumes-header">
+        <h4>
+          Uploaded Resumes ({files.length} files)
+          <Button variant="danger" onClick={clearFiles} className="ms-2">Delete All</Button>
+        </h4>
+      </div>
+      {renderFileGrid()}
 
-        <div style={{ display: 'flex', justifyContent: 'center' }}>
-          <Button variant="success" type='submit' className="mt-3">Upload</Button>
+      <div className="form-submit-section">
+        <Button variant="success" type='submit' className="mt-3">Upload</Button>
+      </div>
+      
+      {uploadSuccess && (
+        <div className="form-continue-section">
+          <Button variant="primary" className="mt-3">Continue</Button>
         </div>
-        {/* Adjustments start here for the last button */}
-        {uploadSuccess && (
-          <div style={{ display: 'flex', justifyContent: 'center' }}> {/* Centering the button */}
-            {/* Removing stylevariant (which seems to be a typo) and setting className for size and margin */}
-            <Button variant="primary" type='button' className="mt-3">Continue</Button>
-          </div>
-        )}
-
-      </Form>
-    </Container>
+      )}
+    </Form>
+  </Container>
   );
 }
 
