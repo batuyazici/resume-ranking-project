@@ -45,8 +45,8 @@ function BasicExample() {
         </Navbar.Toggle>
         <Navbar.Collapse id="basic-navbar-nav">
           <Nav className="me-auto">
-            <Nav.Link as={Link} to="/cvs" className={activeLink === 'cvs' ? 'active navbar-link' : 'navbar-link'} onClick={() => onUpdateActiveLink('addcvs')}>Add CVs</Nav.Link>
-            <Nav.Link as={Link} to="/jobs" className={activeLink === 'jobs' ? 'active navbar-link' : 'navbar-link'} onClick={() => onUpdateActiveLink('createajob')}>Create a Job</Nav.Link>  
+            <Nav.Link as={Link} to="/cvs" className={activeLink === 'cvs' ? 'active navbar-link' : 'navbar-link'} onClick={() => onUpdateActiveLink('cvs')}>Add CVs</Nav.Link>
+            <Nav.Link as={Link} to="/jobs" className={activeLink === 'jobs' ? 'active navbar-link' : 'navbar-link'} onClick={() => onUpdateActiveLink('jobs')}>Create a Job</Nav.Link>  
           </Nav>
           <span className='navbar-text'>
             <div className='social-icon'>
