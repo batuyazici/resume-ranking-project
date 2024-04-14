@@ -34,16 +34,15 @@ export const Gallery = () => {
     ];
 
     return (
-            <section className='gallery' id='gallerys'>
+            <section className='gallery content-container' id='gallerys'>
                 <Container>
                     <Row>
                         <Col>
                             <h2>
-                                Lorem Ipsum
+                            For Employers
                             </h2>
-                            <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Corporis sapiente 
-                                deserunt nobis consequatur harum culpa iste iusto sit nesciunt. Quidem est,
-                                 placeat inventore exercitationem quis quaerat itaque sed eveniet quibusdam!</p>
+                            <p>Create your job posting and quickly find ideal candidates from our CV database. Our technology automatically matches candidates' skills and experience to your job requirements, 
+                                so you can easily track and assess the process with our candidate management tools.</p>
                              <Tab.Container id='gallery-tabs' defaultActiveKey='first'>
                              
                                 <Tab.Content>

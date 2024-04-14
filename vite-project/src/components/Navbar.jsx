@@ -49,11 +49,7 @@ function BasicExample() {
             <Nav.Link as={Link} to="/jobs" className={activeLink === 'jobs' ? 'active navbar-link' : 'navbar-link'} onClick={() => onUpdateActiveLink('jobs')}>Create a Job</Nav.Link>  
           </Nav>
           <span className='navbar-text'>
-            <div className='social-icon'>
-              <a href='#'><img src={navIcon1} alt='' /></a>
-              <a href='#'><img src={navIcon2} alt='' /></a>
-              <a href='#'><img src={navIcon3} alt='' /></a>
-            </div>
+         
             <button className='vvd' onClick={() => console.log('matchcvs')}><span>Match CVs</span></button>
           </span>
         </Navbar.Collapse>

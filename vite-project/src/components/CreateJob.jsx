@@ -8,9 +8,8 @@ const Createjob = () => {
   return (
     <>
     
-    <Container className="mt-5">
+    <Container className="mt-5 mb-5">
         
-    
       <div className='img-job'>
       <img src={headerImg} alt="Header Img"/>
       </div>

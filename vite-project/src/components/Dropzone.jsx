@@ -1,5 +1,12 @@
 import { useState, useCallback } from "react";
 import { useDropzone } from "react-dropzone";
+import spectrumGradient from '../assets/img/spectrum-gradient.svg';
+import Img from "../assets/img/file-arrow-up.svg";
+
+import { ArrowRightCircle, CloudUpload } from 'react-bootstrap-icons';
+import { X } from 'react-bootstrap-icons';
+import { CloudArrowUp } from 'react-bootstrap-icons';
+
 import {
   Form,
   Button,
@@ -14,7 +21,12 @@ import {
   ToggleButton,
 } from "react-bootstrap";
 import { Helmet } from "react-helmet-async";
+
+
+  
+
 function Dropzone() {
+  const [isHovering, setIsHovering] = useState(false);
   const [files, setFiles] = useState([]);
   const [showFileRejectionMessage, setShowFileRejectionMessage] =
     useState(false);
@@ -107,23 +119,22 @@ function Dropzone() {
       }}
     >
       {fileRows.map((row, rowIndex) => (
-        <Row key={rowIndex} className="gy-4">
+        <Row key={rowIndex} className="gy-4 mx-2">
           {row.map((file, fileIndex) => (
             <Col
               key={`${file.path}-${fileIndex}`}
-              sm="auto"
-              md="auto"
-              lg="auto"
-              xl="auto"
-              xxl="auto"
-              className="mb-2"
+              sm={6} // Adjust this value based on how many files you want per row
+              md={4}
+              lg={3}
+              xl={2}
+              className="mb-3"
             >
-              <Card className="h-100" style={cardStyle}>
+              <Card className="h-100 " style={cardStyle}>
                 <Card.Body className="p-2">
                   <Card.Title className="mb-1" style={{ fontSize: "0.8rem" }}>
                     {truncateFileName(file.path)}
                   </Card.Title>
-                  <Badge pill bg="secondary" size="sm" className="me-2">
+                  <Badge pill bg="dark" size="sm" className="me-2">
                     {getFileTypeIndicator(file.path)}
                   </Badge>
                   <Button
@@ -146,16 +157,17 @@ function Dropzone() {
   const renderFileList = () => (
     <ListGroup
       variant="flush"
+      className="p-3"
       style={{ overflowY: "auto", maxHeight: "300px", marginTop: "1rem" }}
     >
       {files.map((file, index) => (
         <ListGroup.Item
           key={`${file.path}-${index}`}
-          className="d-flex justify-content-between align-items-center"
+          className="d-flex justify-content-between align-items-center bg-white rounded-3 mb-2 p-2"
         >
           {file.name}
           <div>
-            <Badge pill bg="secondary" className="me-2">
+            <Badge pill bg="dark" className="me-2">
               {getFileTypeIndicator(file.name)}
             </Badge>
             <Button
@@ -250,42 +262,65 @@ function Dropzone() {
         )}
       </div>
       <Container>
-        <Form onSubmit={handleSubmit} className="p-3 mt-3 border">
-          <div {...getRootProps({ className: "mt-3 dropzone" })}>
+        
+      <Form 
+  onSubmit={handleSubmit} 
+  className="p-3 mt-5 border-5 text-dark mb-5" 
+  style={{
+    backgroundImage: `url(${spectrumGradient})`,
+    backgroundPosition: 'top center',
+    backgroundSize: 'cover',
+    backgroundRepeat: 'no-repeat',
+    borderRadius:'40px',
+    boxShadow:'5px 5px 30px #121212'
+  }}
+>
+        <Row className="justify-content-center align-items-center">
+            <Col xs="auto">
+            <img src={Img} alt="File Upload Icon" style={{ width: '48px', height: '48px', }} />
+            </Col>
+            <Col xs="auto" className="mt-3">
+            <h1 className="text-center text-light">File Upload</h1>
+           </Col>
+        </Row>
+        
+          <div {...getRootProps({ className: "p-5 mt-2 dropzone" })}>
             <input {...getInputProps()} />
             <p>Drag and drop some files here, or click to select files</p>
             <em style={{ fontWeight: "bolder" }}>
               (Only *.pdf, *.docx files will be accepted)
             </em>
             <Button
-              variant="outline-secondary"
+              variant="outline-dark"
               onClick={open}
-              size="sm"
-              className="mt-2"
+              size="lg"
+              className="mt-5"
             >
-              Add File
+              Add File <CloudArrowUp size={29} />
             </Button>
           </div>
-          <div className="m-3">
+          <div className="mt-3">
             {files.length > 0 && (
               <ToggleButtonGroup
                 type="radio"
                 name="viewMode"
                 value={viewMode}
                 onChange={handleViewModeChange}
-                className="mb-3"
+                className="mb-5 "
               >
                 <ToggleButton
                   id="toggle-list"
                   value="list"
-                  variant="outline-secondary"
+                  variant="btn btn-light"
+                  className="px-4 py-2" 
                 >
                   List
                 </ToggleButton>
                 <ToggleButton
                   id="toggle-grid"
                   value="grid"
-                  variant="outline-secondary"
+                  variant="btn btn-light"
+                  className="px-4 py-2" 
                 >
                   Grid
                 </ToggleButton>
@@ -293,31 +328,30 @@ function Dropzone() {
             )}
             <div className="d-flex justify-content-between align-items-center uploaded-resumes-header">
               {files.length > 0 && (
-                <h4 className="mb-0">Preview ({files.length} files)</h4>
+                <h3 className="mb-0 mt-0 text-light">Preview ({files.length} files)</h3>
               )}
               {files.length > 0 && (
-                <Button
-                  variant="danger"
-                  size="sm"
-                  onClick={clearFiles}
-                  className=""
-                >
-                  Delete All
-                </Button>
+                <Button variant="light" onClick={clearFiles} className="d-flex align-items-center justify-content-center">
+                Delete All <X size={20} className="ms-1" />
+              </Button>
               )}
             </div>
             {viewMode === "grid" ? renderFileGrid() : renderFileList()}
-            <div className="mt-2 d-flex justify-content-center">
+            <div className="mt-3 d-flex justify-content-center">
               <div className="form-submit-section">
                 {files.length > 0 && (
                   <Button
-                    variant="success"
+                  variant={isHovering ? "outline-dark border-dark" : "btn btn-light border-dark"}
                     type="submit"
                     disabled={isUploading}
-                    className="mt-3"
-                    size="sm"
+                    className="mt-5"
+                    size="lg"
+                    onMouseEnter={() => setIsHovering(true)}
+                    onMouseLeave={() => setIsHovering(false)}
+                    
+                
                   >
-                    {isUploading ? "Uploading..." : "Upload"}
+                    {isUploading ? "Uploading..." : "Upload"} <CloudUpload size={20} className="ms-1" />
                   </Button>
                 )}
               </div>
@@ -325,14 +359,16 @@ function Dropzone() {
           </div>
         </Form>
         {uploadSuccess && (
-          <div className="form-continue-section ">
-            <Button variant="primary" className="mt-3" size="sm">
-              Continue
-            </Button>
-          </div>
+         <div className="form-continue-section d-flex justify-content-center">
+         <Button variant="outline-dark" className="mt-5" size="lg">
+           Next Step <ArrowRightCircle size={25} />
+         </Button>
+       </div>
         )}
       </Container>
+      
     </>
+    
   );
 }
 

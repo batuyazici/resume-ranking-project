@@ -1,6 +1,8 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { useState } from 'react';
 import Button from 'react-bootstrap/Button'
+import Container from 'react-bootstrap/Container';
+
 
 function FileForm() {
     const [files, setFiles] = useState([]);
@@ -36,7 +38,6 @@ function FileForm() {
         <div>
             <h1>Upload File</h1>
             <form onSubmit={handleSubmit}>
-                <div style={{marginBottom:"20px"}}></div>
                 <input type="file" onChange={handleFileInputChange} multiple/>
                 <Button variant="danger" type='submit'>Upload</Button>
  

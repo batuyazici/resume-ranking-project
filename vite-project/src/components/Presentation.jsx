@@ -40,27 +40,27 @@ export const Presentation = () => {
                     <Col>
                         <div className="present-bx">
                             <h2>
-                                Lorem Ipsum
+                            For Job Seekers
                             </h2>
-                            <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Alias laborum error ullam possimus, eos vero corporis?
-                                Lorem ipsum dolor sit amet consectetur adipisicing elit. Alias laborum error ullam possimus, eos vero corporis?
-                                Lorem ipsum dolor sit amet consectetur adipisicing elit. Alias laborum error ullam possimus, eos vero corporis</p>
+                            <p>Upload your CV, highlight your skills and experience! Our system automatically matches you with job postings that match your profile and expectations.
+                                 Discover positions that match your career goals and apply now.
+                                 Take advantage of our career tips and resume editing tools to guide you through your job search.</p>
                             <Carousel responsive={responsive} infinite={true} className="Presentation-slider">
                                 <div className="item">
                                     <img src={resume1} alt="Image" />
-                                    <h5>Lorem Ipsum</h5>
+                                    <h5>Find a suitable job</h5>
                                 </div>
                                 <div className="item">
                                     <img src={resume3} alt="Image" />
-                                    <h5>Lorem Ipsum</h5>
+                                    <h5>Prepare a CV</h5>
                                 </div>
                                 <div className="item">
                                     <img src={resume4} alt="Image" />
-                                    <h5>Lorem Ipsum</h5>
+                                    <h5>Upload CV</h5>
                                 </div>
                                 <div className="item">
                                     <img src={resume5} alt="Image" />
-                                    <h5>Lorem Ipsum</h5>
+                                    <h5>Explore current job openings.</h5>
                                 </div>
                                 
                             </Carousel>

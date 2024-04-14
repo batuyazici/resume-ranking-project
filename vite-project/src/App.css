@@ -22,18 +22,30 @@
   box-sizing: border-box;
 }
 
+#root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
 html {
   scroll-behavior: smooth;
   scroll-padding-top: 75px;
+  height: 100%;
+  margin: 0;
+  padding: 0;
 }
 
 body {
   font-weight: 400;
   overflow-x: hidden;
   position: relative;
-  background-color: #121212 !important;
+  background-color: #ffffff !important;
   color: #fff !important;
   font-family: 'Centra', sans-serif !important;
+  height: 100%;
+  margin: 0;
+  padding: 0;
 
 }
 
@@ -253,16 +265,19 @@ nav.navbar .navbar-toggler[aria-expanded="true"] .navbar-toggler-icon {
   display: block;
 }
 .banner p {
-  color: #B8B8B8;
-  font-size: 18px;
-  letter-spacing: 0.8px;
-  line-height: 1.5em;
+  color: white;
+  padding-top: 45px;
+  font-size: 25px;
   width: 96%;
+  font-family: 'Centra', sans-serif !important;
+  text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.6); /* Text shadow for contrast */
+  letter-spacing: 1px; /* Slightly more letter-spacing */
+  line-height: 1.6em; /* Adjust line height for better readability */
 }
 .banner button {
   color: #fff;
   font-weight: 700;
-  font-size: 20px;
+  font-size: 30px;
   margin-top: 60px;
   letter-spacing: 0.8px;
   display: flex;
@@ -302,35 +317,51 @@ nav.navbar .navbar-toggler[aria-expanded="true"] .navbar-toggler-icon {
   
 }
 .present-bx {
-  background: #151515;
+ 
   border-radius: 64px;
   text-align: center;
   padding: 40px 40px 70px;
   margin-top: 40px;
   margin-bottom: 40px ;
-  box-shadow: 5px 5px 30px #dbdbdb;
-  
+  box-shadow: 5px 5px 30px #121212;
+  background-image: url('./assets/img/spectrum-gradient.svg');
+  background-position: top center;
+  background-size: cover;
+  background-repeat: no-repeat;
   
 }
 .Presentation h2 {
 	font-size: 45px;
 	font-weight: 700;
+  font-family: 'Centra', sans-serif !important;
+  text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.6); /* Text shadow for contrast */
+  letter-spacing: 1px; /* Slightly more letter-spacing */
+  line-height: 1.6em; /* Adjust line height for better readability */
 }
 .Presentation p {
-    color: #B8B8B8;
-    font-size: 18px;
-    letter-spacing: 0.8px;
-    line-height: 1.5em;
+    color: #fff;
+    font-size: 20px;
     margin: 14px 0 75px 0;
+    font-family: 'Centra', sans-serif !important;
+    text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.6); /* Text shadow for contrast */
+    letter-spacing: 1px; /* Slightly more letter-spacing */
+    line-height: 1.6em; /* Adjust line height for better readability */
+    
 }
 .Presentation-slider {
   width: 80%;
   margin: 0 auto;
   position: relative;
+  font-family: 'Centra', sans-serif !important;
+  text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.6); /* Text shadow for contrast */
+  letter-spacing: 1px; /* Slightly more letter-spacing */
+  line-height: 1.6em; /* Adjust line height for better readability */
+  font-weight: bold;
 }
 .Presentation-slider .item img {
   width: 90%;
   margin: 0 auto 20px auto;
+  
 }
 .background-image-left {
   top:14%;
@@ -345,30 +376,42 @@ nav.navbar .navbar-toggler[aria-expanded="true"] .navbar-toggler-icon {
   padding: 40px 0;
   position: relative;
   
-  background-color: white;
- 
 }
+
+
 .gallery h2 {
 	font-size: 45px;
 	font-weight: 700;
   text-align: center;
   color:#151515;
+  font-family: 'Centra', sans-serif !important;
+  letter-spacing: 1px; /* Slightly more letter-spacing */
+  line-height: 1.6em; /* Adjust line height for better readability */
+  font-weight: bold;
 }
 .gallery p {
   color: #151515;
-  font-size: 18px;
+  font-size: 25px;
   letter-spacing: 0.8px;
   line-height: 1.5em;
   margin: 20px auto 10px auto;
   text-align: center;
-  width: 56%;
+  width: 70%;
+  font-family: 'Centra', sans-serif !important;
+  
 }
 
 /************ Footer Css ************/
 .footer {
-  padding: 0 0 50px 0;
-  padding-top: 50px;
-  background-color: #121212 !important;
+
+  background-image: url('./assets/img/spectrum-gradient.svg');
+  background-position: top center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  margin-top: auto;
+  padding-top: 20px;
+  width: 100%;
+
 }
 .footer img {
   width: 40%;
@@ -377,7 +420,7 @@ nav.navbar .navbar-toggler[aria-expanded="true"] .navbar-toggler-icon {
 .footer p {
   font-weight: 400;
   font-size: 14px;
-  color: #B8B8B8;
+  color: #fff;
   letter-spacing: 0.5px;
   margin-top: 20px;
 }
@@ -424,13 +467,12 @@ nav.navbar .navbar-toggler[aria-expanded="true"] .navbar-toggler-icon {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 20px;
-  border-width: 2px;
-  border-radius: 2px;
-  border-color: #eeeeee;
-  border-style: dashed;
-  background-color: #fafafa;
-  color: #bdbdbd;
+  border-width: 5px;
+  border-radius: 15px;
+  border-color: #cc71c4;
+  border-style:dotted;
+  background-color: #fff;
+  color: #121212;
   outline: none;
   transition: border .24s ease-in-out;
   min-height: 150px;
@@ -469,3 +511,5 @@ nav.navbar .navbar-toggler[aria-expanded="true"] .navbar-toggler-icon {
 .fade-exit.fade-exit-active {
   opacity: 0;
 }
+
+
