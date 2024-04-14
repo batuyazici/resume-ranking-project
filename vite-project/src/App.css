@@ -470,7 +470,6 @@ nav.navbar .navbar-toggler[aria-expanded="true"] .navbar-toggler-icon {
   border-width: 5px;
   border-radius: 15px;
   border-color: #cc71c4;
-  border-style:dotted;
   background-color: #fff;
   color: #121212;
   outline: none;
@@ -478,18 +477,23 @@ nav.navbar .navbar-toggler[aria-expanded="true"] .navbar-toggler-icon {
   min-height: 150px;
   min-width: 900px;
   margin: 'auto';
+  font-family: 'Centra', sans-serif !important;
+  font-size: 20px;
+
+  
   }
 
 .alertContainer { 
-    position: fixed;
-    top: 10px;  
-    left: 50%;
-    transform: translateX(-50%);
-    max-width: 600px;  
-    width: 100%;
-    z-index: 1030;
-    display: border-box; 
-  
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  max-width: 600px;
+  width: 100%;
+  box-sizing: border-box; /* Düzeltildi */
+  z-index: 9999; /* Diğer içeriklerin üzerinde görünmesini sağlar */
+  margin-left: auto; /* Ortalama için */
+  margin-right: auto; /* Ortalama için */
 }
 
 @keyframes fadeAndShrink {
@@ -512,4 +516,28 @@ nav.navbar .navbar-toggler[aria-expanded="true"] .navbar-toggler-icon {
   opacity: 0;
 }
 
+.dropzone-title {
 
+  font-family: 'Centra', sans-serif !important;
+  font-size: 23px;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5); /* X Y Blur Color */
+  
+}
+
+.file-upload {
+
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5); /* X Y Blur Color */
+
+}
+
+.match-container-1 {
+  
+  background-color: #cc71c4;
+  background-image: url('./assets/img/spectrum-gradient.svg');
+  background-position: top center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  padding: 20px 20px 20px 20px;
+  border-radius: 40px;
+  
+}

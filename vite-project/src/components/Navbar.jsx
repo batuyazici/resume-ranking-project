@@ -3,14 +3,12 @@ import Nav from 'react-bootstrap/Nav';
 import Navbar from 'react-bootstrap/Navbar';
 import { Link } from "react-router-dom"; // Import Link
 import logo from '/src/assets/img/logo11.svg';
-
-import navIcon1 from '../assets/img/nav-icon1.svg';
-import navIcon2 from '../assets/img/nav-icon2.svg';
-import navIcon3 from '../assets/img/nav-icon3.svg';
+import { useNavigate } from 'react-router-dom';  // Import useNavigate
 
 import { useState, useEffect } from 'react';
 
 function BasicExample() {
+  const navigate = useNavigate(); 
   const [activeLink, SetActiveLink] = useState('home');
   const [scrolled, seScrolled] = useState(false);
 
@@ -49,8 +47,7 @@ function BasicExample() {
             <Nav.Link as={Link} to="/jobs" className={activeLink === 'jobs' ? 'active navbar-link' : 'navbar-link'} onClick={() => onUpdateActiveLink('jobs')}>Create a Job</Nav.Link>  
           </Nav>
           <span className='navbar-text'>
-         
-            <button className='vvd' onClick={() => console.log('matchcvs')}><span>Match CVs</span></button>
+            <button className='vvd' onClick={() => navigate('/match')}><span>Match CVs</span></button>
           </span>
         </Navbar.Collapse>
       </Container>
