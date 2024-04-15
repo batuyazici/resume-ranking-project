@@ -5,7 +5,6 @@ import ResumesPage from "./views/ResumesPage";
 import JobsPage from "./views/JobsPage";
 import MainPage from "./views/MainPage";
 import MatchPage from "./views/MatchPage";
-
 function App() {
   return (
     <>
