@@ -31,6 +31,7 @@ function BasicExample() {
   }
 
   return (
+    
     <Navbar expand="lg" className={scrolled ? "scrolled" : ""}>
       <Container>
         <Navbar.Brand>
@@ -38,9 +39,6 @@ function BasicExample() {
             <img src={logo} alt="Logo" />
           </Link>
         </Navbar.Brand>
-        <Navbar.Toggle aria-controls="basic-navbar-nav">
-          <span className='navbar-toggler-icon'></span>
-        </Navbar.Toggle>
         <Navbar.Collapse id="basic-navbar-nav">
           <Nav className="me-auto">
             <Nav.Link as={Link} to="/cvs" className={activeLink === 'cvs' ? 'active navbar-link' : 'navbar-link'} onClick={() => onUpdateActiveLink('cvs')}>Add CVs</Nav.Link>

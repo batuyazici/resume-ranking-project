@@ -86,7 +86,7 @@ function Dropzone() {
     return "";
   };
 
-  const truncateFileName = (fileName, maxLength = 13) => {
+  const truncateFileName = (fileName, maxLength = 17) => {
     if (fileName.length > maxLength) {
       return `${fileName.substring(0, maxLength - 3)}...`;
     }
@@ -127,18 +127,19 @@ function Dropzone() {
               md={4}
               lg={3}
               xl={2}
-              className="mb-3"
+              className="mb-3 font-monospace"
             >
               <Card className="h-100 " style={cardStyle}>
                 <Card.Body className="p-2">
-                  <Card.Title className="mb-1" style={{ fontSize: "0.8rem" }}>
+                  <Card.Title className="mb-1 " style={{ fontSize: "1rem" }}>
                     {truncateFileName(file.path)}
                   </Card.Title>
-                  <Badge pill bg="dark" size="sm" className="me-2">
+                  <Badge pill bg="dark" size="sm" className="me-2 font-monospace">
                     {getFileTypeIndicator(file.path)}
                   </Badge>
                   <Button
-                    variant="outline-danger"
+                    variant="outline-danger "
+                    className="font-monospace"
                     size="sm"
                     onClick={() => removeFile(file.name, file.size)}
                     style={{ padding: "0.25rem 0.5rem", fontSize: "0.75rem" }}
@@ -158,17 +159,17 @@ function Dropzone() {
   const renderFileList = () => (
     <ListGroup
       variant="flush"
-      className="p-3"
+      className="p-3 font-monospace"
       style={{ overflowY: "auto", maxHeight: "300px", marginTop: "1rem" }}
     >
       {files.map((file, index) => (
         <ListGroup.Item
           key={`${file.path}-${index}`}
-          className="d-flex justify-content-between align-items-center bg-white rounded-3 mb-2 p-2"
+          className="d-flex justify-content-between align-items-center bg-white rounded-3 mb-2 p-2 font-monospace"
         >
           {file.name}
           <div>
-            <Badge pill bg="dark" className="me-2">
+            <Badge pill bg="dark" className="me-2 font-monospace">
               {getFileTypeIndicator(file.name)}
             </Badge>
             <Button
@@ -262,59 +263,52 @@ function Dropzone() {
           </Alert>
         )}
       </div>
-      <Container>
+      <Container >
         
       <Form 
   onSubmit={handleSubmit} 
-  className="p-3 mt-4 border-5 text-dark mb-5" 
+  className="mt-4 border-5 text-dark pt-2 px-3 mx-5 mb-4 " 
   style={{
     backgroundImage: `url(${spectrumGradient})`,
     backgroundPosition: 'top center',
     backgroundSize: 'cover',
     backgroundRepeat: 'no-repeat',
-    borderRadius:'40px',
-    boxShadow:'5px 5px 30px #121212',
+    borderRadius:'30px',
+   
     
   }}
 >
-        <Row className="justify-content-center align-items-center p-2">
-            <Col xs="auto">
-            <img src={Img} alt="File Upload Icon" style={{ width: '48px', height: '48px', }} />
-            </Col>
-            <Col xs="auto" className="mt-3">
-            <h1 className="text-center text-light file-upload">File Upload</h1>
-           </Col>
-        </Row>
-        
-          <div {...getRootProps({ className: "p-5 mt-2 dropzone" })} style={{marginLeft:'12px'}}>
+
+          <div {...getRootProps({ className: "p-2 mt-2  dropzone font-monospace" })}>
             <input {...getInputProps()} />
-            <p>Drag and drop some files here, or click to select files</p>
-            <em style={{ fontWeight: "bolder" }}>
+            <p style={{  fontSize:"17px", marginBottom:"0.5rem" }}>Drag and drop some files here, or click to select files</p>
+            <em style={{ fontWeight: "bolder", fontSize:"15px" }}>
               (Only *.pdf, *.docx files will be accepted)
             </em>
             <Button
               variant="outline-dark"
               onClick={open}
-              size="lg"
-              className="mt-5 font-monospace fs-5"
+              size="sm"
+              className="mt-2 font-monospace"
+             
             >
-              Add File <CloudArrowUp size={29} />
+              Add File <CloudArrowUp size={20} />
             </Button>
           </div>
-          <div className="mt-3 ">
+          <div >
             {files.length > 0 && (
               <ToggleButtonGroup
                 type="radio"
                 name="viewMode"
                 value={viewMode}
                 onChange={handleViewModeChange}
-                className="mb-3 mt-2 mx-3 "
+                className="mb-3 mt-3  "
               >
                 <ToggleButton
                   id="toggle-list"
                   value="list"
                   variant="btn btn-light border-dark"
-                  className="px-4 py-2  font-monospace fs-5  " 
+                  className="  font-monospace fs-7  " 
                 >
                   List
                 </ToggleButton>
@@ -322,7 +316,7 @@ function Dropzone() {
                   id="toggle-grid"
                   value="grid"
                   variant="btn btn-light border-dark"
-                  className="px-4 py-2  font-monospace  fs-5" 
+                  className="  font-monospace  fs-7" 
                 >
                   Grid
                 </ToggleButton>
@@ -330,24 +324,26 @@ function Dropzone() {
             )}
             <div className="d-flex justify-content-between align-items-center uploaded-resumes-header ">
               {files.length > 0 && (
-                <h3 className="mb-0 mt-2 mx-3 text-light dropzone-title">Preview ({files.length} files)</h3>
+                <h3 className=" mt-2 text-light dropzone-title">Preview ({files.length} files)</h3>
               )}
               {files.length > 0 && (
-                <Button variant="light" onClick={clearFiles} className="d-flex align-items-center justify-content-center mx-3 border-dark border-2 font-monospace fs-6">
-                Delete All <X size={20} className="ms-1" />
+                <Button variant="light" onClick={clearFiles} className="d-flex align-items-center justify-content-center mx-3 border-dark border-2 font-monospace"
+                style={{fontSize:"13px"}}>
+                Delete All <X size={15} className="ms-1" />
               </Button>
               )}
             </div>
             {viewMode === "grid" ? renderFileGrid() : renderFileList()}
-            <div className="mt-3 d-flex justify-content-center">
+            <div className="mt-0 d-flex justify-content-center">
               <div className="form-submit-section">
                 {files.length > 0 && (
                   <Button
                   variant={isHovering ? "outline-dark border-dark" : "btn btn-light border-dark"}
                     type="submit"
                     disabled={isUploading}
-                    className="mt-5 font-monospace fs-5"
+                    className="mt-2 mb-2 font-monospace"
                     size="lg"
+                    style={{fontSize:"13px"}}
                     onMouseEnter={() => setIsHovering(true)}
                     onMouseLeave={() => setIsHovering(false)}
                     

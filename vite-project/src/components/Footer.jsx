@@ -23,6 +23,7 @@ export const Footer = () => {
                             <a href="https://www.linkedin.com/in/damlasabaz/"><img src={navIcon2} alt="Icon" /></a>
                             
                         </div>
+                        
                         <p>Copyright 2024. All Rights Reserved</p>
                         <p>Damla Sabaz & Mehmet Batuhan Yazıcı</p>
                     </Col>

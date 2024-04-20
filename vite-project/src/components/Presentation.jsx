@@ -38,13 +38,16 @@ export const Presentation = () => {
             <Container>
                 <Row>
                     <Col>
-                        <div className="present-bx">
+                        <div className="present-bx p-5 mx-5">
                             <h2>
                             For Job Seekers
                             </h2>
+                            <Col className="mx-5">
                             <p>Upload your CV, highlight your skills and experience! Our system automatically matches you with job postings that match your profile and expectations.
                                  Discover positions that match your career goals and apply now.
                                  Take advantage of our career tips and resume editing tools to guide you through your job search.</p>
+                            </Col>
+                           
                             <Carousel responsive={responsive} infinite={true} className="Presentation-slider">
                                 <div className="item">
                                     <img src={resume1} alt="Image" />
@@ -60,7 +63,7 @@ export const Presentation = () => {
                                 </div>
                                 <div className="item">
                                     <img src={resume5} alt="Image" />
-                                    <h5>Explore current job openings.</h5>
+                                    <h5>Explore current job openings</h5>
                                 </div>
                                 
                             </Carousel>

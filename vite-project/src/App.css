@@ -15,6 +15,8 @@
 	font-weight: 400;
 }
 
+
+
 /************ Default Css ************/
 * {
   margin: 0;
@@ -31,9 +33,10 @@
 html {
   scroll-behavior: smooth;
   scroll-padding-top: 75px;
-  height: 100%;
+  height:  100%;
   margin: 0;
   padding: 0;
+ 
 }
 
 body {
@@ -66,10 +69,6 @@ a:hover {
   text-decoration: none;
 }
 
-img {
-  width: 100%;
-  height: auto;
-}
 
 button {
   border: 0;
@@ -88,9 +87,10 @@ p.success {
 p.danger {
 	color: red;
 }
+
 /************ Navbar Css ************/
 nav.navbar {
-  padding: 14px 0;
+  padding: 3px 0;
   background-image: url('./assets/img/spectrum-gradient.svg');
   background-position: top center;
   background-size: cover;
@@ -103,13 +103,12 @@ nav.navbar {
 
 }
 
-
 nav.navbar .navbar-nav .nav-link.navbar-link {
   font-weight: 400;
   color: #fff !important;
   letter-spacing: 0.8px;
   padding: 0 25px;
-  font-size: 18px;
+  font-size: 13px;
   opacity: 0.75;
 }
 nav.navbar .navbar-nav a.nav-link.navbar-link:hover,
@@ -125,8 +124,8 @@ span.navbar-text {
     margin-left: 14px;
 }
 .social-icon a {
-    width: 42px;
-    height: 42px;
+    width: 32px;
+    height: 32px;
     background: rgba(217, 217, 217, 0.1);
     display: inline-flex;
     border-radius: 50%;
@@ -138,8 +137,8 @@ span.navbar-text {
 }
 .social-icon a::before {
     content: "";
-    width: 42px;
-    height: 42px;
+    width: 32px;
+    height: 32px;
     position: absolute;
     background-color: #ffffff;
     border-radius: 50%;
@@ -162,7 +161,7 @@ span.navbar-text {
   color: #fff;
   border: 1px solid #fff;
   padding:7px 14px;
-  font-size: 18px;
+  font-size: 13px;
   margin-left: 18px;
 	position: relative;
 	background-color: transparent;
@@ -191,83 +190,38 @@ span.navbar-text {
 	height: 100%;
 	position: absolute;
 }
-nav.navbar .navbar-toggler:active,
-nav.navbar .navbar-toggler:focus {
-	outline: none;
-    box-shadow: none;
-}
-nav.navbar .navbar-toggler-icon {
-  width: 24px;
-  height: 17px;
-  background-image: none;
-  position: relative;
-  border-bottom: 2px solid #fff;
-  transition: all 300ms linear;
-  top: -2px;
-}
-nav.navbar .navbar-toggler-icon:focus {
-	border-bottom: 2px solid #fff;
-}
-nav.navbar .navbar-toggler-icon:after,
-nav.navbar .navbar-toggler-icon:before {
-	width: 24px;
-	position: absolute;
-	height: 2px;
-	background-color: #fff;
-	top: 0;
-	left: 0;
-	content: '';
-	z-index: 2;
-	transition: all 300ms linear;
-}
-nav.navbar .navbar-toggler-icon:after {
-	top: 8px;
-}
-nav.navbar .navbar-toggler[aria-expanded="true"] .navbar-toggler-icon:after {
-	transform: rotate(45deg);
-	background-color: #fff;
-	height: 2px;
-}
-nav.navbar .navbar-toggler[aria-expanded="true"] .navbar-toggler-icon:before {
-	transform: translateY(8px) rotate(-45deg);
-	background-color: #fff;
-	height: 2px;
-}
-nav.navbar .navbar-toggler[aria-expanded="true"] .navbar-toggler-icon {
-	border-color: transparent;
-}
+
 
 /************ Banner Css ************/
 .banner {
   margin-top: 0;
-  padding: 40px 0 110px 0;
+  padding:5px 0 5px 0;
   background-image: url('./assets/img/spectrum-gradient.svg');
   background-position: top center;
   background-size: cover;
   background-repeat: no-repeat;
 }
-.banner .tagline {
-  font-weight: 700;
-  letter-spacing: 0.8px;
-  padding: 8px 10px;
-  background: linear-gradient(90.21deg, rgba(170, 54, 124, 0.5) -5.91%, rgba(74, 47, 189, 0.5) 111.58%);
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  font-size: 20px;
-  margin-bottom: 16px;
-  display: inline-block;
-}
+
 .banner h1 {
-  font-size: 65px;
-  font-weight: 700;
+  font-size: 30px;
+  font-weight: 1000;
   letter-spacing: 0.8px;
   line-height: 1;
-  margin-bottom: 20px;
+  margin-bottom: 0px;
+  margin-top: 5px;
   display: block;
 }
+
+.header-img   {
+  width: 65%;
+  height: auto;
+  margin-left: 70px;
+}
+
 .banner p {
   color: white;
-  padding-top: 45px;
-  font-size: 25px;
+  padding-top: 25px;
+  font-size: 15px;
   width: 96%;
   font-family: 'Centra', sans-serif !important;
   text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.6); /* Text shadow for contrast */
@@ -277,11 +231,12 @@ nav.navbar .navbar-toggler[aria-expanded="true"] .navbar-toggler-icon {
 .banner button {
   color: #fff;
   font-weight: 700;
-  font-size: 30px;
-  margin-top: 60px;
+  font-size: 20px;
+  margin-top: 10px;
   letter-spacing: 0.8px;
   display: flex;
   align-items: center;
+  margin-bottom: 10px;
 }
 .banner button svg {
   font-size: 25px;
@@ -320,7 +275,7 @@ nav.navbar .navbar-toggler[aria-expanded="true"] .navbar-toggler-icon {
  
   border-radius: 64px;
   text-align: center;
-  padding: 40px 40px 70px;
+  padding: 20px 40px 70px;
   margin-top: 40px;
   margin-bottom: 40px ;
   box-shadow: 5px 5px 30px #121212;
@@ -331,7 +286,7 @@ nav.navbar .navbar-toggler[aria-expanded="true"] .navbar-toggler-icon {
   
 }
 .Presentation h2 {
-	font-size: 45px;
+	font-size: 25px;
 	font-weight: 700;
   font-family: 'Centra', sans-serif !important;
   text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.6); /* Text shadow for contrast */
@@ -340,8 +295,8 @@ nav.navbar .navbar-toggler[aria-expanded="true"] .navbar-toggler-icon {
 }
 .Presentation p {
     color: #fff;
-    font-size: 20px;
-    margin: 14px 0 75px 0;
+    font-size: 15px;
+    margin: 1px 0 0px 0;
     font-family: 'Centra', sans-serif !important;
     text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.6); /* Text shadow for contrast */
     letter-spacing: 1px; /* Slightly more letter-spacing */
@@ -359,7 +314,7 @@ nav.navbar .navbar-toggler[aria-expanded="true"] .navbar-toggler-icon {
   font-weight: bold;
 }
 .Presentation-slider .item img {
-  width: 90%;
+  width: 50%;
   margin: 0 auto 20px auto;
   
 }
@@ -373,32 +328,39 @@ nav.navbar .navbar-toggler[aria-expanded="true"] .navbar-toggler-icon {
 
 /************ gallery Css ************/
 .gallery {
-  padding: 40px 0;
+  padding: 5px 0;
   position: relative;
-  
+  display: flex; /* Use flexbox to center contents */
+  flex-direction: column; /* Stack children vertically */
+  align-items: center; /* Center children horizontally */
 }
 
-
 .gallery h2 {
-	font-size: 45px;
-	font-weight: 700;
+  font-size: 35px;
+  font-weight: 700;
   text-align: center;
-  color:#151515;
+  color: #151515;
   font-family: 'Centra', sans-serif !important;
   letter-spacing: 1px; /* Slightly more letter-spacing */
   line-height: 1.6em; /* Adjust line height for better readability */
-  font-weight: bold;
 }
+
 .gallery p {
   color: #151515;
-  font-size: 25px;
+  font-size: 17px;
   letter-spacing: 0.8px;
   line-height: 1.5em;
-  margin: 20px auto 10px auto;
+  margin: 20px auto;
   text-align: center;
   width: 70%;
   font-family: 'Centra', sans-serif !important;
-  
+}
+
+.gallery img {
+  width: 65%;
+  height: auto; /* Maintain aspect ratio */
+  display: block; /* Ensures the image is block level for margin auto to work */
+  margin: 0 auto; /* Center the image horizontally */
 }
 
 /************ Footer Css ************/
@@ -409,20 +371,21 @@ nav.navbar .navbar-toggler[aria-expanded="true"] .navbar-toggler-icon {
   background-size: cover;
   background-repeat: no-repeat;
   margin-top: auto;
-  padding-top: 20px;
+  padding-top: 10px;
   width: 100%;
+  
 
 }
 .footer img {
-  width: 40%;
- 
+  width: 20%;
+  
 }
 .footer p {
-  font-weight: 400;
-  font-size: 14px;
+  font-weight: 300;
+  font-size: 12px;
   color: #fff;
   letter-spacing: 0.5px;
-  margin-top: 20px;
+  margin-top: 10px;
 }
 
 /** Form
@@ -474,14 +437,12 @@ nav.navbar .navbar-toggler[aria-expanded="true"] .navbar-toggler-icon {
   color: #121212;
   outline: none;
   transition: border .24s ease-in-out;
-  min-height: 150px;
-  min-width: 900px;
   margin: 'auto';
-  font-family: 'Centra', sans-serif !important;
-  font-size: 20px;
 
-  
+
   }
+
+
 
 .alertContainer { 
   position: fixed;
@@ -541,3 +502,4 @@ nav.navbar .navbar-toggler[aria-expanded="true"] .navbar-toggler-icon {
   border-radius: 40px;
   
 }
+

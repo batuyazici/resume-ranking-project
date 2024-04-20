@@ -3,7 +3,7 @@ import { Container, Row, Col, Card } from "react-bootstrap";
 
 const MatchOperation = () => {
   return (
-    <Container fluid="md" className="mt-4 ">
+    <Container fluid="md" className="mt-4b ">
       <Row className="justify-content-center match-container-1">
         <Col md={6}>
           <Card> {/* Removed fixed minHeight for dynamic adjustment */}

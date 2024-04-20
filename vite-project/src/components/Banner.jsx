@@ -61,9 +61,12 @@ export const Banner = () => {
                 <div className={isVisible ? "animate__animated animate__fadeIn" : ""}>
                   <h1>{`Welcome!`} <span className="txt-rotate" dataperiod="1000" data-rotate='[ "Job Seekers", "Employers"]'><span className="wrap">{text}</span></span></h1>
                     <p>Resume Ranking is a comprehensive and innovative platform for job seekers and employers. 
-                      Our goal is to facilitate and accelerate the recruitment process with tools carefully designed to meet the needs of both parties. </p>
-                      <p>Resume Ranking, which is with you on your career journey, saves you time and energy by making the job search and recruitment process more efficient and effective. Become a member now, give your career a new direction!</p>
-                    <button onClick={() => navigate('/cvs')}>Let's Go<ArrowRightCircle size={25} /></button>
+                      Our goal is to facilitate and accelerate the recruitment process with tools carefully designed to meet the needs of both parties.
+                      <br></br> <br></br>Resume Ranking, which is with you on your career journey, saves you time and energy by making the job search and recruitment process more efficient and effective.
+                       Become a member now, give your career a new direction!
+                       </p>
+                     
+                    <button onClick={() => navigate('/cvs')}>Let's Go<ArrowRightCircle size={20} /></button>
                 </div>}
               </TrackVisibility>
             </Col>
@@ -71,7 +74,7 @@ export const Banner = () => {
               <TrackVisibility>
                 {({ isVisible }) =>
                   <div className={isVisible ? "animate__animated animate__zoomIn" : ""}>
-                    <img src={headerImg} alt="Header Img"/>
+                    <img className='header-img' src={headerImg} alt="Header Img"/>
                   </div>}
               </TrackVisibility>
             </Col>

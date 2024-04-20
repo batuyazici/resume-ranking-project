@@ -41,8 +41,11 @@ export const Gallery = () => {
                             <h2>
                             For Employers
                             </h2>
-                            <p>Create your job posting and quickly find ideal candidates from our CV database. Our technology automatically matches candidates' skills and experience to your job requirements, 
+                           <Col className='mx-5'>
+                           <p>Create your job posting and quickly find ideal candidates from our CV database. Our technology automatically matches candidates' skills and experience to your job requirements, 
                                 so you can easily track and assess the process with our candidate management tools.</p>
+                           </Col>
+                           
                              <Tab.Container id='gallery-tabs' defaultActiveKey='first'>
                              
                                 <Tab.Content>
