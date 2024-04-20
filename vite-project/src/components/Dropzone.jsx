@@ -1,7 +1,7 @@
 import { useState, useCallback } from "react";
 import { useDropzone } from "react-dropzone";
 import spectrumGradient from '../assets/img/spectrum-gradient.svg';
-import Img from "../assets/img/file-arrow-up.svg";
+
 
 import { ArrowRightCircle, CloudUpload } from 'react-bootstrap-icons';
 import { X } from 'react-bootstrap-icons';
@@ -23,7 +23,7 @@ import {
 import { Helmet } from "react-helmet-async";
 
 
-  
+
 
 function Dropzone() {
   const [isHovering, setIsHovering] = useState(false);
@@ -32,7 +32,7 @@ function Dropzone() {
     useState(false);
   const [uploadSuccess, setUploadSuccess] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
-  const [viewMode, setViewMode] = useState("grid");
+  const [viewMode, setViewMode] = useState("list");
 
   const onDrop = useCallback(
     (acceptedFiles, rejectedFiles) => {
@@ -86,7 +86,7 @@ function Dropzone() {
     return "";
   };
 
-  const truncateFileName = (fileName, maxLength = 17) => {
+  const truncateFileName = (fileName, maxLength = 15) => {
     if (fileName.length > maxLength) {
       return `${fileName.substring(0, maxLength - 3)}...`;
     }
@@ -143,7 +143,7 @@ function Dropzone() {
                     size="sm"
                     onClick={() => removeFile(file.name, file.size)}
                     style={{ padding: "0.25rem 0.5rem", fontSize: "0.75rem" }}
-                    
+
                   >
                     Delete
                   </Button>
@@ -264,25 +264,25 @@ function Dropzone() {
         )}
       </div>
       <Container >
-        
-      <Form 
-  onSubmit={handleSubmit} 
-  className="mt-4 border-5 text-dark pt-2 px-3 mx-5 mb-4 " 
-  style={{
-    backgroundImage: `url(${spectrumGradient})`,
-    backgroundPosition: 'top center',
-    backgroundSize: 'cover',
-    backgroundRepeat: 'no-repeat',
-    borderRadius:'30px',
-   
-    
-  }}
->
+
+        <Form
+          onSubmit={handleSubmit}
+          className="mt-4 border-5 text-dark pt-2 px-3 mx-5 mb-4 "
+          style={{
+            backgroundImage: `url(${spectrumGradient})`,
+            backgroundPosition: 'top center',
+            backgroundSize: 'cover',
+            backgroundRepeat: 'no-repeat',
+            borderRadius: '30px',
+
+
+          }}
+        >
 
           <div {...getRootProps({ className: "p-2 mt-2  dropzone font-monospace" })}>
             <input {...getInputProps()} />
-            <p style={{  fontSize:"17px", marginBottom:"0.5rem" }}>Drag and drop some files here, or click to select files</p>
-            <em style={{ fontWeight: "bolder", fontSize:"15px" }}>
+            <p style={{ fontSize: "17px", marginBottom: "0.5rem" }}>Drag and drop some files here, or click to select files</p>
+            <em style={{ fontWeight: "bolder", fontSize: "15px" }}>
               (Only *.pdf, *.docx files will be accepted)
             </em>
             <Button
@@ -290,7 +290,7 @@ function Dropzone() {
               onClick={open}
               size="sm"
               className="mt-2 font-monospace"
-             
+
             >
               Add File <CloudArrowUp size={20} />
             </Button>
@@ -308,7 +308,7 @@ function Dropzone() {
                   id="toggle-list"
                   value="list"
                   variant="btn btn-light border-dark"
-                  className="  font-monospace fs-7  " 
+                  className="  font-monospace fs-7  "
                 >
                   List
                 </ToggleButton>
@@ -316,7 +316,7 @@ function Dropzone() {
                   id="toggle-grid"
                   value="grid"
                   variant="btn btn-light border-dark"
-                  className="  font-monospace  fs-7" 
+                  className="  font-monospace  fs-7"
                 >
                   Grid
                 </ToggleButton>
@@ -328,26 +328,26 @@ function Dropzone() {
               )}
               {files.length > 0 && (
                 <Button variant="light" onClick={clearFiles} className="d-flex align-items-center justify-content-center mx-3 border-dark border-2 font-monospace"
-                style={{fontSize:"13px"}}>
-                Delete All <X size={15} className="ms-1" />
-              </Button>
+                  style={{ fontSize: "13px" }}>
+                  Delete All <X size={15} className="ms-1" />
+                </Button>
               )}
             </div>
-            {viewMode === "grid" ? renderFileGrid() : renderFileList()}
+            {viewMode === "list" ? renderFileList() : renderFileGrid()}
             <div className="mt-0 d-flex justify-content-center">
               <div className="form-submit-section">
                 {files.length > 0 && (
                   <Button
-                  variant={isHovering ? "outline-dark border-dark" : "btn btn-light border-dark"}
+                    variant={isHovering ? "outline-dark border-dark" : "btn btn-light border-dark"}
                     type="submit"
                     disabled={isUploading}
                     className="mt-2 mb-2 font-monospace"
                     size="lg"
-                    style={{fontSize:"13px"}}
+                    style={{ fontSize: "13px" }}
                     onMouseEnter={() => setIsHovering(true)}
                     onMouseLeave={() => setIsHovering(false)}
-                    
-                
+
+
                   >
                     {isUploading ? "Uploading..." : "Upload"} <CloudUpload size={20} className="ms-1" />
                   </Button>
@@ -357,16 +357,16 @@ function Dropzone() {
           </div>
         </Form>
         {uploadSuccess && (
-         <div className="form-continue-section d-flex justify-content-center">
-         <Button variant="outline-dark" className="mt-1 mb-5" size="lg">
-           Next Step <ArrowRightCircle size={25} />
-         </Button>
-       </div>
+          <div className="form-continue-section d-flex justify-content-center">
+            <Button variant="outline-dark" className="mt-1 mb-5" size="lg">
+              Next Step <ArrowRightCircle size={25} />
+            </Button>
+          </div>
         )}
       </Container>
-      
+
     </>
-    
+
   );
 }
 
