@@ -121,8 +121,8 @@ span.navbar-text {
     margin-left: 14px;
 }
 .social-icon a {
-    width: 32px;
-    height: 32px;
+    width: 40px;
+    height: 40px;
     background: rgba(217, 217, 217, 0.1);
     display: inline-flex;
     border-radius: 50%;
@@ -134,8 +134,8 @@ span.navbar-text {
 }
 .social-icon a::before {
     content: "";
-    width: 32px;
-    height: 32px;
+    width: 40px;
+    height: 40px;
     position: absolute;
     background-color: #ffffff;
     border-radius: 50%;
@@ -376,13 +376,10 @@ span.navbar-text {
   
 
 }
-.footer img {
-  width: 20%;
-  
-}
+
 .footer p {
   font-weight: 300;
-  font-size: 12px;
+  font-size: 15px;
   color: #fff;
   letter-spacing: 0.5px;
   margin-top: 10px;
