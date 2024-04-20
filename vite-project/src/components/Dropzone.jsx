@@ -159,7 +159,7 @@ function Dropzone() {
   const renderFileList = () => (
     <ListGroup
       variant="flush"
-      className="p-3 font-monospace"
+      className="font-monospace"
       style={{ overflowY: "auto", maxHeight: "300px", marginTop: "1rem" }}
     >
       {files.map((file, index) => (
