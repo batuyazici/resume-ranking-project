@@ -1,21 +1,18 @@
 /************ Custom Font ************/
+
 @font-face {
-	font-family: Centra;
-	src: url('./assets/font/CentraNo2-Bold.ttf');
-	font-weight: 700;
-}
-@font-face {
-	font-family: Centra;
-	src: url('./assets/font/CentraNo2-Medium.ttf');
-	font-weight: 500;
-}
-@font-face {
-	font-family: Centra;
-	src: url('./assets/font/CentraNo2-Book.ttf');
-	font-weight: 400;
+  font-family: 'Montserrat-Bold';
+  src: url('./assets/font/Montserrat-Bold.ttf') format('truetype');
+  font-weight: bold;
+  font-style: normal;
 }
 
-
+@font-face {
+  font-family: 'Montserrat-Light';
+  src: url('./assets/font/Montserrat-Light.ttf') format('truetype');
+  font-weight: 300; /* Light */
+  font-style: normal;
+}
 
 /************ Default Css ************/
 * {
@@ -45,7 +42,7 @@ body {
   position: relative;
   background-color: #ffffff !important;
   color: #fff !important;
-  font-family: 'Centra', sans-serif !important;
+  font-family: 'Montserrat-Bold' !important;
   height: 100%;
   margin: 0;
   padding: 0;
@@ -108,7 +105,7 @@ nav.navbar .navbar-nav .nav-link.navbar-link {
   color: #fff !important;
   letter-spacing: 0.8px;
   padding: 0 25px;
-  font-size: 13px;
+  font-size: 15px;
   opacity: 0.75;
 }
 nav.navbar .navbar-nav a.nav-link.navbar-link:hover,
@@ -166,6 +163,7 @@ span.navbar-text {
 	position: relative;
 	background-color: transparent;
 	transition: 0.3s ease-in-out;
+
 }
 .navbar-text button span {
   z-index: 1;
@@ -208,7 +206,7 @@ span.navbar-text {
   letter-spacing: 0.8px;
   line-height: 1;
   margin-bottom: 0px;
-  margin-top: 5px;
+  margin-top: 50px;
   display: block;
 }
 
@@ -221,9 +219,9 @@ span.navbar-text {
 .banner p {
   color: white;
   padding-top: 25px;
-  font-size: 15px;
+  font-size: 19px;
   width: 96%;
-  font-family: 'Centra', sans-serif !important;
+  font-family: 'Montserrat-Light' !important;
   text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.6); /* Text shadow for contrast */
   letter-spacing: 1px; /* Slightly more letter-spacing */
   line-height: 1.6em; /* Adjust line height for better readability */
@@ -288,16 +286,16 @@ span.navbar-text {
 .Presentation h2 {
 	font-size: 25px;
 	font-weight: 700;
-  font-family: 'Centra', sans-serif !important;
+  font-family: 'Montserrat-Bold'  !important;
   text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.6); /* Text shadow for contrast */
   letter-spacing: 1px; /* Slightly more letter-spacing */
   line-height: 1.6em; /* Adjust line height for better readability */
 }
 .Presentation p {
     color: #fff;
-    font-size: 15px;
-    margin: 1px 0 0px 0;
-    font-family: 'Centra', sans-serif !important;
+    font-size: 16px;
+    margin: 5px 0 10px 0;
+    font-family: 'Montserrat-Light'  !important;
     text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.6); /* Text shadow for contrast */
     letter-spacing: 1px; /* Slightly more letter-spacing */
     line-height: 1.6em; /* Adjust line height for better readability */
@@ -307,11 +305,12 @@ span.navbar-text {
   width: 80%;
   margin: 0 auto;
   position: relative;
-  font-family: 'Centra', sans-serif !important;
+  font-family: 'Montserrat-Bold'  !important;
   text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.6); /* Text shadow for contrast */
   letter-spacing: 1px; /* Slightly more letter-spacing */
   line-height: 1.6em; /* Adjust line height for better readability */
   font-weight: bold;
+  
 }
 .Presentation-slider .item img {
   width: 50%;
@@ -340,20 +339,20 @@ span.navbar-text {
   font-weight: 700;
   text-align: center;
   color: #151515;
-  font-family: 'Centra', sans-serif !important;
+  font-family: 'Montserrat-Bold'  !important;
   letter-spacing: 1px; /* Slightly more letter-spacing */
   line-height: 1.6em; /* Adjust line height for better readability */
 }
 
 .gallery p {
   color: #151515;
-  font-size: 17px;
+  font-size: 19px;
   letter-spacing: 0.8px;
   line-height: 1.5em;
   margin: 20px auto;
   text-align: center;
   width: 70%;
-  font-family: 'Centra', sans-serif !important;
+  font-family: 'Montserrat-Light' !important;
 }
 
 .gallery img {
@@ -373,6 +372,7 @@ span.navbar-text {
   margin-top: auto;
   padding-top: 10px;
   width: 100%;
+  font-family: 'Montserrat-Light';
   
 
 }
@@ -479,7 +479,7 @@ span.navbar-text {
 
 .dropzone-title {
 
-  font-family: 'Centra', sans-serif !important;
+  font-family: 'Montserrat-Light' sans-serif !important;
   font-size: 23px;
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5); /* X Y Blur Color */
   
