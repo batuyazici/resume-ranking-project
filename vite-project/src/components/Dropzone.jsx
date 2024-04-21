@@ -165,7 +165,7 @@ function Dropzone() {
       {files.map((file, index) => (
         <ListGroup.Item
           key={`${file.path}-${index}`}
-          className="d-flex justify-content-between align-items-center bg-white rounded-3 mb-2 p-2 font-monospace"
+          className="d-flex justify-content-between align-items-center bg-white rounded-3 mb-2 p-2 font-monospace mx-3"
         >
           {file.name}
           <div>
