@@ -488,6 +488,38 @@ span.navbar-text {
 
 }
 
+
+
+/***** Matching Page ****/
+
+.circle-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 20px;
+  
+}
+
+.circle {
+  position: relative;
+  width: 80px; /* Fixed width */
+  height: 80px; /* Fixed height */
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.2em;
+  color: white;
+  font-weight: 900;
+  text-shadow: 2px 2px 4px #000000;
+  background: conic-gradient(#8328ca 0%, #8328ca var(--percentage));
+}
+
+.circle span {
+  position: absolute;
+  z-index: 2; /* Above the inner circle */
+}
+
 .match-container-1 {
   
   background-color: #cc71c4;
@@ -495,8 +527,7 @@ span.navbar-text {
   background-position: top center;
   background-size: cover;
   background-repeat: no-repeat;
-  padding: 20px 20px 20px 20px;
-  border-radius: 40px;
+  padding: 25px 20px 25px 20px;
+  border-radius: 10px;
   
 }
-
