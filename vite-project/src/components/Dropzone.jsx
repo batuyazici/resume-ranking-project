@@ -358,7 +358,7 @@ function Dropzone() {
         </Form>
         {uploadSuccess && (
           <div className="form-continue-section d-flex justify-content-center">
-            <Button variant="outline-dark" className="mt-1 mb-5" size="lg">
+            <Button variant="outline-dark" className="mt-1 mb-5 btn-sm" size="lg">
               Next Step <ArrowRightCircle size={25} />
             </Button>
           </div>
