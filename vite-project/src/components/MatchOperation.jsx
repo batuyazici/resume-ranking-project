@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Container, Row, Col, Card, Button } from "react-bootstrap";
-import { ArrowRightCircle } from 'react-bootstrap-icons';
+import { ArrowRightCircle, CheckCircleFill } from 'react-bootstrap-icons'; // Added CheckCircleFill for visual cue
 
 const MatchOperation = () => {
   const [showResultButton, setShowResultButton] = useState(false);
@@ -16,7 +16,6 @@ const MatchOperation = () => {
 
   const handleMatchThemClick = () => {
     setShowResultButton(true);
-    // Example action: Log the selected containers to the console
     console.log("Selected Containers:", selectedContainers);
   };
 
@@ -31,12 +30,13 @@ const MatchOperation = () => {
   };
 
   const containerStyle = (containerId) => ({
-    backgroundColor: selectedContainers.includes(containerId) ? '#f0f0f0' : '',
-    cursor: 'pointer'
+    backgroundColor: selectedContainers.includes(containerId) ? '#e1d2ec' : '', // Changed to a light green for a subtle indication
+    cursor: 'pointer',
+    position: 'relative' // Ensure the position context for the check mark
   });
 
-  const isSelectedText = (containerId) => {
-    return selectedContainers.includes(containerId) ? "Selected" : "";
+  const checkMark = (containerId) => {
+    return selectedContainers.includes(containerId) ? <CheckCircleFill color="purple" size={20} style={{ position: 'absolute', top: '5px', right: '5px' }} /> : null;
   };
 
   return (
@@ -45,14 +45,14 @@ const MatchOperation = () => {
         <Col>
           <Card>
             <Card.Body>
-              <Card.Title className='text-center'>Scores Table</Card.Title>
-              <Card.Text>This displays scores across various categories.</Card.Text>
-              <Row xs={1} sm={2} md={5} lg={5} className="g-3">
+              <Card.Title className='text-center' style={{fontSize:'17px'}}>Scores Table</Card.Title>
+              <Card.Text style={{fontSize:'14px'}}>This displays scores across various categories.</Card.Text>
+              <Row xs={1} sm={2} md={6} lg={5} className="g-3">
                 {Object.entries(scores).map(([key, value]) => (
                   <Col key={key}>
                     <Card>
                       <Card.Body>
-                        <Card.Title className='text-center'>{key.charAt(0).toUpperCase() + key.slice(1)}</Card.Title>
+                        <Card.Title className='text-center' style={{fontSize:'15px'}}>{key.charAt(0).toUpperCase() + key.slice(1)}</Card.Title>
                         <div className="circle-container">
                           <div className="circle" style={{ '--percentage': `${value * 3.6}deg` }}>
                             <span>{value}%</span>
@@ -73,13 +73,13 @@ const MatchOperation = () => {
           <Col md={6}>
             <Card>
               <Card.Body>
-                <Card.Title className='text-center'>Uploaded Resumes</Card.Title>
+                <Card.Title className='text-center' style={{fontSize:'17px'}}>Uploaded Resumes</Card.Title>
                 {[...Array(6)].map((_, index) => (
                   <Card className="mt-3" key={`resume-${index}`} style={containerStyle(`resume-${index}`)} onClick={() => handleContainerClick(`resume-${index}`)}>
                     <Card.Body>
-                      <Card.Title>Nested Container {index + 1}</Card.Title>
+                      <Card.Title style={{fontSize:'15px'}}>Nested Container {index + 1}</Card.Title>
                       <Card.Text>
-                        {isSelectedText(`resume-${index}`)}{/* Displaying selection status */}
+                        {checkMark(`resume-${index}`)} {/* Displaying selection status with icon */}
                       </Card.Text>
                     </Card.Body>
                   </Card>
@@ -91,13 +91,13 @@ const MatchOperation = () => {
           <Col md={6}>
             <Card>
               <Card.Body>
-                <Card.Title className='text-center'>Jobs</Card.Title>
+                <Card.Title className='text-center' style={{fontSize:'17px'}}>Jobs</Card.Title>
                 {[...Array(6)].map((_, index) => (
                   <Card className="mt-3" key={`job-${index}`} style={containerStyle(`job-${index}`)} onClick={() => handleContainerClick(`job-${index}`)}>
                     <Card.Body>
-                      <Card.Title>Nested Container {index + 1}</Card.Title>
+                      <Card.Title style={{fontSize:'15px'}}>Nested Container {index + 1}</Card.Title>
                       <Card.Text>
-                        {isSelectedText(`job-${index}`)}{/* Displaying selection status */}
+                        {checkMark(`job-${index}`)} {/* Displaying selection status with icon */}
                       </Card.Text>
                     </Card.Body>
                   </Card>
@@ -109,7 +109,7 @@ const MatchOperation = () => {
       </Container>
       {!showResultButton && (
         <div className="form-continue-section d-flex justify-content-center">
-          <Button variant="outline-dark" className="mt-1 mb-5" size="lg" onClick={handleMatchThemClick}>
+          <Button variant="outline-dark" className="mt-1 mb-5 btn-sm" size="lg" onClick={handleMatchThemClick}>
             Match Them <ArrowRightCircle size={25} />
           </Button>
         </div>
@@ -117,7 +117,7 @@ const MatchOperation = () => {
 
       {showResultButton && (
         <div className="form-continue-section d-flex justify-content-center">
-          <Button variant="outline-dark" className="mt-1 mb-5" size="lg">
+          <Button variant="outline-dark " className="mt-1 mb-5 btn-sm" size="lg">
             Show Result <ArrowRightCircle size={25} />
           </Button>
         </div>
