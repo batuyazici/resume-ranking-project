@@ -1,18 +1,17 @@
 import React, { useState } from 'react';
 import { Container, Row, Col, Card, Button } from "react-bootstrap";
-import { ArrowRightCircle, CheckCircleFill } from 'react-bootstrap-icons'; // Added CheckCircleFill for visual cue
+import { ArrowRightCircle, Border, CheckCircleFill, ChevronLeft, ChevronRight } from 'react-bootstrap-icons'; // Changed to ChevronLeft and ChevronRight
 
 const MatchOperation = () => {
   const [showResultButton, setShowResultButton] = useState(false);
   const [selectedContainers, setSelectedContainers] = useState([]);
-
-  const scores = {
-    work: 75,
-    education: 60,
-    skills: 90,
-    language: 85,
-    certification: 70
-  };
+  const [scores, setScores] = useState({
+    work: 0,
+    education: 0,
+    skills: 0,
+    language: 0,
+    certification: 0
+  });
 
   const handleMatchThemClick = () => {
     setShowResultButton(true);
@@ -30,43 +29,61 @@ const MatchOperation = () => {
   };
 
   const containerStyle = (containerId) => ({
-    backgroundColor: selectedContainers.includes(containerId) ? '#e1d2ec' : '', // Changed to a light green for a subtle indication
+    backgroundColor: selectedContainers.includes(containerId) ? '#e1d2ec' : '',
     cursor: 'pointer',
-    position: 'relative' // Ensure the position context for the check mark
+    position: 'relative',
   });
 
   const checkMark = (containerId) => {
     return selectedContainers.includes(containerId) ? <CheckCircleFill color="purple" size={20} style={{ position: 'absolute', top: '5px', right: '5px' }} /> : null;
   };
 
+  const handleIncrement = (key) => {
+    setScores(prev => ({
+      ...prev,
+      [key]: Math.min(prev[key] + 5, 100)  // Prevent going over 100%
+    }));
+  };
+
+  const handleDecrement = (key) => {
+    setScores(prev => ({
+      ...prev,
+      [key]: Math.max(prev[key] - 5, 0)  // Prevent dropping below 0%
+    }));
+  };
+
+
   return (
-    <Container fluid="md" className="top-level-container mt-4">
-      <Row className="justify-content-center">
-        <Col>
-          <Card>
-            <Card.Body>
-              <Card.Title className='text-center' style={{fontSize:'17px'}}>Scores Table</Card.Title>
-              <Card.Text style={{fontSize:'14px'}}>This displays scores across various categories.</Card.Text>
-              <Row xs={1} sm={2} md={6} lg={5} className="g-3">
-                {Object.entries(scores).map(([key, value]) => (
-                  <Col key={key}>
-                    <Card>
-                      <Card.Body>
-                        <Card.Title className='text-center' style={{fontSize:'15px'}}>{key.charAt(0).toUpperCase() + key.slice(1)}</Card.Title>
-                        <div className="circle-container">
-                          <div className="circle" style={{ '--percentage': `${value * 3.6}deg` }}>
-                            <span>{value}%</span>
-                          </div>
+    <Container fluid="md" className="top-level-container mt-3">
+    <Row className="justify-content-center ">
+      <Col>
+        <Card>
+          <Card.Body className='border border-1 border-black'>
+            {/* <Card.Title className='text-center' style={{fontSize:'17px'}}>Scores Table</Card.Title> */}
+            {/* <Card.Text style={{fontSize:'14px'}}>This displays scores across various categories.</Card.Text> */}
+            <Row xs={1} sm={2} md={6} lg={5} className="g-3">
+              {Object.keys(scores).map(key => (
+                <Col key={key}>
+                  <Card>
+                    <Card.Body className='border border-1 border-black'>
+                      <Card.Title className='text-center' style={{fontSize:'15px'}}>{key.charAt(0).toUpperCase() + key.slice(1)}</Card.Title>
+                      <div className="circle-container" style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                        <Button variant="link" onClick={() => handleDecrement(key)} style={{ zIndex: 1 }}><ChevronLeft color="black" size={20}/></Button>
+                        <div className="circle" style={{ '--percentage': `${scores[key] * 3.6}deg` }}>
+                          <span>{scores[key]}%</span>
                         </div>
-                      </Card.Body>
-                    </Card>
-                  </Col>
-                ))}
-              </Row>
-            </Card.Body>
-          </Card>
-        </Col>
-      </Row>
+                        <Button variant="link" onClick={() => handleIncrement(key)} style={{ zIndex: 1 }}><ChevronRight color="black" size={20}/></Button>
+                      </div>
+                    </Card.Body>
+                  </Card>
+                </Col>
+              ))}
+            </Row>
+          </Card.Body>
+        </Card>
+      </Col>
+    </Row>
+
 
       <Container fluid="md" className="mt-4b">
         <Row className="justify-content-center match-container-1 mt-4 mb-4">
