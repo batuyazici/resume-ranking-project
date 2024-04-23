@@ -43,6 +43,7 @@ const Createjob = () => {
         }}
       >
         <Form onSubmit={handleSkillAdd} className="border-3 text-dark p-3 bg-white" style={{borderRadius: '15px'}}>
+        <div className="text-center">Please make a job description</div>
           <Form.Group className="mb-1" controlId="jobTitle" style={{fontSize:'15px'}}>
             <Form.Label>Job Title</Form.Label>
             <Form.Control  type="text" placeholder="Enter job title" style={{fontSize:'12px'}} />
@@ -81,9 +82,9 @@ const Createjob = () => {
             <Form.Text className="mx-1">(Select up to 10)</Form.Text>
             <div className="d-flex flex-wrap">
               {skills.map((skill, index) => (
-                <Badge key={index} pill bg="" className="d-flex align-items-center mb-2 ml-0 mt-0" style={{ borderRadius: '10px', backgroundColor:'#8729cc'}}>
+                <Badge key={index} pill bg="" className="d-flex align-items-center mb-2 ml-0 mt-0 " style={{ borderRadius: '10px', backgroundColor:'#8729cc', marginRight:'4px'}}>
                   {skill}
-                  <X style={{ cursor: 'pointer', marginLeft: '5px' }} onClick={() => handleRemoveSkill(index)} />
+                  <X style={{ cursor: 'pointer', marginLeft: '10px' }} onClick={() => handleRemoveSkill(index)} />
                 </Badge>
               ))}
             </div>
