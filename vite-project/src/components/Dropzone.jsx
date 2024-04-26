@@ -1,9 +1,7 @@
 import { useState, useCallback } from "react";
 import { useDropzone } from "react-dropzone";
 import spectrumGradient from '../assets/img/spectrum-gradient.svg';
-
-
-import { ArrowRightCircle, CloudUpload } from 'react-bootstrap-icons';
+import { ArrowRightCircle, CloudUpload, CheckCircleFill } from 'react-bootstrap-icons';
 import { X } from 'react-bootstrap-icons';
 import { CloudArrowUp } from 'react-bootstrap-icons';
 
@@ -22,9 +20,6 @@ import {
 } from "react-bootstrap";
 import { Helmet } from "react-helmet-async";
 
-
-
-
 function Dropzone() {
   const [isHovering, setIsHovering] = useState(false);
   const [files, setFiles] = useState([]);
@@ -33,6 +28,8 @@ function Dropzone() {
   const [uploadSuccess, setUploadSuccess] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [viewMode, setViewMode] = useState("list");
+  const [uploadedFiles, setUploadedFiles] = useState(new Set());
+  const [batchId, setBatchId] = useState(null);
 
   const onDrop = useCallback(
     (acceptedFiles, rejectedFiles) => {
@@ -41,7 +38,7 @@ function Dropzone() {
       const newUniqueFiles = acceptedFiles.filter(
         (af) => !files.some((f) => f.name === af.name && f.size === af.size)
       );
-
+        
       if (files.length + newUniqueFiles.length > 200) {
         alert("Cannot upload more than 200 files at once");
         return;
@@ -74,7 +71,6 @@ function Dropzone() {
 
   const clearFiles = () => {
     setFiles([]);
-    setUploadSuccess(false);
   };
 
   const getFileTypeIndicator = (fileName) => {
@@ -85,6 +81,7 @@ function Dropzone() {
     }
     return "";
   };
+
 
   const truncateFileName = (fileName, maxLength = 15) => {
     if (fileName.length > maxLength) {
@@ -130,24 +127,25 @@ function Dropzone() {
               className="mb-3 font-monospace"
             >
               <Card className="h-100 " style={cardStyle}>
-                <Card.Body className="p-2">
-                  <Card.Title className="mb-1 " style={{ fontSize: "1rem" }}>
-                    {truncateFileName(file.path)}
-                  </Card.Title>
-                  <Badge pill bg="dark" size="sm" className="me-2 font-monospace">
-                    {getFileTypeIndicator(file.path)}
-                  </Badge>
-                  <Button
-                    variant="outline-danger "
-                    className="font-monospace"
-                    size="sm"
-                    onClick={() => removeFile(file.name, file.size)}
-                    style={{ padding: "0.25rem 0.5rem", fontSize: "0.75rem" }}
+              <Card.Body className="p-2">
+  <Card.Title className="mb-1 " style={{ fontSize: "1rem" }}>
+    {truncateFileName(file.path)}
+  </Card.Title>
+  <Badge pill bg="dark" size="sm" className="me-2 font-monospace">
+    {getFileTypeIndicator(file.path)}
+  </Badge>
+  {uploadedFiles.has(file.name) && <CheckCircleFill color="green" className="me-2"></CheckCircleFill>}
+  <Button
+    variant="outline-danger "
+    className="font-monospace"
+    size="sm"
+    onClick={() => removeFile(file.name, file.size)}
+    style={{ padding: "0.25rem 0.5rem", fontSize: "0.75rem" }}
+  >
+    Delete
+  </Button>
+</Card.Body>
 
-                  >
-                    Delete
-                  </Button>
-                </Card.Body>
               </Card>
             </Col>
           ))}
@@ -163,24 +161,28 @@ function Dropzone() {
       style={{ overflowY: "auto", maxHeight: "300px", marginTop: "1rem" }}
     >
       {files.map((file, index) => (
-        <ListGroup.Item
-          key={`${file.path}-${index}`}
-          className="d-flex justify-content-between align-items-center bg-white rounded-3 mb-2 p-2 font-monospace mx-3"
-        >
-          {file.name}
-          <div>
-            <Badge pill bg="dark" className="me-2 font-monospace">
-              {getFileTypeIndicator(file.name)}
-            </Badge>
-            <Button
-              variant="outline-danger"
-              size="sm"
-              onClick={() => removeFile(file.name, file.size)}
-            >
-              Delete
-            </Button>
-          </div>
-        </ListGroup.Item>
+       <ListGroup.Item
+       key={`${file.path}-${index}`}
+       className="d-flex justify-content-between align-items-center bg-white rounded-3 mb-2 p-2 font-monospace mx-3"
+     >
+       {file.name} 
+       
+       <div>
+       {uploadedFiles.has(file.name) && <CheckCircleFill color="green" className="me-2"></CheckCircleFill>}
+         <Badge pill bg="dark" className="me-2 font-monospace">
+           {getFileTypeIndicator(file.name)}
+         </Badge>
+         
+         <Button
+           variant="outline-danger"
+           size="sm"
+           onClick={() => removeFile(file.name, file.size)}
+         >
+           Delete
+         </Button>
+       </div>
+     </ListGroup.Item>
+     
       ))}
     </ListGroup>
   );
@@ -209,30 +211,35 @@ function Dropzone() {
     setIsUploading(true); // Start upload process
 
     const formData = new FormData();
-    files.forEach((file) => {
-      formData.append("file_uploads", file);
+    files.forEach(file => {
+      if (!uploadedFiles.has(file.name)) {
+        formData.append("file_uploads", file);
+      }
     });
+    
+    if (batchId) formData.append('batch_id', String(batchId));
 
+    console.log(formData);
     try {
       const endpoint = import.meta.env.VITE_FAST_API_ENDPOINT;
       const response = await fetch(endpoint, {
         method: "POST",
         body: formData,
       });
+      const data = await response.json();
+      
+
       if (response.ok) {
-        setTimeout(() => {
-          setIsUploading(false);
-          setUploadSuccess(true);
-          // Animation and state update logic remains here
-          setTimeout(() => {
-            // Optionally, clear or hide elements after the animation completes
-            setFiles([]);
-            setShowFileRejectionMessage(false);
-          }, 500); // Match the duration of the animation
-        }, 1000);
+        setBatchId(data.batch_id);
+        console.log(response);
+        setIsUploading(false);
+        setUploadSuccess(true);
+        setShowFileRejectionMessage(false);
+        files.forEach(file => uploadedFiles.add(file.name));
+        setUploadedFiles(new Set(uploadedFiles));
       } else {
         console.log("File upload failed");
-      }
+      } 
     } catch (error) {
       console.error("Upload error:", error);
     }
@@ -274,11 +281,8 @@ function Dropzone() {
             backgroundSize: 'cover',
             backgroundRepeat: 'no-repeat',
             borderRadius: '30px',
-
-
           }}
         >
-
           <div {...getRootProps({ className: "p-2 mt-2  dropzone font-monospace" })}>
             <input {...getInputProps()} />
             <p style={{ fontSize: "17px", marginBottom: "0.5rem" }}>Drag and drop some files here, or click to select files</p>

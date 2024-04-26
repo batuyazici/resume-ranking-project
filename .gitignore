@@ -18,7 +18,7 @@ __pycache__/
 poetry.lock
 
 #FastAPI
-/app/src/uploads/
+/app/uploads/
 
 
 # Editor directories and files
