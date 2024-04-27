@@ -79,7 +79,14 @@ const CreateJob = () => {
           padding: "20px",
         }}
       >
-        <Row className="justify-content-center">
+        
+        <Form
+          onSubmit={handleSkillAdd}
+          className="border-3 text-dark p-3 bg-white"
+          style={{ borderRadius: "15px" }}
+        >
+          <div className="text-center mb-3">Fill in the job details and set CV category weights to equal 100%.</div>
+          <Row className="justify-content-center">
           <Col>
             <div className="p-0 border-0 mb-4 mt-2">
               <Row xs={1} sm={2} md={6} lg={5} className="g-5">
@@ -88,7 +95,7 @@ const CreateJob = () => {
                     <div>
                       <h5
                         className="text-center mb-3"
-                        style={{ fontSize: "13px", color: "white" }}
+                        style={{ fontSize: "13px", color: "black" }}
                       >
                         {key.charAt(0).toUpperCase() + key.slice(1)}
                       </h5>
@@ -105,7 +112,7 @@ const CreateJob = () => {
                           onClick={() => handleDecrement(key)}
                           style={{ zIndex: 1 }}
                         >
-                          <ChevronLeft color="white" size={20} />
+                          <ChevronLeft color="black" size={20} />
                         </Button>
                         <div
                           className="circle"
@@ -118,7 +125,7 @@ const CreateJob = () => {
                           onClick={() => handleIncrement(key)}
                           style={{ zIndex: 1 }}
                         >
-                          <ChevronRight color="white" size={20} />
+                          <ChevronRight color="black" size={20} />
                         </Button>
                       </div>
                     </div>
@@ -128,12 +135,7 @@ const CreateJob = () => {
             </div>
           </Col>
         </Row>
-        <Form
-          onSubmit={handleSkillAdd}
-          className="border-3 text-dark p-3 bg-white"
-          style={{ borderRadius: "15px" }}
-        >
-          <div className="text-center">Please make a job description</div>
+         
           <Form.Group
             className="mb-1"
             controlId="jobTitle"

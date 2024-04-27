@@ -508,11 +508,12 @@ span.navbar-text {
   justify-content: center;
   align-items: center;
   font-size: 1.0em;
-  color: #1f011d;
+  color: white;
   font-weight: 900;
- 
-  background: conic-gradient(#ffffff 0%, #ffffff var(--percentage));
+  background: conic-gradient(#bf4ce3 0%, #bf4ce3 var(--percentage));
+  text-shadow: 0px 0px 4px rgba(0, 0, 0, 0.5); /* Horizontal, Vertical, Blur Radius, Color */
 }
+
 
 .circle span {
   position: absolute;
