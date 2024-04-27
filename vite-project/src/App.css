@@ -510,7 +510,7 @@ span.navbar-text {
   font-size: 1.0em;
   color: white;
   font-weight: 900;
-  background: conic-gradient(#bf4ce3 0%, #bf4ce3 var(--percentage));
+  background: conic-gradient(#942cd2 0%, #942cd2 var(--percentage));
   text-shadow: 0px 0px 4px rgba(0, 0, 0, 0.5); /* Horizontal, Vertical, Blur Radius, Color */
 }
 

@@ -79,63 +79,66 @@ const CreateJob = () => {
           padding: "20px",
         }}
       >
-        
         <Form
           onSubmit={handleSkillAdd}
           className="border-3 text-dark p-3 bg-white"
           style={{ borderRadius: "15px" }}
         >
-          <div className="text-center mb-3">Fill in the job details and set CV category weights to equal 100%.</div>
+          <div className="text-center mb-3">
+            Fill in the job details and set CV category weights to equal 100%.
+          </div>
           <Row className="justify-content-center">
-          <Col>
-            <div className="p-0 border-0 mb-4 mt-2">
-              <Row xs={1} sm={2} md={6} lg={5} className="g-5">
-                {Object.keys(scores).map((key) => (
-                  <Col key={key}>
-                    <div>
-                      <h5
-                        className="text-center mb-3"
-                        style={{ fontSize: "13px", color: "black" }}
-                      >
-                        {key.charAt(0).toUpperCase() + key.slice(1)}
-                      </h5>
-                      <div
-                        className="circle-container"
-                        style={{
-                          position: "relative",
-                          display: "flex",
-                          alignItems: "center",
-                        }}
-                      >
-                        <Button
-                          variant="link"
-                          onClick={() => handleDecrement(key)}
-                          style={{ zIndex: 1 }}
+            <Col>
+              <div className="p-0 border-0 mb-4 mt-2">
+                <Row xs={1} sm={2} md={6} lg={5} className="g-5">
+                  {Object.keys(scores).map((key) => (
+                    <Col key={key}>
+                      <div>
+                        <h5
+                          className="text-center mb-3"
+                          style={{ fontSize: "13px", color: "black" }}
                         >
-                          <ChevronLeft color="black" size={20} />
-                        </Button>
+                          {key.charAt(0).toUpperCase() + key.slice(1)}
+                        </h5>
                         <div
-                          className="circle"
-                          style={{ "--percentage": `${scores[key] * 3.6}deg` }}
+                          className="circle-container"
+                          style={{
+                            position: "relative",
+                            display: "flex",
+                            alignItems: "center",
+                          }}
                         >
-                          <span>{scores[key]}%</span>
+                          <Button
+                            variant="link"
+                            onClick={() => handleDecrement(key)}
+                            style={{ zIndex: 1 }}
+                          >
+                            <ChevronLeft color="black" size={20} />
+                          </Button>
+                          <div
+                            className="circle"
+                            style={{
+                              "--percentage": `${scores[key] * 3.6}deg`,
+                            }}
+                          >
+                            <span>{scores[key]}%</span>
+                          </div>
+                          <Button
+                            variant="link"
+                            onClick={() => handleIncrement(key)}
+                            style={{ zIndex: 1 }}
+                          >
+                            <ChevronRight color="black" size={20} />
+                          </Button>
                         </div>
-                        <Button
-                          variant="link"
-                          onClick={() => handleIncrement(key)}
-                          style={{ zIndex: 1 }}
-                        >
-                          <ChevronRight color="black" size={20} />
-                        </Button>
                       </div>
-                    </div>
-                  </Col>
-                ))}
-              </Row>
-            </div>
-          </Col>
-        </Row>
-         
+                    </Col>
+                  ))}
+                </Row>
+              </div>
+            </Col>
+          </Row>
+
           <Form.Group
             className="mb-1"
             controlId="jobTitle"
