@@ -508,10 +508,10 @@ span.navbar-text {
   justify-content: center;
   align-items: center;
   font-size: 1.0em;
-  color: white;
+  color: #1f011d;
   font-weight: 900;
-  text-shadow: 2px 2px 4px #000000;
-  background: conic-gradient(#8328ca 0%, #8328ca var(--percentage));
+ 
+  background: conic-gradient(#ffffff 0%, #ffffff var(--percentage));
 }
 
 .circle span {
