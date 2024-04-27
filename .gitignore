@@ -17,6 +17,10 @@ dist-ssr
 __pycache__/
 poetry.lock
 
+#pipeline
+/model-pipeline/results/
+/model-pipeline/weights/
+
 #FastAPI
 /app/uploads/
 
