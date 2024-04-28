@@ -20,7 +20,7 @@ poetry.lock
 #pipeline
 /model-pipeline/results/
 /model-pipeline/weights/
-
+model-pipeline/models/runs/
 #FastAPI
 /app/uploads/
 

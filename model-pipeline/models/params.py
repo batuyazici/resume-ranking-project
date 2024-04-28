@@ -10,12 +10,12 @@ class Parameters:
         if str(self.ROOT) not in sys.path:
             sys.path.append(str(self.ROOT))  # add ROOT to PATH
         self.ROOT = Path(os.path.relpath(self.ROOT, Path.cwd()))  # relative
-        self.weights = "weights/resumes-detection.pt"  # Example model path
+        self.weights = "model-pipeline/weights/resumes-detection.pt"  # Example model path
         self.stride = None  # Example stride value
         self.pt = None  # Example pt value
         self.names = None
         self.device = ''
-        self.source = "data/examples"
+        self.source = "model-pipeline/data/examples"
         self.imgsz = (640, 640)
         self.conf_thres = 0.15
         self.iou_thres = 0.45

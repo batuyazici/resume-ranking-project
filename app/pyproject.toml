@@ -1,9 +1,8 @@
 [tool.poetry]
-name = "resume-ranker-api"
+name = "app"
 version = "0.1.0"
 description = ""
 authors = ["batuyazici <92368839+batuyazici@users.noreply.github.com>"]
-readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.10"

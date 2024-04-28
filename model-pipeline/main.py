@@ -8,7 +8,6 @@ from utils.files import FileHandler
 #Parameters
 parameters= Parameters()
 
-
 #Load Models
 objdet_model, parameters.stride, parameters.pt, parameters.names, parameters.imgsz = load_yolov9_model(**parameters.load_yolov9_params())
 ocr_model = load_ocr_model(parameters.lang)
