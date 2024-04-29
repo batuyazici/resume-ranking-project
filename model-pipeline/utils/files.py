@@ -34,5 +34,8 @@ class FileHandler:
     def clsf_params(self):
         return {'results_dir': self.results_dir,'file_groups':self.file_groups}
     
+    def re_params(self):
+        return {'results_dir': self.results_dir,'file_groups':self.file_groups}
+    
     def ner_params(self):
         return {'results_dir': self.results_dir,'file_groups':self.file_groups}
