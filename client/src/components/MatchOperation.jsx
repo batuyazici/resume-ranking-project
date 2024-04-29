@@ -5,13 +5,7 @@ import { ArrowRightCircle, CheckCircleFill, ChevronLeft, ChevronRight } from 're
 const MatchOperation = () => {
   const [showResultButton, setShowResultButton] = useState(false);
   const [selectedContainers, setSelectedContainers] = useState([]);
-  const [scores, setScores] = useState({
-    work: 0,
-    education: 0,
-    skills: 0,
-    language: 0,
-    certification: 0
-  });
+  
   
 
   const handleMatchThemClick = () => {
@@ -49,14 +43,6 @@ const MatchOperation = () => {
 };
 
 
-  const toggleDetails = (index) => {
-    setShowDetails(prev => {
-      const newDetails = [...prev];
-      newDetails[index] = !newDetails[index];
-      return newDetails;
-    });
-  };
-
   const containerStyle = (containerId) => ({
     backgroundColor: selectedContainers.includes(containerId) ? '#e1d2ec' : '',
     cursor: 'pointer',
@@ -67,44 +53,10 @@ const MatchOperation = () => {
     return selectedContainers.includes(containerId) ? <CheckCircleFill color="purple" size={20} style={{ position: 'absolute', top: '5px', right: '5px' }} /> : null;
   };
 
-  const handleIncrement = (key) => {
-    setScores(prev => ({
-      ...prev,
-      [key]: Math.min(prev[key] + 5, 100)
-    }));
-  };
 
-  const handleDecrement = (key) => {
-    setScores(prev => ({
-      ...prev,
-      [key]: Math.max(prev[key] - 5, 0)
-    }));
-  };
 
   return (
-    <Container fluid="md" className="mt-4">
-      <Row className="justify-content-center">
-        <Col>
-          <div className="p-0 border-0">
-            <Row xs={1} sm={2} md={6} lg={5} className="g-0">
-              {Object.keys(scores).map(key => (
-                <Col key={key}>
-                  <div>
-                    <h5 className='text-center mb-3' style={{ fontSize: '13px', color: 'black' }}>{key.charAt(0).toUpperCase() + key.slice(1)}</h5>
-                    <div className="circle-container" style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                      <Button variant="link" onClick={() => handleDecrement(key)} style={{ zIndex: 1 }}><ChevronLeft color="black" size={20}/></Button>
-                      <div className="circle" style={{ '--percentage': `${scores[key] * 3.6}deg` }}>
-                        <span>{scores[key]}%</span>
-                      </div>
-                      <Button variant="link" onClick={() => handleIncrement(key)} style={{ zIndex: 1 }}><ChevronRight color="black" size={20}/></Button>
-                    </div>
-                  </div>
-                </Col>
-              ))}
-            </Row>
-          </div>
-        </Col>
-      </Row>
+   
 
       <Container fluid="md" className="mt-4b">
         <Row className="justify-content-center match-container-1 mt-4 mb-4">
@@ -119,9 +71,7 @@ const MatchOperation = () => {
                       <Card.Title style={{fontSize:'13px'}}>Uploaded Resumes: {index + 1}</Card.Title>
                       <div className="d-flex justify-content-between align-items-center">
                         {checkMark(`resume-${index}`)}
-                        <Button variant="primary" size="sm" onClick={() => toggleDetails(index)} style={{fontSize:'12px', backgroundColor:'#8328ca', border:'#8328ca'}}>
-                          Show Details
-                        </Button>
+                        
                       
                       </div>
                     </Card.Body>
@@ -142,9 +92,6 @@ const MatchOperation = () => {
                       <Card.Title style={{fontSize:'13px'}}>Job Title: {index + 1}</Card.Title>
                       <div className="d-flex justify-content-between align-items-center">
                         {checkMark(`job-${index}`)}
-                        <Button variant="primary" size="sm" onClick={() => toggleDetails(index)} style={{fontSize:'12px', backgroundColor:'#8328ca', border:'#8328ca'}}>
-                          Show Details
-                        </Button>
                        
                       </div>
                     </Card.Body>
@@ -154,7 +101,7 @@ const MatchOperation = () => {
             </Card>
           </Col>
         </Row>
-      </Container>
+  
       {!showResultButton && (
         <div className="form-continue-section d-flex justify-content-center">
           <Button variant="outline-dark" className="mt-1 mb-5 btn-sm" size="lg" onClick={handleMatchThemClick}>

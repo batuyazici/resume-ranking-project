@@ -510,9 +510,10 @@ span.navbar-text {
   font-size: 1.0em;
   color: white;
   font-weight: 900;
-  text-shadow: 2px 2px 4px #000000;
-  background: conic-gradient(#8328ca 0%, #8328ca var(--percentage));
+  background: conic-gradient(#942cd2 0%, #942cd2 var(--percentage));
+  text-shadow: 0px 0px 4px rgba(0, 0, 0, 0.5); /* Horizontal, Vertical, Blur Radius, Color */
 }
+
 
 .circle span {
   position: absolute;

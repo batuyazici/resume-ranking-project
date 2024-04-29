@@ -1,9 +1,13 @@
 import { useState, useCallback } from "react";
 import { useDropzone } from "react-dropzone";
-import spectrumGradient from '../assets/img/spectrum-gradient.svg';
-import { ArrowRightCircle, CloudUpload, CheckCircleFill } from 'react-bootstrap-icons';
-import { X } from 'react-bootstrap-icons';
-import { CloudArrowUp } from 'react-bootstrap-icons';
+import spectrumGradient from "../assets/img/spectrum-gradient.svg";
+import {
+  ArrowRightCircle,
+  CloudUpload,
+  CheckCircleFill,
+} from "react-bootstrap-icons";
+import { X } from "react-bootstrap-icons";
+import { CloudArrowUp } from "react-bootstrap-icons";
 
 import {
   Form,
@@ -38,7 +42,7 @@ function Dropzone() {
       const newUniqueFiles = acceptedFiles.filter(
         (af) => !files.some((f) => f.name === af.name && f.size === af.size)
       );
-        
+
       if (files.length + newUniqueFiles.length > 200) {
         alert("Cannot upload more than 200 files at once");
         return;
@@ -81,7 +85,6 @@ function Dropzone() {
     }
     return "";
   };
-
 
   const truncateFileName = (fileName, maxLength = 15) => {
     if (fileName.length > maxLength) {
@@ -127,25 +130,34 @@ function Dropzone() {
               className="mb-3 font-monospace"
             >
               <Card className="h-100 " style={cardStyle}>
-              <Card.Body className="p-2">
-  <Card.Title className="mb-1 " style={{ fontSize: "1rem" }}>
-    {truncateFileName(file.path)}
-  </Card.Title>
-  <Badge pill bg="dark" size="sm" className="me-2 font-monospace">
-    {getFileTypeIndicator(file.path)}
-  </Badge>
-  {uploadedFiles.has(file.name) && <CheckCircleFill color="green" className="me-2"></CheckCircleFill>}
-  <Button
-    variant="outline-danger "
-    className="font-monospace"
-    size="sm"
-    onClick={() => removeFile(file.name, file.size)}
-    style={{ padding: "0.25rem 0.5rem", fontSize: "0.75rem" }}
-  >
-    Delete
-  </Button>
-</Card.Body>
-
+                <Card.Body className="p-2">
+                  <Card.Title className="mb-1 " style={{ fontSize: "1rem" }}>
+                    {truncateFileName(file.path)}
+                  </Card.Title>
+                  <Badge
+                    pill
+                    bg="dark"
+                    size="sm"
+                    className="me-2 font-monospace"
+                  >
+                    {getFileTypeIndicator(file.path)}
+                  </Badge>
+                  {uploadedFiles.has(file.name) && (
+                    <CheckCircleFill
+                      color="green"
+                      className="me-2"
+                    ></CheckCircleFill>
+                  )}
+                  <Button
+                    variant="outline-danger "
+                    className="font-monospace"
+                    size="sm"
+                    onClick={() => removeFile(file.name, file.size)}
+                    style={{ padding: "0.25rem 0.5rem", fontSize: "0.75rem" }}
+                  >
+                    Delete
+                  </Button>
+                </Card.Body>
               </Card>
             </Col>
           ))}
@@ -161,28 +173,29 @@ function Dropzone() {
       style={{ overflowY: "auto", maxHeight: "300px", marginTop: "1rem" }}
     >
       {files.map((file, index) => (
-       <ListGroup.Item
-       key={`${file.path}-${index}`}
-       className="d-flex justify-content-between align-items-center bg-white rounded-3 mb-2 p-2 font-monospace mx-3"
-     >
-       {file.name} 
-       
-       <div>
-       {uploadedFiles.has(file.name) && <CheckCircleFill color="green" className="me-2"></CheckCircleFill>}
-         <Badge pill bg="dark" className="me-2 font-monospace">
-           {getFileTypeIndicator(file.name)}
-         </Badge>
-         
-         <Button
-           variant="outline-danger"
-           size="sm"
-           onClick={() => removeFile(file.name, file.size)}
-         >
-           Delete
-         </Button>
-       </div>
-     </ListGroup.Item>
-     
+        <ListGroup.Item
+          key={`${file.path}-${index}`}
+          className="d-flex justify-content-between align-items-center bg-white rounded-3 mb-2 p-2 font-monospace mx-3"
+        >
+          {file.name}
+
+          <div>
+            {uploadedFiles.has(file.name) && (
+              <CheckCircleFill color="green" className="me-2"></CheckCircleFill>
+            )}
+            <Badge pill bg="dark" className="me-2 font-monospace">
+              {getFileTypeIndicator(file.name)}
+            </Badge>
+
+            <Button
+              variant="outline-danger"
+              size="sm"
+              onClick={() => removeFile(file.name, file.size)}
+            >
+              Delete
+            </Button>
+          </div>
+        </ListGroup.Item>
       ))}
     </ListGroup>
   );
@@ -211,13 +224,13 @@ function Dropzone() {
     setIsUploading(true); // Start upload process
 
     const formData = new FormData();
-    files.forEach(file => {
+    files.forEach((file) => {
       if (!uploadedFiles.has(file.name)) {
         formData.append("file_uploads", file);
       }
     });
-    
-    if (batchId) formData.append('batch_id', String(batchId));
+
+    if (batchId) formData.append("batch_id", String(batchId));
 
     console.log(formData);
     try {
@@ -227,7 +240,6 @@ function Dropzone() {
         body: formData,
       });
       const data = await response.json();
-      
 
       if (response.ok) {
         setBatchId(data.batch_id);
@@ -235,11 +247,11 @@ function Dropzone() {
         setIsUploading(false);
         setUploadSuccess(true);
         setShowFileRejectionMessage(false);
-        files.forEach(file => uploadedFiles.add(file.name));
+        files.forEach((file) => uploadedFiles.add(file.name));
         setUploadedFiles(new Set(uploadedFiles));
       } else {
         console.log("File upload failed");
-      } 
+      }
     } catch (error) {
       console.error("Upload error:", error);
     }
@@ -264,28 +276,37 @@ function Dropzone() {
           </Alert>
         )}
         {uploadSuccess && (
-          <Alert variant="success" dismissible className="m-2 fixed-bottom-alert">
+          <Alert
+            variant="success"
+            dismissible
+            className="m-2 fixed-bottom-alert"
+          >
             Files are uploaded successfully. You can continue or upload more
             files.
           </Alert>
         )}
       </div>
-      <Container >
-
+      <Container>
         <Form
           onSubmit={handleSubmit}
           className="mt-4 border-5 text-dark pt-2 px-3 mx-5 mb-4 "
           style={{
             backgroundImage: `url(${spectrumGradient})`,
-            backgroundPosition: 'top center',
-            backgroundSize: 'cover',
-            backgroundRepeat: 'no-repeat',
-            borderRadius: '30px',
+            backgroundPosition: "top center",
+            backgroundSize: "cover",
+            backgroundRepeat: "no-repeat",
+            borderRadius: "30px",
           }}
         >
-          <div {...getRootProps({ className: "p-2 mt-2  dropzone font-monospace" })}>
+          <div
+            {...getRootProps({
+              className: "p-2 mt-2  dropzone font-monospace",
+            })}
+          >
             <input {...getInputProps()} />
-            <p style={{ fontSize: "17px", marginBottom: "0.5rem" }}>Drag and drop some files here, or click to select files</p>
+            <p style={{ fontSize: "17px", marginBottom: "0.5rem" }}>
+              Drag and drop some files here, or click to select files
+            </p>
             <em style={{ fontWeight: "bolder", fontSize: "15px" }}>
               (Only *.pdf, *.docx files will be accepted)
             </em>
@@ -294,12 +315,11 @@ function Dropzone() {
               onClick={open}
               size="sm"
               className="mt-2 font-monospace"
-
             >
               Add File <CloudArrowUp size={20} />
             </Button>
           </div>
-          <div >
+          <div>
             {files.length > 0 && (
               <ToggleButtonGroup
                 type="radio"
@@ -328,11 +348,17 @@ function Dropzone() {
             )}
             <div className="d-flex justify-content-between align-items-center uploaded-resumes-header ">
               {files.length > 0 && (
-                <h3 className=" mt-2 text-light dropzone-title">Preview ({files.length} files)</h3>
+                <h3 className=" mt-2 text-light dropzone-title">
+                  Preview ({files.length} files)
+                </h3>
               )}
               {files.length > 0 && (
-                <Button variant="light" onClick={clearFiles} className="d-flex align-items-center justify-content-center mx-3 border-dark border-2 font-monospace"
-                  style={{ fontSize: "13px" }}>
+                <Button
+                  variant="light"
+                  onClick={clearFiles}
+                  className="d-flex align-items-center justify-content-center mx-3 border-dark border-2 font-monospace"
+                  style={{ fontSize: "13px" }}
+                >
                   Delete All <X size={15} className="ms-1" />
                 </Button>
               )}
@@ -342,7 +368,11 @@ function Dropzone() {
               <div className="form-submit-section">
                 {files.length > 0 && (
                   <Button
-                    variant={isHovering ? "outline-dark border-dark" : "btn btn-light border-dark"}
+                    variant={
+                      isHovering
+                        ? "outline-dark border-dark"
+                        : "btn btn-light border-dark"
+                    }
                     type="submit"
                     disabled={isUploading}
                     className="mt-2 mb-2 font-monospace"
@@ -350,10 +380,9 @@ function Dropzone() {
                     style={{ fontSize: "13px" }}
                     onMouseEnter={() => setIsHovering(true)}
                     onMouseLeave={() => setIsHovering(false)}
-
-
                   >
-                    {isUploading ? "Uploading..." : "Upload"} <CloudUpload size={20} className="ms-1" />
+                    {isUploading ? "Uploading..." : "Upload"}{" "}
+                    <CloudUpload size={20} className="ms-1" />
                   </Button>
                 )}
               </div>
@@ -362,15 +391,18 @@ function Dropzone() {
         </Form>
         {uploadSuccess && (
           <div className="form-continue-section d-flex justify-content-center">
-            <Button variant="outline-dark" className="mt-1 mb-5 btn-sm" size="lg">
+            <Button
+              variant="outline-dark"
+              className="mt-1 mb-5 btn-sm"
+              size="lg"
+              onClick={onCompleted}
+            >
               Next Step <ArrowRightCircle size={25} />
             </Button>
           </div>
         )}
-      </Container>
-
+      </Container>  
     </>
-
   );
 }
 
