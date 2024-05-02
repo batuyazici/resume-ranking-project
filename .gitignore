@@ -21,7 +21,8 @@ poetry.lock
 #pipeline
 /model-pipeline/results/
 /model-pipeline/weights/
-model-pipeline/models/runs/
+/model-pipeline/models/runs/
+/model-pipeline/data/
 
 #FastAPI
 /app/uploads/

@@ -4,11 +4,19 @@ import os
 from pathlib import Path
 
 class FileHandler:
-    def __init__(self, source_dir, crops_dir, results_dir):
-        self.source_dir = source_dir
-        self.crops_dir = Path(crops_dir) / 'crops' / 'segment'
-        self.results_dir = results_dir
-        self.file_groups = self.filter_group_filenames(self.find_images())  
+    def __init__(self):
+        FILE = Path(__file__).resolve()
+        ROOT = FILE.parents[1]
+        self.source_dir = ROOT / 'data' 
+        results_base = ROOT / "results"
+        results_base.mkdir(exist_ok=True)  # Ensure the base directory exists
+        run_number = 1
+        while (results_base / f"run{run_number}").exists():
+            run_number += 1
+        self.results_dir = results_base / f"run{run_number}"
+        self.results_dir.mkdir()  # Create the new run directory
+        self.file_groups = None
+        self.crops_dir = None
 
     def filter_group_filenames(self, jpg_files):
         """Group filenames by their base identifier."""
@@ -27,7 +35,10 @@ class FileHandler:
     def find_images(self):
         jpg_files = [f for f in os.listdir(self.crops_dir) if f.endswith('.jpg')]
         return jpg_files
-    
+
+    def set_crops_dir(self, crops_dir):
+        self.crops_dir = crops_dir / 'crops' / 'segment'
+        self.file_groups = self.filter_group_filenames(self.find_images())
     def ocr_params(self):
         return {'crops_dir': self.crops_dir, 'results_dir': self.results_dir, 'file_groups': self.file_groups}
     

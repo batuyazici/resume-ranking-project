@@ -6,7 +6,7 @@ from pathlib import Path
 from db import execute_query, fetch_query 
 from utils import clean_filename
 from file_processing import docx_conv, pdf_conv
-from config import UPLOAD_DIR
+from config import UPLOAD_DIR, SAVE_DIR
 
 app = FastAPI()
 
@@ -42,6 +42,7 @@ async def create_upload_files(
     for file_upload in file_uploads:
         cleaned_name = clean_filename(file_upload.filename)
         file_path = UPLOAD_DIR / cleaned_name
+        
         with open(file_path, "wb") as file_object:
             file_object.write(await file_upload.read())
         await execute_query("""
@@ -50,8 +51,8 @@ async def create_upload_files(
             """, file_upload.filename, cleaned_name, str(file_path), batch_id)
         if cleaned_name.endswith('.docx'):
             pdf_path = file_path.with_suffix('.pdf')
-            background_tasks.add_task(docx_conv, str(file_path), str(pdf_path), batch_id, background_tasks)
+            background_tasks.add_task(docx_conv, str(file_path), str(pdf_path), batch_id, SAVE_DIR, background_tasks)
         elif cleaned_name.endswith('.pdf'):
-            background_tasks.add_task(pdf_conv, str(file_path), str(file_path.parent), batch_id)
+            background_tasks.add_task(pdf_conv, str(file_path), SAVE_DIR ,batch_id)
 
     return {"message": "Files are being processed", "batch_id": batch_id}

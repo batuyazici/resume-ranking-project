@@ -36,29 +36,28 @@ def convert_pdf_to_jpg(pdf_path, output_dir):
         images = convert_from_path(pdf_path)
         base_filename = Path(pdf_path).stem
         for i, image in enumerate(images):    
-            image_path = Path(output_dir) / f"{base_filename}-page-{i + 1}.jpg"
+            image_path = Path(output_dir) / f"{base_filename}_page-{i + 1}.jpg"
             image.save(image_path, 'JPEG')  
     except Exception as e:
         logging.error(f"Failed to convert PDF to JPG {pdf_path}: {str(e)}")
 
-async def docx_conv(docx_path, pdf_path, batch_id, background_tasks):
+async def docx_conv(docx_path, pdf_path, batch_id, save_dir, background_tasks):
     rel_docx_path = Path(docx_path)
-    abs_docx_path = rel_docx_path.resolve()
-    abs_docx_path = str(abs_docx_path)
+    abs_docx_path = str(rel_docx_path.resolve())
     rel_pdf_path = Path(pdf_path)
-    abs_pdf_path = rel_pdf_path.resolve()
-    pdf_path = str(abs_pdf_path)
+    pdf_path = str(rel_pdf_path.resolve())
+    print(save_dir)
     try:
         convert_docx_to_pdf(abs_docx_path, pdf_path)
         await execute_query("INSERT INTO conversion_status (batch_id, process_type, file_type, status) VALUES ($1, 'Convert DOCX to PDF', '.pdf', 'completed')", batch_id)
-        background_tasks.add_task(run_async(pdf_conv), pdf_path, abs_pdf_path.parent, batch_id)
+        background_tasks.add_task(run_async(pdf_conv), pdf_path, save_dir, batch_id)
     except Exception as e:
         logging.error(f"Failed to convert PDF to JPG {pdf_path}: {str(e)}")
         await execute_query("INSERT INTO conversion_status (batch_id, process_type, file_type, status) VALUES ($1, 'Convert DOCX to PDF', '.pdf', 'failed')", batch_id)
 
-async def pdf_conv(pdf_path, output_dir, batch_id):
+async def pdf_conv(pdf_path, save_dir, batch_id):
     try:
-        convert_pdf_to_jpg(pdf_path, output_dir)
+        convert_pdf_to_jpg(pdf_path, save_dir)
         await execute_query("INSERT INTO conversion_status (batch_id, process_type, file_type, status) VALUES ($1, 'Convert PDF to JPG', '.jpg', 'completed')", batch_id)
     except Exception as e:
         await execute_query("INSERT INTO conversion_status (batch_id, process_type, file_type, status) VALUES ($1, 'Convert PDF to JPG', '.jpg', 'failed')", batch_id)

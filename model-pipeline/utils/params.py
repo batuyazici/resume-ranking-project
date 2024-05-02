@@ -3,19 +3,18 @@ import sys
 from pathlib import Path
 
 
-class Parameters:
-    def __init__(self):
+class YOLOParameters:
+    def __init__(self, source_dir, results_dir):
         FILE = Path(__file__).resolve()
         self.ROOT = FILE.parents[0]  # YOLO root directory
         if str(self.ROOT) not in sys.path:
             sys.path.append(str(self.ROOT))  # add ROOT to PATH
-        self.ROOT = Path(os.path.relpath(self.ROOT, Path.cwd()))  # relative
         self.weights = FILE.parents[1] / 'weights' / 'resumes-detection.pt' # Example model path
         self.stride = None  # Example stride value
         self.pt = None  # Example pt value
         self.names = None
         self.device = ''
-        self.source = FILE.parents[1] / 'data' / 'examples'
+        self.source = source_dir
         self.imgsz = (640, 640)
         self.conf_thres = 0.15
         self.iou_thres = 0.45
@@ -27,14 +26,14 @@ class Parameters:
         self.visualize = False
         self.update = False
         self.exist_ok = False
-        self.project = self.ROOT / 'runs/detect'
+        self.project = FILE.parents[1] / 'models' /'runs/detect'
         self.name = 'exp'
         self.line_thickness = 1
         self.hide_labels = False
         self.hide_conf = False
         self.vid_stride = 1
         self.lang = 'en'
-        self.results =  FILE.parents[1] / 'results'
+        self.results = results_dir
 
     def objdet_params(self):
         return {
