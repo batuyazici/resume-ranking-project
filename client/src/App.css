@@ -19,6 +19,7 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+ 
 }
 
 #root {
@@ -46,6 +47,7 @@ body {
   height: 100%;
   margin: 0;
   padding: 0;
+  
 
 }
 
@@ -533,3 +535,14 @@ span.navbar-text {
   
 }
 
+
+.editor-container {
+  border: 1px solid #ccc; /* Example grey border */
+  display: none;
+  
+
+}
+
+.ProseMirror:focus {
+  outline: none;
+}

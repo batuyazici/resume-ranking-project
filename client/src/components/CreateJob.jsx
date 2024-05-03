@@ -7,8 +7,10 @@ import Col from "react-bootstrap/Col";
 import Badge from "react-bootstrap/Badge";
 import { X, ChevronLeft, ChevronRight } from "react-bootstrap-icons";
 import "bootstrap/dist/css/bootstrap.min.css";
+import Tiptap from "./Tiptap";
 
 import spectrumGradient from "../assets/img/spectrum-gradient.svg";
+
 
 const CreateJob = () => {
   const [skills, setSkills] = useState([]);
@@ -179,13 +181,9 @@ const CreateJob = () => {
           </Form.Group>
 
           <Form.Group className="mb-1" controlId="jobDescription">
+            
             <Form.Label>Job Description</Form.Label>
-            <Form.Control
-              as="textarea"
-              rows={3}
-              placeholder="Enter job description"
-              style={{ fontSize: "12px" }}
-            />
+            <Tiptap />
           </Form.Group>
 
           <Form.Group className="mb-1" controlId="jobType">
