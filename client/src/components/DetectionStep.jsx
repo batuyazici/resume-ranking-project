@@ -1,113 +1,242 @@
-import React, { useState } from 'react';
-import { Modal, Button, Image, Container, Row, Col } from 'react-bootstrap';
-import projImg1 from "../assets/img/gallery1.svg";
-import projImg2 from "../assets/img/gallery2.svg";
-import projImg3 from "../assets/img/2b6427d5-510d-44ed-9ae3-3e00ffc95bd8_page-2-.jpg";
-import spectrumGradient from '../assets/img/spectrum-gradient.svg'; // Ensure this path is correct
+import React, { useState } from "react";
+import {
+  Button,
+  Container,
+  Row,
+  Col,
+  Card,
+  Form,
+  FormGroup,
+  FormControl,
+  FormCheck,
+} from "react-bootstrap";
+import PropTypes from "prop-types";
+import {
+  ArrowRightCircle,
+  CheckCircleFill,
+  ArrowLeftCircle,
+} from "react-bootstrap-icons";
 
-function DetectionStep() {
-  const [show, setShow] = useState(false);
-  const [selectedImage, setSelectedImage] = useState('');
-  const [contactInfo, setContactInfo] = useState({name: '', surname: '', email: '', phone: ''});
+function DetectionStep({ onStepChange }) {
+  const [selectedContainers, setSelectedContainers] = useState([]);
+  const [confidenceThreshold, setConfidenceThreshold] = useState("");
+  const [iouThreshold, setIouThreshold] = useState("");
+  const [labelThickness, setLabelThickness] = useState("");
+  const [showLabels, setShowLabels] = useState(true); // Default to true
+  const [processedDetailsVisible, setProcessedDetailsVisible] = useState({});
 
-  const handleClose = () => setShow(false);
-  const handleShow = (image) => {
-    setSelectedImage(image);
-    setShow(true);
-    // Update contact info based on the image or as needed
-    const info = {
-      name: 'John',
-      surname: 'Doe',
-      email: 'john.doe@example.com',
-      phone: '123-456-7890'
-    };
-    setContactInfo(info);
+  const handleDetectClick = () => {
+    console.log("Detection Started for Containers:", selectedContainers);
+    // Add logic here for what happens when detection is triggered
   };
 
-  const images = [
-    projImg1, projImg2, projImg3, projImg1, projImg2, projImg3,
-    projImg1, projImg2, projImg3, projImg1, projImg2, projImg3,
-    projImg1, projImg2, projImg3, projImg1, projImg2, projImg3,
-    projImg1, projImg2, projImg3, projImg1, projImg2, projImg3,
-  ];
+  const handleContainerClick = (containerId) => {
+    setSelectedContainers((prev) => {
+      const containerType = containerId.includes("resume") ? "resume" : "job";
+      return prev.includes(containerId)
+        ? prev.filter((id) => id !== containerId)
+        : [...prev, containerId];
+    });
+  };
+
+  const toggleDetailsVisibility = (index) => {
+    setProcessedDetailsVisible((prev) => ({
+      ...prev,
+      [index]: !prev[index],
+    }));
+  };
+
+  const containerStyle = (containerId) => ({
+    backgroundColor: selectedContainers.includes(containerId)
+      ? "#e1d2ec"
+      : "#f8f9fa",
+    cursor: "pointer",
+    position: "relative",
+  });
+
+  const checkMark = (containerId) => {
+    return selectedContainers.includes(containerId) ? (
+      <CheckCircleFill
+        color="purple"
+        size={20}
+        style={{ position: "absolute", top: "5px", right: "5px" }}
+      />
+    ) : null;
+  };
+
+  const isDetectEnabled =
+    confidenceThreshold &&
+    iouThreshold &&
+    labelThickness &&
+    selectedContainers.length > 0;
 
   return (
     <>
-      <style>
-        {`
-          .white-background::-webkit-scrollbar {
-            width: 8px;
-          }
-
-          .white-background::-webkit-scrollbar-track {
-            background: transparent;
-            margin-bottom: 10px;
-            margin-top: 10px;
-            width: 50%;
-          }
-
-          .white-background::-webkit-scrollbar-thumb {
-            background: purple;
-            border-radius: 10px;
-            margin-right: 20px;
-          }
-
-          .white-background::-webkit-scrollbar-thumb:hover {
-            background: #555;
-          }
-
-          .contact-text {
-            color: black; /* Set text color to black */
-          }
-        `}
-      </style>
-      <Container className="mt-5 mb-5"
-        style={{
-          backgroundImage: `url(${spectrumGradient})`,
-          backgroundPosition: 'top center',
-          backgroundSize: 'cover',
-          backgroundRepeat: 'no-repeat',
-          borderRadius: '30px',
-          padding: '20px',
-        }}
-      >
-        <Container className="white-background" style={{ 
-          overflowY: 'auto', 
-          overflowX: 'hidden', 
-          maxHeight: '500px', 
-          padding: '0 20px 20px 20px'
-        }}> 
-          <Row>
-            {images.map((image, index) => (
-              <Col key={index} xs={6} md={4} lg={3} className="mb-2 mt-2">
-                <Image
-                  src={image}
-                  thumbnail
-                  onClick={() => handleShow(image)}
-                  style={{ cursor: 'pointer', maxWidth: '100%', height: 'auto', display: 'block', margin: '0 auto' }}
-                />
-              </Col>
-            ))}
-          </Row>
-        </Container>
-
-        <Modal show={show} onHide={handleClose} size="lg" centered>
-          <Modal.Header closeButton>
-            <Modal.Title>Image Preview</Modal.Title>
-          </Modal.Header>
-          <Modal.Body>
-            <Image src={selectedImage} fluid />
-        
-          </Modal.Body>
-          <Modal.Footer>
-            <Button variant="danger" onClick={handleClose} style={{ background: 'purple' }}>
-              Close
-            </Button>
-          </Modal.Footer>
-        </Modal>
+      <Container fluid="md" className="mt-4">
+        <Row className="justify-content-center match-container-1 mt-2 mb-4">
+          <Col md={3}>
+            <Card>
+              <Card.Body>
+                <Card.Title
+                  className="text-center"
+                  style={{ fontSize: "16px" }}
+                >
+                  Object Detection Model Details
+                </Card.Title>
+                <Form>
+                  <FormGroup className="mb-2">
+                    <Form.Label style={{ fontSize: "12px" }}>Model</Form.Label>
+                    <div style={{ fontSize: "12px", marginBottom: "10px" }}>
+                      YOLOv9
+                    </div>
+                  </FormGroup>
+                  <FormGroup className="mb-2">
+                    <Form.Label style={{ fontSize: "12px" }}>
+                      Confidence Threshold
+                    </Form.Label>
+                    <FormControl
+                      type="number"
+                      value={confidenceThreshold}
+                      onChange={(e) => setConfidenceThreshold(e.target.value)}
+                      style={{ fontSize: "12px" }}
+                    />
+                  </FormGroup>
+                  <FormGroup className="mb-2">
+                    <Form.Label style={{ fontSize: "12px" }}>
+                      IOU Threshold
+                    </Form.Label>
+                    <FormControl
+                      type="number"
+                      value={iouThreshold}
+                      onChange={(e) => setIouThreshold(e.target.value)}
+                      style={{ fontSize: "12px" }}
+                    />
+                  </FormGroup>
+                  <FormGroup className="mb-2">
+                    <Form.Label style={{ fontSize: "12px" }}>
+                      Label Thickness
+                    </Form.Label>
+                    <FormControl
+                      type="number"
+                      value={labelThickness}
+                      onChange={(e) => setLabelThickness(e.target.value)}
+                      style={{ fontSize: "12px" }}
+                    />
+                  </FormGroup>
+                  <FormGroup className="mb-2">
+                    <Form.Check
+                      type="checkbox"
+                      label="Show Labels"
+                      checked={showLabels}
+                      onChange={(e) => setShowLabels(e.target.checked)}
+                      style={{ fontSize: "12px" }}
+                    />
+                  </FormGroup>
+                </Form>
+              </Card.Body>
+            </Card>
+          </Col>
+          <Col md={9}>
+            <Card>
+              <Card.Body>
+                <Card.Title
+                  className="text-center"
+                  style={{ fontSize: "16px", paddingBottom: "15px" }}
+                >
+                  Uploaded Resumes
+                </Card.Title>
+                <Row>
+                  <Col md={6} className="highlight-section scrollable-column">
+                    <div style={{ fontSize: "16px" }}>Not Processed</div>
+                    {[...Array(7)].map((_, index) => (
+                      <Card
+                        className="mt-3"
+                        key={`resume-${index}`}
+                        style={containerStyle(`resume-${index}`)}
+                        onClick={() => handleContainerClick(`resume-${index}`)}
+                      >
+                        <Card.Body>
+                          <Card.Title style={{ fontSize: "13px" }}>
+                            Date: {index + 1}
+                          </Card.Title>
+                          <Card.Title style={{ fontSize: "13px" }}>
+                            Uploaded Resumes: {index + 1}
+                          </Card.Title>
+                          <div className="d-flex justify-content-between align-items-center">
+                            {checkMark(`resume-${index}`)}
+                          </div>
+                        </Card.Body>
+                      </Card>
+                    ))}
+                  </Col>
+                  <Col md={6} className="scrollable-column">
+                    <div style={{ fontSize: "16px" }}>Processed</div>
+                    {[...Array(5)].map((_, index) => (
+                      <Card
+                        className="mt-3"
+                        key={`processed-${index}`}
+                        onClick={() => toggleDetailsVisibility(index)}
+                      >
+                        <Card.Body>
+                          <Card.Title style={{ fontSize: "13px" }}>
+                            Date: {new Date().toISOString().split("T")[0]}
+                          </Card.Title>
+                          <Card.Title style={{ fontSize: "13px" }}>
+                            Processed Resume {index + 1}
+                          </Card.Title>
+                          {processedDetailsVisible[index] ? (
+                            <div>
+                              <p>Details of processing...</p>
+                            </div>
+                          ) : (
+                            <Button
+                              variant="secondary"
+                              style={{
+                                padding: "0.25rem 0.5rem",
+                                fontSize: "0.75rem",
+                              }}
+                            >
+                              Show Details
+                            </Button>
+                          )}
+                        </Card.Body>
+                      </Card>
+                    ))}
+                  </Col>
+                </Row>
+              </Card.Body>
+            </Card>
+          </Col>
+        </Row>
+        <div className="form-continue-section d-flex justify-content-center">
+          <Button
+            variant="outline-dark"
+            className="mt-1 mb-5 btn-sm mx-3"
+            size="lg"
+            style={{ width: "150px" }}
+            onClick={onStepChange}
+          >
+            Return <ArrowLeftCircle size={25} />
+          </Button>
+          <Button
+            variant="outline-dark"
+            disabled={!isDetectEnabled}
+            className="mt-1 mb-5 btn-sm mx-3"
+            size="lg"
+            style={{ width: "150px" }}
+            onClick={handleDetectClick}
+          >
+            {isDetectEnabled ? "Detect" : "Enter Details"}{" "}
+            <ArrowRightCircle size={25} />
+          </Button>
+        </div>
       </Container>
     </>
   );
 }
+
+DetectionStep.propTypes = {
+  onStepChange: PropTypes.func.isRequired,
+};
 
 export default DetectionStep;

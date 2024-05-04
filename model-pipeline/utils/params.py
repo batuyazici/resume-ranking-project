@@ -16,8 +16,8 @@ class YOLOParameters:
         self.device = ''
         self.source = source_dir
         self.imgsz = (640, 640)
-        self.conf_thres = 0.15
-        self.iou_thres = 0.45
+        self.conf_thres = 0.3
+        self.iou_thres = 0.3
         self.max_det = 1000
         self.save_crop = True
         self.classes = None

@@ -3,7 +3,7 @@ from pathlib import Path
 from gliner import GLiNER
 
 def load_gliner_model():
-    model = GLiNER.from_pretrained("urchade/gliner_large-v2.1")
+    model = GLiNER.from_pretrained("urchade/gliner_multi_pii-v1")
     return model
 
 def process_ner(text, labels, model):

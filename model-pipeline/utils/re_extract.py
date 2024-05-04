@@ -9,26 +9,38 @@ class TextExtractor:
         self.text = text
     
     def extract_links(self):
-        # Improve pattern to handle malformed URLs and avoid catching parts of email addresses as URLs
-        link_pattern = r'\b(?<!@)(?:https?://|ftp://|www\.)[A-Za-z0-9.-]+\.[A-Za-z]{2,}(?:\b|/)'
-        links = re.findall(link_pattern, self.text, re.IGNORECASE)
-        for link in links:
-            self.text = self.text.replace(link, "")
+        # Updated pattern to handle malformed URLs and avoid catching parts of email addresses as URLs
+        link_pattern = r'\b(?<!@)(?:https?://|ftp://|www\.)\s*[A-Za-z0-9.-]+\s*\.\s*[A-Za-z]{2,}(?:\s*\b|/)'
+        # Find potential matches considering spaces
+        potential_links = re.findall(link_pattern, self.text, re.IGNORECASE)
+
+        # Clean up the potential matches by removing all spaces
+        links = []
+        for link in potential_links:
+            cleaned_link = re.sub(r'\s+', '', link)
+            links.append(cleaned_link)
+            self.text = self.text.replace(link, "")  # Remove the original malformed link from text
+
         return links, self.text
 
     def extract_emails(self):
-        email_pattern = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b'
-        emails = re.findall(email_pattern, self.text, re.IGNORECASE)
-        for email in emails:
-            email_with_label = re.search(r'Email\s*:\s*' + re.escape(email), self.text, re.IGNORECASE)
-            if email_with_label:
-                self.text = self.text.replace(email_with_label.group(0), "")
-            else:
-                self.text = self.text.replace(email, "")
+        # Updated email pattern to handle spaces and common errors in email addresses
+        email_pattern = r'\b[A-Za-z0-9._%+-]+[\s]*@[\s]*[A-Za-z0-9.-]+[\s]*\.[A-Za-z]{2,}\b'
+        # Find potential matches considering spaces
+        potential_emails = re.findall(email_pattern, self.text, re.IGNORECASE)
+
+        # Clean up the potential matches by removing spaces around '@' and '.'
+        emails = []
+        for email in potential_emails:
+            cleaned_email = re.sub(r'\s+', '', email)
+            emails.append(cleaned_email)
+            self.text = self.text.replace(email, "")  # Remove the original malformed email from text
+
         return emails, self.text
 
     def extract_phone_numbers(self):
-        phone_number_pattern = r'\+?\d[\d\s\-]{8,12}\d'
+        # Updated phone number pattern to capture formats with dots, spaces, or dashes
+        phone_number_pattern = r'\+?\d[\d\s.-]{8,12}\d'
         phone_numbers = re.findall(phone_number_pattern, self.text, re.IGNORECASE)
         for phone in phone_numbers:
             phone_with_label = re.search(r'Phone\s*:\s*' + re.escape(phone), self.text, re.IGNORECASE)

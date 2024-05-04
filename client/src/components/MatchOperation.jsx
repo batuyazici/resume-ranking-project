@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Container, Row, Col, Card, Button } from "react-bootstrap";
-import { ArrowRightCircle, CheckCircleFill, ChevronLeft, ChevronRight } from 'react-bootstrap-icons';
+import { ArrowRightCircle, CheckCircleFill } from 'react-bootstrap-icons';
 
 const MatchOperation = () => {
   const [showResultButton, setShowResultButton] = useState(false);

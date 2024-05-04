@@ -4,6 +4,7 @@ import spectrumGradient from '../assets/img/spectrum-gradient.svg';
 import { ArrowRightCircle, CloudUpload, CheckCircleFill } from 'react-bootstrap-icons';
 import { X } from 'react-bootstrap-icons';
 import { CloudArrowUp } from 'react-bootstrap-icons';
+import PropTypes from "prop-types"; 
 
 import {
   Form,
@@ -20,7 +21,7 @@ import {
 } from "react-bootstrap";
 import { Helmet } from "react-helmet-async";
 
-function Dropzone() {
+function Dropzone({ onStepChange }) {
   const [isHovering, setIsHovering] = useState(false);
   const [files, setFiles] = useState([]);
   const [showFileRejectionMessage, setShowFileRejectionMessage] =
@@ -49,6 +50,10 @@ function Dropzone() {
     [files]
   );
 
+    const handleNextStep = () => {
+      onStepChange("detect"); // Update this to match whatever you want the state to be for showing the DetectionStep
+  };
+  
   const { getRootProps, getInputProps, open } = useDropzone({
     onDrop,
     accept: {
@@ -264,28 +269,37 @@ function Dropzone() {
           </Alert>
         )}
         {uploadSuccess && (
-          <Alert variant="success" dismissible className="m-2 fixed-bottom-alert">
+          <Alert
+            variant="success"
+            dismissible
+            className="m-2 fixed-bottom-alert"
+          >
             Files are uploaded successfully. You can continue or upload more
             files.
           </Alert>
         )}
       </div>
-      <Container >
-
+      <Container>
         <Form
           onSubmit={handleSubmit}
           className="mt-4 border-5 text-dark pt-2 px-3 mx-5 mb-4 "
           style={{
             backgroundImage: `url(${spectrumGradient})`,
-            backgroundPosition: 'top center',
-            backgroundSize: 'cover',
-            backgroundRepeat: 'no-repeat',
-            borderRadius: '30px',
+            backgroundPosition: "top center",
+            backgroundSize: "cover",
+            backgroundRepeat: "no-repeat",
+            borderRadius: "30px",
           }}
         >
-          <div {...getRootProps({ className: "p-2 mt-2  dropzone font-monospace" })}>
+          <div
+            {...getRootProps({
+              className: "p-2 mt-2  dropzone font-monospace",
+            })}
+          >
             <input {...getInputProps()} />
-            <p style={{ fontSize: "17px", marginBottom: "0.5rem" }}>Drag and drop some files here, or click to select files</p>
+            <p style={{ fontSize: "17px", marginBottom: "0.5rem" }}>
+              Drag and drop some files here, or click to select files
+            </p>
             <em style={{ fontWeight: "bolder", fontSize: "15px" }}>
               (Only *.pdf, *.docx files will be accepted)
             </em>
@@ -294,12 +308,11 @@ function Dropzone() {
               onClick={open}
               size="sm"
               className="mt-2 font-monospace"
-
             >
               Add File <CloudArrowUp size={20} />
             </Button>
           </div>
-          <div >
+          <div>
             {files.length > 0 && (
               <ToggleButtonGroup
                 type="radio"
@@ -328,11 +341,17 @@ function Dropzone() {
             )}
             <div className="d-flex justify-content-between align-items-center uploaded-resumes-header ">
               {files.length > 0 && (
-                <h3 className=" mt-2 text-light dropzone-title">Preview ({files.length} files)</h3>
+                <h3 className=" mt-2 text-light dropzone-title">
+                  Preview ({files.length} files)
+                </h3>
               )}
               {files.length > 0 && (
-                <Button variant="light" onClick={clearFiles} className="d-flex align-items-center justify-content-center mx-3 border-dark border-2 font-monospace"
-                  style={{ fontSize: "13px" }}>
+                <Button
+                  variant="light"
+                  onClick={clearFiles}
+                  className="d-flex align-items-center justify-content-center mx-3 border-dark border-2 font-monospace"
+                  style={{ fontSize: "13px" }}
+                >
                   Delete All <X size={15} className="ms-1" />
                 </Button>
               )}
@@ -342,7 +361,11 @@ function Dropzone() {
               <div className="form-submit-section">
                 {files.length > 0 && (
                   <Button
-                    variant={isHovering ? "outline-dark border-dark" : "btn btn-light border-dark"}
+                    variant={
+                      isHovering
+                        ? "outline-dark border-dark"
+                        : "btn btn-light border-dark"
+                    }
                     type="submit"
                     disabled={isUploading}
                     className="mt-2 mb-2 font-monospace"
@@ -350,10 +373,9 @@ function Dropzone() {
                     style={{ fontSize: "13px" }}
                     onMouseEnter={() => setIsHovering(true)}
                     onMouseLeave={() => setIsHovering(false)}
-
-
                   >
-                    {isUploading ? "Uploading..." : "Upload"} <CloudUpload size={20} className="ms-1" />
+                    {isUploading ? "Uploading..." : "Upload"}{" "}
+                    <CloudUpload size={20} className="ms-1" />
                   </Button>
                 )}
               </div>
@@ -362,16 +384,21 @@ function Dropzone() {
         </Form>
         {uploadSuccess && (
           <div className="form-continue-section d-flex justify-content-center">
-            <Button variant="outline-dark" className="mt-1 mb-5 btn-sm" size="lg">
+            <Button
+              variant="outline-dark"
+              className="mt-1 mb-5 btn-sm"
+              size="lg"
+              onClick={handleNextStep} // Call the step change function here
+            >
               Next Step <ArrowRightCircle size={25} />
             </Button>
           </div>
         )}
       </Container>
-
     </>
-
   );
 }
-
+Dropzone.propTypes = {
+  onStepChange: PropTypes.func.isRequired, 
+};
 export default Dropzone;

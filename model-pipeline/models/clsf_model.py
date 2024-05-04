@@ -20,8 +20,8 @@ def load_distilBERT_model():
     return tokenizer, model
 
 def classify_text(text, tokenizer, model):
-    # Encode text inputs
-    inputs = tokenizer(text, return_tensors="pt")
+    # Encode text inputs and truncate to the maximum sequence length of the model, typically 512 tokens
+    inputs = tokenizer(text, return_tensors="pt", truncation=True, max_length=512)
 
     # Move tensors to the GPU if available
     if torch.cuda.is_available():
