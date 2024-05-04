@@ -543,6 +543,18 @@ span.navbar-text {
 
 }
 
+/***** Text Editor ****/
+
 .ProseMirror:focus {
   outline: none;
+}
+
+.toolbar {
+  background-color: #f8f9fa; /* Light grey background */
+  border-bottom: 1px solid #e2e2e2; /* Separator line */
+}
+
+.editor-content {
+  background-color: #fff; /* White background for text area */
+  font-family: 'Arial', sans-serif; /* Default font */
 }
