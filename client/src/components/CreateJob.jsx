@@ -1,16 +1,9 @@
-import React, { useState } from "react";
-import Form from "react-bootstrap/Form";
-import Button from "react-bootstrap/Button";
-import Container from "react-bootstrap/Container";
-import Row from "react-bootstrap/Row";
-import Col from "react-bootstrap/Col";
-import Badge from "react-bootstrap/Badge";
+import React, { useState, useRef } from "react";
 import { X, ChevronLeft, ChevronRight } from "react-bootstrap-icons";
 import "bootstrap/dist/css/bootstrap.min.css";
 import Tiptap from "./Tiptap";
-
+import { Form, Button, Container, Row, Col, Badge } from "react-bootstrap";
 import spectrumGradient from "../assets/img/spectrum-gradient.svg";
-
 
 const CreateJob = () => {
   const [skills, setSkills] = useState([]);
@@ -23,6 +16,40 @@ const CreateJob = () => {
     language: 0,
     certification: 0,
   });
+  const [jobDetails, setJobDetails] = useState({
+    jobTitle: "",
+    company: "",
+    location: "",
+    employeeType: "",
+  });
+  const tiptapEditorRef = useRef(null);
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    const jobDescriptionHTML = tiptapEditorRef.current
+      ? tiptapEditorRef.current.getHTML()
+      : "";
+    const jobDescriptionJSON = tiptapEditorRef.current
+      ? tiptapEditorRef.current.getJSON()
+      : {};
+
+    const submissionData = {
+      htmlDescription: jobDescriptionHTML,
+      jsonDescription: jobDescriptionJSON,
+      scores: scores,
+      jobDetails: jobDetails,
+    };
+
+    console.log("Submission Data:", JSON.stringify(submissionData));
+  };
+
+  const handleInputChange = (event) => {
+    const { name, value } = event.target;
+    setJobDetails((prevDetails) => ({
+      ...prevDetails,
+      [name]: value,
+    }));
+  };
 
   const handleIncrement = (key) => {
     const totalScore = Object.values(scores).reduce(
@@ -39,13 +66,10 @@ const CreateJob = () => {
   };
 
   const handleDecrement = (key) => {
-    if (scores[key] > 0) {
-      const decrement = Math.min(5, scores[key]);
-      setScores((prevScores) => ({
-        ...prevScores,
-        [key]: prevScores[key] - decrement,
-      }));
-    }
+    setScores((prevScores) => ({
+      ...prevScores,
+      [key]: Math.max(prevScores[key] - 5, 0),
+    }));
   };
 
   const handleSkillAdd = (event) => {
@@ -66,9 +90,11 @@ const CreateJob = () => {
         {`
           .form-control:focus, .form-select:focus {
             box-shadow: 0 0 0 0.25rem rgba(130, 38, 158, 0.5); /* Purple shadow */
+            border: rgba(130, 38, 158, 0.5);
           }
         `}
       </style>
+
       <Container
         fluid="md"
         className="mt-4 mb-4"
@@ -82,7 +108,7 @@ const CreateJob = () => {
         }}
       >
         <Form
-          onSubmit={handleSkillAdd}
+          onSubmit={handleSubmit}
           className="border-3 text-dark p-3 bg-white"
           style={{ borderRadius: "15px" }}
         >
@@ -92,7 +118,7 @@ const CreateJob = () => {
           <Row className="justify-content-center">
             <Col>
               <div className="p-0 border-0 mb-4 mt-2">
-                <Row xs={1} sm={2} md={6} lg={5} className="g-5">
+                <Row xs={1} sm={2} md={6} lg={5} className="g-3">
                   {Object.keys(scores).map((key) => (
                     <Col key={key}>
                       <div>
@@ -140,76 +166,64 @@ const CreateJob = () => {
               </div>
             </Col>
           </Row>
-
-          <Form.Group
-            className="mb-1"
-            controlId="jobTitle"
-            style={{ fontSize: "15px" }}
-          >
+          <Form.Group className="mb-1" controlId="jobTitle">
             <Form.Label>Job Title</Form.Label>
             <Form.Control
               type="text"
               placeholder="Enter job title"
-              style={{ fontSize: "12px" }}
+              name="jobTitle"
+              value={jobDetails.jobTitle}
+              onChange={handleInputChange}
             />
           </Form.Group>
-
-          <Form.Group
-            className="mb-1"
-            controlId="company"
-            style={{ fontSize: "15px" }}
-          >
+          <Form.Group className="mb-1" controlId="company">
             <Form.Label>Company</Form.Label>
             <Form.Control
               type="text"
-              placeholder="Enter company"
-              style={{ fontSize: "12px" }}
+              placeholder="Enter company name"
+              name="company"
+              value={jobDetails.company}
+              onChange={handleInputChange}
             />
           </Form.Group>
-
-          <Form.Group
-            className="mb-1"
-            controlId="location"
-            style={{ fontSize: "15px" }}
-          >
+          <Form.Group className="mb-1" controlId="location">
             <Form.Label>Employee Location</Form.Label>
             <Form.Control
               type="text"
-              placeholder="Enter employee location"
-              style={{ fontSize: "12px" }}
+              placeholder="Enter location"
+              name="location"
+              value={jobDetails.location}
+              onChange={handleInputChange}
             />
           </Form.Group>
-
-          <Form.Group className="mb-1" controlId="jobDescription">
-            
-            <Form.Label>Job Description</Form.Label>
-            <Tiptap />
-          </Form.Group>
-
           <Form.Group className="mb-1" controlId="jobType">
             <Form.Label>Employee Type</Form.Label>
             <Form.Select
               aria-label="Employee type select"
-              style={{ fontSize: "12px" }}
+              name="employeeType"
+              value={jobDetails.employeeType}
+              onChange={handleInputChange}
             >
-              <option>Choose one</option>
+              <option value="">Choose one</option>
               <option value="full-time">Full-time</option>
               <option value="part-time">Part-time</option>
               <option value="contract">Contract</option>
-              <option value="Remote">Remote</option>
+              <option value="remote">Remote</option>
               <option value="temporary">Temporary</option>
               <option value="internship">Internship</option>
             </Form.Select>
           </Form.Group>
-
-          <Form.Group className="mb-1" controlId="jobSkills">
-            <Form.Label>Add skills</Form.Label>
+          <Form.Group className="mb-1" controlId="jobDescription">
+            <Form.Label>Job Description</Form.Label>
+            <Tiptap ref={tiptapEditorRef} />
+          </Form.Group>
+          <Form.Group className="mb-1 mt-0" controlId="jobSkills">
+            <Form.Label>Add Skills</Form.Label>
             <Form.Text className="mx-1">(Select up to 10)</Form.Text>
             <div className="d-flex flex-wrap">
               {skills.map((skill, index) => (
                 <Badge
                   key={index}
-                  pill
                   bg=""
                   className="d-flex align-items-center mb-2 ml-0 mt-0 "
                   style={{
@@ -225,22 +239,24 @@ const CreateJob = () => {
                   />
                 </Badge>
               ))}
+              {skills.length < 10 && (
+                <Form.Control
+                  type="text"
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  placeholder="Type a skill and press enter"
+                  onKeyDown={(e) => e.key === "Enter" && handleSkillAdd(e)}
+                />
+              )}
             </div>
-            {skills.length < 10 && (
-              <Form.Control
-                type="text"
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                placeholder="Type a skill and press enter"
-                className="my-0 "
-                onKeyDown={(e) => e.key === "Enter" && handleSkillAdd(e)}
-                style={{ fontSize: "12px" }}
-              />
-            )}
           </Form.Group>
-
           <div className="form-continue-section d-flex justify-content-center">
-            <Button variant="outline-dark" className="mt-1 btn-sm" size="lg">
+            <Button
+              type="submit"
+              variant="outline-dark"
+              className="mt-1 btn-sm"
+              size="lg"
+            >
               Submit
             </Button>
           </div>
