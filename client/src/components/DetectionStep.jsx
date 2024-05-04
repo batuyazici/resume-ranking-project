@@ -72,6 +72,14 @@ function DetectionStep({ onStepChange }) {
 
   return (
     <>
+    <style type="text/css">
+        {`
+          .form-control:focus, .form-select:focus {
+            box-shadow: 0 0 0 0.25rem rgba(130, 38, 158, 0.5); /* Purple shadow */
+            border: rgba(130, 38, 158, 0.5);
+          }
+        `}
+      </style>
       <Container fluid="md" className="mt-4">
         <Row className="justify-content-center match-container-1 mt-2 mb-4">
           <Col md={3}>
@@ -190,14 +198,17 @@ function DetectionStep({ onStepChange }) {
                             </div>
                           ) : (
                             <Button
-                              variant="secondary"
-                              style={{
-                                padding: "0.25rem 0.5rem",
-                                fontSize: "0.75rem",
-                              }}
-                            >
-                              Show Details
-                            </Button>
+                            variant="secondary"
+                            style={{
+                              padding: "0.25rem 0.5rem",
+                              fontSize: "0.75rem",
+                              backgroundColor: "#942cd2", 
+                              color: "white", 
+                              border:"#942cd2"
+                            }}
+                          >
+                            Show Details
+                          </Button>
                           )}
                         </Card.Body>
                       </Card>
