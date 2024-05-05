@@ -26,22 +26,39 @@ const CreateJob = () => {
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    const jobDescriptionHTML = tiptapEditorRef.current
-      ? tiptapEditorRef.current.getHTML()
-      : "";
+    
     const jobDescriptionJSON = tiptapEditorRef.current
       ? tiptapEditorRef.current.getJSON()
       : {};
-
+  
+    // Function to extract text content from the JSON
+    const extractText = (nodes) => {
+      let textContent = "";
+      nodes.forEach(node => {
+        if (node.content) {
+          textContent += extractText(node.content);
+        }
+        if (node.text) {
+          textContent += node.text + " ";
+        }
+      });
+      return textContent;
+    };
+  
+    const textOutput = extractText(jobDescriptionJSON.content || []).trim();
+  
     const submissionData = {
-      htmlDescription: jobDescriptionHTML,
-      jsonDescription: jobDescriptionJSON,
       scores: scores,
       jobDetails: jobDetails,
+      Skills: skills,
+      JobDesc: textOutput,
+      JobDescJSON: jobDescriptionJSON // Include the full JSON structure for HTML operations
     };
-
-    console.log("Submission Data:", JSON.stringify(submissionData));
+  
+    // Pretty print JSON with indentation
+    console.log("Submission Data:", JSON.stringify(submissionData, null, 2));
   };
+  
 
   const handleInputChange = (event) => {
     const { name, value } = event.target;
