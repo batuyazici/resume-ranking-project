@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   Button,
   Container,
@@ -7,8 +7,7 @@ import {
   Card,
   Form,
   FormGroup,
-  FormControl,
-  FormCheck,
+  FormControl
 } from "react-bootstrap";
 import PropTypes from "prop-types";
 import {
@@ -24,12 +23,19 @@ function DetectionStep({ onStepChange }) {
   const [labelThickness, setLabelThickness] = useState("");
   const [showLabels, setShowLabels] = useState(true); // Default to true
   const [processedDetailsVisible, setProcessedDetailsVisible] = useState({});
+  const [isAnimating, setIsAnimating] = useState(false);
 
-  const handleDetectClick = () => {
-    console.log("Detection Started for Containers:", selectedContainers);
-    // Add logic here for what happens when detection is triggered
+const handleDetectClick = () => {
+  setIsAnimating(true);
+  setTimeout(() => {
+    setIsAnimating(false);
+    onStepChange("ocr");
+  }, 3000); // Simulation of the detection process and animation
+};
+
+  const handleReturnClick = () => {
+    onStepChange("upload");
   };
-
   const handleContainerClick = (containerId) => {
     setSelectedContainers((prev) => {
       const containerType = containerId.includes("resume") ? "resume" : "job";
@@ -72,7 +78,7 @@ function DetectionStep({ onStepChange }) {
 
   return (
     <>
-    <style type="text/css">
+      <style type="text/css">
         {`
           .form-control:focus, .form-select:focus {
             box-shadow: 0 0 0 0.25rem rgba(130, 38, 158, 0.5); /* Purple shadow */
@@ -80,6 +86,11 @@ function DetectionStep({ onStepChange }) {
           }
         `}
       </style>
+      {isAnimating && (
+        <div style={{ textAlign: "center" }}>
+          Detecting... {/* Placeholder for animation */}
+        </div>
+      )}
       <Container fluid="md" className="mt-4">
         <Row className="justify-content-center match-container-1 mt-2 mb-4">
           <Col md={3}>
@@ -198,17 +209,17 @@ function DetectionStep({ onStepChange }) {
                             </div>
                           ) : (
                             <Button
-                            variant="secondary"
-                            style={{
-                              padding: "0.25rem 0.5rem",
-                              fontSize: "0.75rem",
-                              backgroundColor: "#942cd2", 
-                              color: "white", 
-                              border:"#942cd2"
-                            }}
-                          >
-                            Show Details
-                          </Button>
+                              variant="secondary"
+                              style={{
+                                padding: "0.25rem 0.5rem",
+                                fontSize: "0.75rem",
+                                backgroundColor: "#942cd2",
+                                color: "white",
+                                border: "#942cd2",
+                              }}
+                            >
+                              Show Details
+                            </Button>
                           )}
                         </Card.Body>
                       </Card>
@@ -225,7 +236,7 @@ function DetectionStep({ onStepChange }) {
             className="mt-1 mb-5 btn-sm mx-3"
             size="lg"
             style={{ width: "150px" }}
-            onClick={onStepChange}
+            onClick={handleReturnClick}
           >
             Return <ArrowLeftCircle size={25} />
           </Button>

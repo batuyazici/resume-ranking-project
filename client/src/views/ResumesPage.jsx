@@ -3,7 +3,7 @@ import Dropzone from "../components/Dropzone";
 import DetectionStep from "../components/DetectionStep"; // Assuming this is the detection component
 import NavBar from "../components/Navbar";
 import Footer from "../components/Footer";
-
+import OcrStep from "../components/OcrStep";
 function ResumesPage() {
   const [currentStep, setCurrentStep] = useState("upload");
 
@@ -16,9 +16,11 @@ function ResumesPage() {
       <NavBar />
       {currentStep === "upload" ? (
         <Dropzone onStepChange={() => handleStepChange("detect")} />
-      ) : (
-        <DetectionStep onStepChange={() => handleStepChange("upload")} />
-      )}
+      ) : currentStep === "detect" ? (
+        <DetectionStep onStepChange={handleStepChange} />
+      ) : currentStep === "ocr" ? (
+        <OcrStep onStepChange={handleStepChange} />
+      ) : null}
       <Footer />
     </>
   );
