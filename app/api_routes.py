@@ -97,17 +97,19 @@ async def get_conversion_status(batch_id: Optional[int] = Query(None)):
     try:
         if batch_id:
             query = """
-            SELECT b.start_date, c.file_id, c.process_type, c.status, c.number_of_pages, c.original_name
+            SELECT b.start_date, c.file_id, c.process_type, c.status, c.number_of_pages, c.save_path, u.original_name
             FROM conversion_status c
             JOIN batch_process b ON c.batch_id = b.batch_id
+            JOIN uploaded_files u ON c.file_id = u.file_id
             WHERE c.batch_id = $1;
             """
             results = await fetch_query(query, batch_id)
         else:
             query = """
-            SELECT b.batch_id, b.start_date, c.file_id, c.process_type, c.status, c.number_of_pages, c.original_name
+            SELECT b.batch_id, b.start_date, c.file_id, c.process_type, c.status, c.number_of_pages, u.original_name
             FROM conversion_status c
             JOIN batch_process b ON c.batch_id = b.batch_id
+            JOIN uploaded_files u ON c.file_id = u.file_id
             ORDER BY b.batch_id;
             """
             results = await fetch_query(query)

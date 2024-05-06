@@ -134,7 +134,7 @@ function DetectionStep({ onStepChange }) {
                         Number of Pages: {file.number_of_pages}
                       </Card.Text>
                       <Card.Text style={{ fontSize: "13px" }}>
-                        Save Path: {file.save_path}
+                        Save Path: {file.original_name}
                       </Card.Text>
                     </Card.Body>
                   </Card>
