@@ -61,6 +61,11 @@ async def docx_conv(file_id, docx_path, pdf_path, batch_id, save_dir, background
         await execute_query("INSERT INTO conversion_status (batch_id, process_type, status, file_id) VALUES ($1, 'Convert DOCX to PDF', 'failed', $2)", batch_id, file_id)
 
 async def pdf_conv(file_id, pdf_path, save_dir, batch_id, conv_id=None):
+    if not conv_id:
+                    await execute_query(
+                "INSERT INTO conversion_status (batch_id, file_id, process_type, status, number_of_pages, save_path) VALUES ($1, $2, 'pdf-jpg', 'pending', 0, '')", 
+                batch_id, file_id
+            )      
     try:
         pages_num = convert_pdf_to_jpg(pdf_path, save_dir)  
         if conv_id:
@@ -70,8 +75,8 @@ async def pdf_conv(file_id, pdf_path, save_dir, batch_id, conv_id=None):
             )
         else:
             await execute_query(
-                "INSERT INTO conversion_status (batch_id, file_id, process_type, status, number_of_pages, save_path) VALUES ($1, $2, 'pdf-jpg', 'completed', $3, $4)", 
-                batch_id, file_id, pages_num, save_dir
+                "UPDATE conversion_status SET status = 'completed', number_of_pages = $1, save_path = $2 WHERE file_id = $3 AND status = 'pending'", 
+                pages_num, save_dir, file_id
             )
     except Exception as e:
         logging.error(f"Failed to convert PDF or update database for file_id {file_id}: {str(e)}")

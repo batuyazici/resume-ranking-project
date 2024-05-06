@@ -1,80 +1,71 @@
-import { useState } from "react";
-import {
-  Button,
-  Container,
-  Row,
-  Col,
-  Card,
-  Form,
-  FormGroup,
-  FormControl
-} from "react-bootstrap";
+import { useState, useEffect } from "react";
+import { Button, Container, Row, Col, Card } from "react-bootstrap";
 import PropTypes from "prop-types";
 import {
   ArrowRightCircle,
   CheckCircleFill,
   ArrowLeftCircle,
 } from "react-bootstrap-icons";
-
+import axios from "axios";
 function DetectionStep({ onStepChange }) {
-  const [selectedContainers, setSelectedContainers] = useState([]);
-  const [confidenceThreshold, setConfidenceThreshold] = useState("");
-  const [iouThreshold, setIouThreshold] = useState("");
-  const [labelThickness, setLabelThickness] = useState("");
-  const [showLabels, setShowLabels] = useState(true); // Default to true
-  const [processedDetailsVisible, setProcessedDetailsVisible] = useState({});
+  const [batches, setBatches] = useState([]);
+  const [selectedBatchId, setSelectedBatchId] = useState(null);
   const [isAnimating, setIsAnimating] = useState(false);
 
-const handleDetectClick = () => {
-  setIsAnimating(true);
-  setTimeout(() => {
-    setIsAnimating(false);
-    onStepChange("ocr");
-  }, 3000); // Simulation of the detection process and animation
-};
+  const fetchStatus = async () => {
+    try {
+      const response = await axios.get(import.meta.env.VITE_FAST_API_STATUS);
+      const formattedBatches = Object.entries(response.data).map(
+        ([batchId, batchData]) => {
+          const { start_date, files } = batchData;
+          return {
+            batchId,
+            start_date,
+            files,
+            completed: files.filter((file) => file.status === "completed")
+              .length,
+            pending: files.filter((file) => file.status === "pending").length,
+            failed: files.filter((file) => file.status === "failed").length,
+          };
+        }
+      );
+
+      setBatches(formattedBatches);
+    } catch (error) {
+      console.error("Failed to fetch status:", error);
+    }
+  };
+
+  useEffect(() => {
+    const intervalId = setInterval(fetchStatus, 5000); // Poll every 5 seconds
+    return () => clearInterval(intervalId); // Cleanup on unmount
+  }, []);
+
+  const handleDetectClick = () => {
+    setIsAnimating(true);
+    setTimeout(() => {
+      setIsAnimating(false);
+      onStepChange("ocr");
+    }, 3000);
+  };
 
   const handleReturnClick = () => {
     onStepChange("upload");
   };
-  const handleContainerClick = (containerId) => {
-    setSelectedContainers((prev) => {
-      const containerType = containerId.includes("resume") ? "resume" : "job";
-      return prev.includes(containerId)
-        ? prev.filter((id) => id !== containerId)
-        : [...prev, containerId];
-    });
+
+  const handleBatchClick = (batchId) => {
+    setSelectedBatchId(batchId);
   };
 
-  const toggleDetailsVisibility = (index) => {
-    setProcessedDetailsVisible((prev) => ({
-      ...prev,
-      [index]: !prev[index],
-    }));
-  };
+  const selectedBatch = batches.find(
+    (batch) => batch.batchId === selectedBatchId
+  );
 
-  const containerStyle = (containerId) => ({
-    backgroundColor: selectedContainers.includes(containerId)
-      ? "#e1d2ec"
-      : "#f8f9fa",
+  const containerStyle = (batchId) => ({
+    backgroundColor: selectedBatchId === batchId ? "#e1d2ec" : "#f8f9fa",
     cursor: "pointer",
-    position: "relative",
+    position:"relative"
   });
-
-  const checkMark = (containerId) => {
-    return selectedContainers.includes(containerId) ? (
-      <CheckCircleFill
-        color="purple"
-        size={20}
-        style={{ position: "absolute", top: "5px", right: "5px" }}
-      />
-    ) : null;
-  };
-
-  const isDetectEnabled =
-    confidenceThreshold &&
-    iouThreshold &&
-    labelThickness &&
-    selectedContainers.length > 0;
 
   return (
     <>
@@ -86,173 +77,98 @@ const handleDetectClick = () => {
           }
         `}
       </style>
-      {isAnimating && (
-        <div style={{ textAlign: "center" }}>
-          Detecting... {/* Placeholder for animation */}
-        </div>
-      )}
       <Container fluid="md" className="mt-4">
         <Row className="justify-content-center match-container-1 mt-2 mb-4">
-          <Col md={3}>
-            <Card>
-              <Card.Body>
-                <Card.Title
-                  className="text-center"
-                  style={{ fontSize: "16px" }}
-                >
-                  Object Detection Model Details
-                </Card.Title>
-                <Form>
-                  <FormGroup className="mb-2">
-                    <Form.Label style={{ fontSize: "12px" }}>Model</Form.Label>
-                    <div style={{ fontSize: "12px", marginBottom: "10px" }}>
-                      YOLOv9
-                    </div>
-                  </FormGroup>
-                  <FormGroup className="mb-2">
-                    <Form.Label style={{ fontSize: "12px" }}>
-                      Confidence Threshold
-                    </Form.Label>
-                    <FormControl
-                      type="number"
-                      value={confidenceThreshold}
-                      onChange={(e) => setConfidenceThreshold(e.target.value)}
-                      style={{ fontSize: "12px" }}
+          <Col md={6} className="highlight-section scrollable-column">
+            {batches.map((batch) => (
+              <Card
+                key={batch.batchId}
+                onClick={() => handleBatchClick(batch.batchId)}
+                style={containerStyle(batch.batchId)}
+                className="mt-3"
+              >
+                <Card.Body>
+                  <Card.Title style={{ fontSize: "13px" }}>
+                    Date: {batch.start_date}
+                  </Card.Title>
+                  <Card.Title style={{ fontSize: "13px" }}>
+                    Batch ID: {batch.batchId}
+                  </Card.Title>
+                  <Card.Text style={{ fontSize: "13px" }}>
+                    Completed: {batch.completed}
+                  </Card.Text>
+                  <Card.Text style={{ fontSize: "13px" }}>
+                    Pending: {batch.pending}
+                  </Card.Text>
+                  <Card.Text style={{ fontSize: "13px" }}>
+                    Failed: {batch.failed}
+                  </Card.Text>
+                  {selectedBatchId === batch.batchId && (
+                    <CheckCircleFill
+                      color="purple"
+                      size={20}
+                      style={{ position: "absolute", top: "5px", right: "5px" }}
                     />
-                  </FormGroup>
-                  <FormGroup className="mb-2">
-                    <Form.Label style={{ fontSize: "12px" }}>
-                      IOU Threshold
-                    </Form.Label>
-                    <FormControl
-                      type="number"
-                      value={iouThreshold}
-                      onChange={(e) => setIouThreshold(e.target.value)}
-                      style={{ fontSize: "12px" }}
-                    />
-                  </FormGroup>
-                  <FormGroup className="mb-2">
-                    <Form.Label style={{ fontSize: "12px" }}>
-                      Label Thickness
-                    </Form.Label>
-                    <FormControl
-                      type="number"
-                      value={labelThickness}
-                      onChange={(e) => setLabelThickness(e.target.value)}
-                      style={{ fontSize: "12px" }}
-                    />
-                  </FormGroup>
-                  <FormGroup className="mb-2">
-                    <Form.Check
-                      type="checkbox"
-                      label="Show Labels"
-                      checked={showLabels}
-                      onChange={(e) => setShowLabels(e.target.checked)}
-                      style={{ fontSize: "12px" }}
-                    />
-                  </FormGroup>
-                </Form>
-              </Card.Body>
-            </Card>
+                  )}
+                </Card.Body>
+              </Card>
+            ))}
           </Col>
-          <Col md={9}>
-            <Card>
-              <Card.Body>
-                <Card.Title
-                  className="text-center"
-                  style={{ fontSize: "16px", paddingBottom: "15px" }}
-                >
-                  Uploaded Resumes
-                </Card.Title>
-                <Row>
-                  <Col md={6} className="highlight-section scrollable-column">
-                    <div style={{ fontSize: "16px" }}>Not Processed</div>
-                    {[...Array(7)].map((_, index) => (
-                      <Card
-                        className="mt-3"
-                        key={`resume-${index}`}
-                        style={containerStyle(`resume-${index}`)}
-                        onClick={() => handleContainerClick(`resume-${index}`)}
-                      >
-                        <Card.Body>
-                          <Card.Title style={{ fontSize: "13px" }}>
-                            Date: {index + 1}
-                          </Card.Title>
-                          <Card.Title style={{ fontSize: "13px" }}>
-                            Uploaded Resumes: {index + 1}
-                          </Card.Title>
-                          <div className="d-flex justify-content-between align-items-center">
-                            {checkMark(`resume-${index}`)}
-                          </div>
-                        </Card.Body>
-                      </Card>
-                    ))}
-                  </Col>
-                  <Col md={6} className="scrollable-column">
-                    <div style={{ fontSize: "16px" }}>Processed</div>
-                    {[...Array(5)].map((_, index) => (
-                      <Card
-                        className="mt-3"
-                        key={`processed-${index}`}
-                        onClick={() => toggleDetailsVisibility(index)}
-                      >
-                        <Card.Body>
-                          <Card.Title style={{ fontSize: "13px" }}>
-                            Date: {new Date().toISOString().split("T")[0]}
-                          </Card.Title>
-                          <Card.Title style={{ fontSize: "13px" }}>
-                            Processed Resume {index + 1}
-                          </Card.Title>
-                          {processedDetailsVisible[index] ? (
-                            <div>
-                              <p>Details of processing...</p>
-                            </div>
-                          ) : (
-                            <Button
-                              variant="secondary"
-                              style={{
-                                padding: "0.25rem 0.5rem",
-                                fontSize: "0.75rem",
-                                backgroundColor: "#942cd2",
-                                color: "white",
-                                border: "#942cd2",
-                              }}
-                            >
-                              Show Details
-                            </Button>
-                          )}
-                        </Card.Body>
-                      </Card>
-                    ))}
-                  </Col>
-                </Row>
-              </Card.Body>
-            </Card>
+          <Col md={6} className="detail-section scrollable-column">
+            {selectedBatch ? (
+              <>
+                <h5>Files in Batch {selectedBatch.batchId}</h5>
+                {selectedBatch.files.map((file, index) => (
+                  <Card key={index} className="mt-3">
+                    <Card.Body>
+                      <Card.Title style={{ fontSize: "13px" }}>
+                        File ID: {file.file_id}
+                      </Card.Title>
+                      <Card.Text style={{ fontSize: "13px" }}>
+                        Process Type: {file.process_type}
+                      </Card.Text>
+                      <Card.Text style={{ fontSize: "13px" }}>
+                        Status: {file.status}
+                      </Card.Text>
+                      <Card.Text style={{ fontSize: "13px" }}>
+                        Number of Pages: {file.number_of_pages}
+                      </Card.Text>
+                      <Card.Text style={{ fontSize: "13px" }}>
+                        Save Path: {file.save_path}
+                      </Card.Text>
+                    </Card.Body>
+                  </Card>
+                ))}
+              </>
+            ) : (
+              <div className="text-center mt-3">
+                Please select a batch to view files.
+              </div>
+            )}
           </Col>
         </Row>
-        <div className="form-continue-section d-flex justify-content-center">
-          <Button
-            variant="outline-dark"
-            className="mt-1 mb-5 btn-sm mx-3"
-            size="lg"
-            style={{ width: "150px" }}
-            onClick={handleReturnClick}
-          >
-            Return <ArrowLeftCircle size={25} />
-          </Button>
-          <Button
-            variant="outline-dark"
-            disabled={!isDetectEnabled}
-            className="mt-1 mb-5 btn-sm mx-3"
-            size="lg"
-            style={{ width: "150px" }}
-            onClick={handleDetectClick}
-          >
-            {isDetectEnabled ? "Detect" : "Enter Details"}{" "}
-            <ArrowRightCircle size={25} />
-          </Button>
-        </div>
       </Container>
+      <Row className="form-continue-section d-flex justify-content-center">
+        <Button
+          variant="outline-dark"
+          className="mt-1 mb-5 btn-sm mx-3"
+          size="lg"
+          style={{ width: "150px" }}
+          onClick={handleReturnClick}
+        >
+          Return <ArrowLeftCircle size={25} />
+        </Button>
+        <Button
+          variant="outline-dark"
+          disabled={!selectedBatch}
+          className="mt-1 mb-5 btn-sm mx-3"
+          size="lg"
+          style={{ width: "150px" }}
+          onClick={handleDetectClick}
+        >
+          Detect <ArrowRightCircle size={25} />
+        </Button>
+      </Row>
     </>
   );
 }

@@ -226,7 +226,7 @@ function Dropzone({ onStepChange }) {
 
     console.log(formData);
     try {
-      const endpoint = import.meta.env.VITE_FAST_API_ENDPOINT;
+      const endpoint = import.meta.env.VITE_FAST_API_UPLOAD;
       const response = await fetch(endpoint, {
         method: "POST",
         body: formData,
