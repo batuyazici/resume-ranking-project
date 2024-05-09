@@ -1,10 +1,11 @@
 from fastapi import FastAPI, UploadFile, Form, File, BackgroundTasks, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 from typing import List, Optional
 import os
 import shutil  
-import glob  
+import glob
+import json  
 from db import execute_query, fetch_query, fetch_single_query 
 from helpers import clean_filename, init_upload_batch, check_batch_exists, conf_input_file
 from file_processing import docx_conv, pdf_conv
@@ -175,9 +176,9 @@ async def detect_run(batch_ids: dict):
                 new_path = os.path.join(input_path, os.path.basename(file_path))
                 shutil.copy(file_path, new_path)
         
-        results_path = await detect_impl(parameters)
-        ocr_path = results_path / "crops" / "segment"
-        
+        crops_dir = await detect_impl(parameters)
+        file_handler.set_crops_dir(crops_dir)
+     
         results = {}
         for file in files:
             file_id = file['file_id']
@@ -213,14 +214,36 @@ async def serve_file(storage_name: str, file_name: str):
 async def ocr_run(batch_ids: dict):
     from model_pipeline.ocr import ocr_impl
     try:
-        ocr_impl(parameters.lang, file_handler)
-            
+        batch_ids = batch_ids.get("batch_ids", [])
+        batch_ids = [int(id_str) for id_str in batch_ids]
+
+        query = """
+            SELECT file_id, storage_name, batch_id FROM uploaded_files
+            WHERE batch_id = ANY($1);
+        """
+        files = await fetch_query(query, batch_ids)
+        if not files:
+            raise HTTPException(status_code=404, detail="No files found for the provided batch IDs.")
+
+        await ocr_impl(file_handler)
+
+        results = {}
+        for file in files:
+            file_id = file['file_id']
+            storage_name = file['storage_name']
+            specific_result_folder = os.path.join(file_handler.results_dir, storage_name)
+            file_path = os.path.join(specific_result_folder, f"{storage_name}_ocr.json")
+            if os.path.exists(file_path):
+                with open(file_path, 'r') as f:
+                    results[file_id] = json.load(f)
+
         update_query = """
         UPDATE ocr_results SET status = 'completed' WHERE batch_id = ANY($1);
         """
         await execute_query(update_query, batch_ids)
         
-        return {"message": "OCR process completed."}
+        return JSONResponse(content={"results": results, "message": "OCR process completed."})
+
     except Exception as e:
         update_fail_query = """
         UPDATE ocr_results SET status = 'failed' WHERE batch_id = ANY($1);

@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
 import spectrumGradient from "../assets/img/spectrum-gradient.svg";
 import {
@@ -36,6 +36,15 @@ function Dropzone({ onStepChange }) {
   const [uploadedFiles, setUploadedFiles] = useState(new Set());
   const [batchId, setBatchId] = useState(null);
 
+  useEffect(() => {
+    const success = sessionStorage.getItem('uploadSuccess');
+    console.log('Upload Success from sessionStorage:', success);
+
+    if (success === 'true') {
+        setUploadSuccess(true);
+    }
+}, []);
+
   const onDrop = useCallback(
     (acceptedFiles, rejectedFiles) => {
       setShowFileRejectionMessage(rejectedFiles.length > 0);
@@ -55,7 +64,7 @@ function Dropzone({ onStepChange }) {
   );
 
   const handleNextStep = () => {
-    onStepChange("detect"); 
+    onStepChange("detect");
   };
 
   const { getRootProps, getInputProps, open } = useDropzone({
@@ -251,6 +260,8 @@ function Dropzone({ onStepChange }) {
         console.log(response);
         setIsUploading(false);
         setUploadSuccess(true);
+        console.log('Upload successful, setting sessionStorage');
+        sessionStorage.setItem('uploadSuccess', 'true');
         setShowFileRejectionMessage(false);
         files.forEach((file) => uploadedFiles.add(file.name));
         setUploadedFiles(new Set(uploadedFiles));

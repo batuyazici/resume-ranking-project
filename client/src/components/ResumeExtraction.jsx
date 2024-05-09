@@ -19,9 +19,9 @@ import {
 } from "react-bootstrap-icons";
 import axios from "axios";
 import { Helmet } from "react-helmet-async";
+import { useNavigate } from "react-router-dom";
 
-
-function ResumeExtraction ({ onStepChange }) {
+function ResumeExtraction({ onStepChange }) {
   const [batches, setBatches] = useState([]);
   const [isAnimating, setIsAnimating] = useState(false);
   const [showModal, setShowModal] = useState(false);
@@ -32,45 +32,57 @@ function ResumeExtraction ({ onStepChange }) {
   const [detectionResults, setDetectionResults] = useState([]);
   const [isOcr, setIsOcr] = useState(false);
   const [OcrResults, setOcrResults] = useState([]);
+  const [isClassification, setIsClassification] = useState(false);
+  const [classificationResults, setClassificationResults] = useState([]);
+  const [isNer, setIsNer] = useState(false);
+  const [nerResults, setNerResults] = useState([]);
 
-{/******** Fetch API **********/}
-const fetchStatus = async () => {
-  try {
-    const response = await axios.get(import.meta.env.VITE_FAST_API_STATUS);
-    const formattedBatches = Object.entries(response.data).map(
-      ([batchId, batchData]) => {
-        const {
-          start_date,
-          files,
-          detection_status,
-          ocr_status,
-          classification_status,
-          ner_status,
-        } = batchData;
-        return {
-          batchId,
-          start_date,
-          files,
-          completed: files.filter(
-            (file) => file.conversion_status === "completed"
-          ).length,
-          pending: files.filter((file) => file.conversion_status === "pending")
-            .length,
-          failed: files.filter((file) => file.conversion_status === "failed")
-            .length,
-          detection_status,
-          ocr_status,
-          classification_status,
-          ner_status,
-        };
-      }
-    );
-    setBatches(formattedBatches);
-    console.log("Fetched status:", formattedBatches);
-  } catch (error) {
-    console.error("Failed to fetch status:", error);
+  {
+    /******** Initilization **********/
   }
-};
+  const navigate = useNavigate();
+
+  {
+    /******** Fetch API **********/
+  }
+  const fetchStatus = async () => {
+    try {
+      const response = await axios.get(import.meta.env.VITE_FAST_API_STATUS);
+      const formattedBatches = Object.entries(response.data).map(
+        ([batchId, batchData]) => {
+          const {
+            start_date,
+            files,
+            detection_status,
+            ocr_status,
+            classification_status,
+            ner_status,
+          } = batchData;
+          return {
+            batchId,
+            start_date,
+            files,
+            completed: files.filter(
+              (file) => file.conversion_status === "completed"
+            ).length,
+            pending: files.filter(
+              (file) => file.conversion_status === "pending"
+            ).length,
+            failed: files.filter((file) => file.conversion_status === "failed")
+              .length,
+            detection_status,
+            ocr_status,
+            classification_status,
+            ner_status,
+          };
+        }
+      );
+      setBatches(formattedBatches);
+      console.log("Fetched status:", formattedBatches);
+    } catch (error) {
+      console.error("Failed to fetch status:", error);
+    }
+  };
 
   useEffect(() => {
     fetchStatus();
@@ -78,28 +90,29 @@ const fetchStatus = async () => {
     return () => clearInterval(intervalId);
   }, []);
 
-{/******** Handle button clicks **********/}
-
-
-const handleFileButtonClick = (fileId) => {
-  const fileDetails = detectionResults[fileId] || [];
-  const imageUrls = fileDetails.map((filePath) => {
-    const pathParts = filePath.split("\\"); 
-    const storageName = pathParts[pathParts.length - 2];
-    const fileName = pathParts[pathParts.length - 1]; 
-    return `${
-      import.meta.env.VITE_FAST_API_BASE_URL
-    }files/${storageName}/${fileName}`;
-  });
-  console.log("Image URLs:", imageUrls);
-  if (imageUrls.length > 0) {
-    setImages(imageUrls);
-    setCurrentImageIndex(0);
-    setShowModal(true);
-  } else {
-    console.error("No images found for file ID:", fileId);
+  {
+    /******** Handle button clicks **********/
   }
-};
+
+  const handleFileButtonClick = (fileId) => {
+    const fileDetails = detectionResults[fileId] || [];
+    const imageUrls = fileDetails.map((filePath) => {
+      const pathParts = filePath.split("\\");
+      const storageName = pathParts[pathParts.length - 2];
+      const fileName = pathParts[pathParts.length - 1];
+      return `${
+        import.meta.env.VITE_FAST_API_BASE_URL
+      }files/${storageName}/${fileName}`;
+    });
+    console.log("Image URLs:", imageUrls);
+    if (imageUrls.length > 0) {
+      setImages(imageUrls);
+      setCurrentImageIndex(0);
+      setShowModal(true);
+    } else {
+      console.error("No images found for file ID:", fileId);
+    }
+  };
 
   const handleDetectClick = async () => {
     if (selectedBatchIds.length === 0) return;
@@ -134,7 +147,62 @@ const handleFileButtonClick = (fileId) => {
     onStepChange("upload");
   };
 
-{/******** Handle modal actions **********/}
+  const handleOcrClick = async () => {
+    setIsAnimating(true);
+    try {
+      const response = await axios.post(import.meta.env.VITE_FAST_API_OCR, {
+        batch_ids: selectedBatchIds,
+      });
+      setOcrResults(response.data);
+      console.log("OCR results:", response.data);
+      SetIsOcr(true);
+    } catch (error) {
+      console.error("OCR failed:", error.response || error);
+    } finally {
+      setIsAnimating(false);
+    }
+  };
+
+  const handleClassifyClick = async () => {
+    setIsAnimating(true);
+    // API call for classification
+    setIsAnimating(false);
+    setIsClassification(true);
+  };
+
+  const handleNerClick = async () => {
+    setIsAnimating(true);
+    // API call for NER
+    setIsAnimating(false);
+    setIsNer(true);
+  };
+
+  const handleMatchCvs = async () => {
+    setIsAnimating(true);
+    // Assuming any necessary final checks or setups before navigating
+    setIsAnimating(false);
+    navigate("/match"); // Navigating to MatchPage after processes are complete
+  };
+
+  const getButtonProps = () => {
+    if (isNer) {
+      return { label: "Match CVs", onClick: handleMatchCvs };
+    } else if (isClassification) {
+      return { label: "Proceed NER", onClick: handleNerClick };
+    } else if (isOcr) {
+      return { label: "Classify", onClick: handleClassifyClick };
+    } else if (isDetected) {
+      return { label: "Proceed OCR", onClick: handleOcrClick };
+    } else {
+      return { label: "Detect", onClick: handleDetectClick };
+    }
+  };
+
+  const { label, onClick } = getButtonProps();
+
+  {
+    /******** Handle modal actions **********/
+  }
   const handlePreviousImage = () => {
     setCurrentImageIndex((prevIndex) =>
       prevIndex > 0 ? prevIndex - 1 : images.length - 1
@@ -149,8 +217,9 @@ const handleFileButtonClick = (fileId) => {
     setShowModal(false);
   };
 
-
-{/******** Format code **********/}
+  {
+    /******** Format code **********/
+  }
   const formatDate = (dateString) => {
     const options = {
       year: "numeric",
@@ -163,30 +232,30 @@ const handleFileButtonClick = (fileId) => {
     return new Date(dateString).toLocaleString("en-US", options);
   };
 
-const containerStyle = (batchId) => ({
-  backgroundColor: isDetected
-    ? "#f8f9fa"
-    : selectedBatchIds.includes(batchId)
-    ? "#e1d2ec"
-    : "#f8f9fa",
-  cursor: isDetected ? "default" : "pointer",
-  position: "relative",
-  borderWidth: "2px",
-  borderColor: isDetected
-    ? "transparent"
-    : selectedBatchIds.includes(batchId)
-    ? "purple"
-    : "transparent",
-  boxSizing: "border-box",
-  pointerEvents: isDetected ? "none" : "auto",
-});
+  const containerStyle = (batchId) => ({
+    backgroundColor: isDetected
+      ? "#f8f9fa"
+      : selectedBatchIds.includes(batchId)
+      ? "#e1d2ec"
+      : "#f8f9fa",
+    cursor: isDetected ? "default" : "pointer",
+    position: "relative",
+    borderWidth: "2px",
+    borderColor: isDetected
+      ? "transparent"
+      : selectedBatchIds.includes(batchId)
+      ? "purple"
+      : "transparent",
+    boxSizing: "border-box",
+    pointerEvents: isDetected ? "none" : "auto",
+  });
 
   if (!batches) {
     return (
       <Container fluid="md" className="mt-4 px-5 detection-layout">
         <Spinner animation="grow" size="lg" />
       </Container>
-    ); 
+    );
   }
 
   return (
@@ -380,7 +449,7 @@ const containerStyle = (batchId) => ({
                               borderColor: "#942cd2",
                             }}
                           >
-                            Result
+                            Results
                           </Button>
                         )}
                       </Card.Body>
@@ -397,80 +466,85 @@ const containerStyle = (batchId) => ({
         </Row>
       </Container>
       <Row className="form-continue-section d-flex justify-content-center">
-        <Button
-          variant="outline-dark"
-          className="mt-1 mb-5 btn-sm mx-3"
-          size="lg"
-          style={{ width: "150px" }}
-          onClick={handleReturnClick}
-        >
-          Return <ArrowLeftCircle size={25} />
-        </Button>
+        {!isDetected && (
+          <Button
+            variant="outline-dark"
+            className="mt-1 mb-5 btn-sm mx-3"
+            size="lg"
+            style={{ width: "150px" }}
+            onClick={handleReturnClick}
+          >
+            Return <ArrowLeftCircle size={25} />
+          </Button>
+        )}
         <Button
           variant="outline-dark"
           disabled={selectedBatchIds.length === 0 || isAnimating}
-          className="mt-1 mb-5 btn-sm mx-3"
+          className={`mt-1 mb-5 btn-sm mx-3 ${isDetected ? "mx-auto" : ""}`} // Add `mx-auto` to center the button when alone
           size="lg"
           style={{ width: "150px" }}
-          onClick={handleDetectClick}
+          onClick={onClick}
         >
           {isAnimating ? (
-            <Spinner />
+            <Spinner animation="border" />
           ) : (
             <>
-              Detect {}
-              <ArrowRightCircle size={25} />
+              {label} <ArrowRightCircle size={25} />
             </>
           )}
         </Button>
       </Row>
-      <Modal show={showModal} onHide={() => setShowModal(false)}>
-        <Modal.Header closeButton className="text-center">
-          <Modal.Title
-            className="text-dark"
-            style={{ width: "100%", textAlign: "center" }}
-          >
+      <Modal show={showModal} onHide={() => setShowModal(false)} size="xl"> {/* Change size from lg to xl for a larger modal */}
+    <Modal.Header closeButton className="text-center">
+        <Modal.Title className="text-dark" style={{ width: "100%", textAlign: "center" }}>
             Image Preview
-          </Modal.Title>
-        </Modal.Header>
-        <Modal.Body
-          className="d-flex align-items-center justify-content-center"
-          style={{ overflow: "hidden" }}
-        >
-          <Button
-            variant="danger"
-            onClick={handlePreviousImage}
-            className="me-2"
-            style={{ backgroundColor: "#942cd2", border: "#942cd2" }}
-          >
-            <ChevronLeft />
-          </Button>
-          <div style={{ flex: 1, display: "flex", justifyContent: "center" }}>
-            <img
-              src={images[currentImageIndex]}
-              alt={`Preview ${currentImageIndex + 1}`}
-              style={{ maxWidth: "80%" }} // Control max dimensions
-            />
-          </div>
-          <Button
-            variant="danger"
-            onClick={handleNextImage}
-            className="ms-2"
-            style={{ backgroundColor: "#942cd2", border: "#942cd2" }}
-          >
-            <ChevronRight />
-          </Button>
-        </Modal.Body>
-        <Modal.Footer className="d-flex justify-content-center">
-          <Button
+        </Modal.Title>
+    </Modal.Header>
+    <Modal.Body className="d-flex align-items-center justify-content-center" style={{ overflow: "hidden", minHeight: "500px" }}> {/* Increase minHeight for a taller modal body */}
+        <Row>
+            <Col className="text-dark" md={6} style={{ overflowY: "auto", maxHeight: "100%" }}> {/* Ensure text can scroll within larger area */}
+                sdgdslkşgjsdlkgj {/* Placeholder text */}
+            </Col>
+            <Col md={6}>
+                <div style={{ flex: 1, display: "flex", justifyContent: "center", alignItems: "center" }}>
+                    <img
+                        src={images[currentImageIndex]}
+                        alt={`Preview ${currentImageIndex + 1}`}
+                        style={{ maxWidth: "100%", maxHeight: "100%" }} // Adjust maxHeight to make the image larger within the flex container
+                    />
+                </div>
+                <div className="d-flex justify-content-center">
+                    <Button
+                        variant="danger"
+                        onClick={handlePreviousImage}
+                        className="me-2"
+                        style={{ backgroundColor: "#942cd2", border: "#942cd2" }}
+                    >
+                        <ChevronLeft />
+                    </Button>
+                    <Button
+                        variant="danger"
+                        onClick={handleNextImage}
+                        className="ms-2"
+                        style={{ backgroundColor: "#942cd2", border: "#942cd2" }}
+                    >
+                        <ChevronRight />
+                    </Button>
+                </div>
+            </Col>
+        </Row>
+    </Modal.Body>
+    <Modal.Footer className="d-flex justify-content-center">
+        <Button
             variant="danger"
             onClick={handleCloseModal}
             style={{ backgroundColor: "#942cd2", border: "#942cd2" }}
-          >
+        >
             Close
-          </Button>
-        </Modal.Footer>
-      </Modal>
+        </Button>
+    </Modal.Footer>
+</Modal>
+
     </>
   );
 }
