@@ -494,30 +494,86 @@ function ResumeExtraction({ onStepChange }) {
           )}
         </Button>
       </Row>
-      <Modal show={showModal} onHide={() => setShowModal(false)} size="xl"> {/* Change size from lg to xl for a larger modal */}
+      <Modal show={showModal} onHide={() => setShowModal(false)} size="xl" className="mt-4">
     <Modal.Header closeButton className="text-center">
-        <Modal.Title className="text-dark" style={{ width: "100%", textAlign: "center" }}>
-            Image Preview
+        <Modal.Title
+            className="text-dark"
+            style={{ width: "100%", textAlign: "center", fontSize: "20px" }}
+        >
+            File Name Result
         </Modal.Title>
     </Modal.Header>
-    <Modal.Body className="d-flex align-items-center justify-content-center" style={{ overflow: "hidden", minHeight: "500px" }}> {/* Increase minHeight for a taller modal body */}
+    <Modal.Body
+        className="d-flex align-items-center justify-content-center"
+        style={{ overflow: "hidden", minHeight: "500px" }}
+    >
         <Row>
-            <Col className="text-dark" md={6} style={{ overflowY: "auto", maxHeight: "100%" }}> {/* Ensure text can scroll within larger area */}
-                sdgdslkşgjsdlkgj {/* Placeholder text */}
+            <Col
+                className="text-dark"
+                md={6}
+                style={{ overflowY: "auto", maxHeight: "100%" }}
+            >
+                <div
+                    className="sticky-title text-center text-white"
+                    style={{
+                        padding: "10px",
+                        border: "2px solid #942cd2",
+                        marginBottom: "20px",
+                        backgroundColor: "#942cd2",
+                        borderRadius: "5px",
+                    }}
+                >
+                    <h5 style={{ textAlign: "center", margin: "0", fontSize: "17px" }}>Text Extraction from image</h5>
+                </div>
+                {Object.entries(OcrResults.results || {}).map(([key, texts]) => (
+                    texts.map((text, index) => (
+                        <div key={`${key}-${index}`}
+                            style={{
+                                display: "flex",
+                                alignItems: "center",
+                                marginBottom: "10px",
+                                border: "1px solid #000",
+                                padding: "5px",
+                            }}
+                        >
+                            <div style={{ width: "20px", textAlign: "center" }}>{index}</div>
+                            <div style={{ marginLeft: "10px" }}>{text}</div>
+                        </div>
+                    ))
+                ))}
             </Col>
             <Col md={6}>
-                <div style={{ flex: 1, display: "flex", justifyContent: "center", alignItems: "center" }}>
+                <div
+                    className="sticky-title text-center text-white"
+                    style={{
+                        padding: "10px",
+                        border: "2px solid #942cd2",
+                        marginBottom: "20px",
+                        backgroundColor: "#942cd2",
+                        borderRadius: "5px",
+                    }}
+                >
+                    <h5 style={{ textAlign: "center", margin: "0", fontSize: "17px" }}>Object Detection</h5>
+                </div>
+                <div
+                    style={{
+                        flex: 1,
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                    }}
+                >
                     <img
                         src={images[currentImageIndex]}
                         alt={`Preview ${currentImageIndex + 1}`}
-                        style={{ maxWidth: "100%", maxHeight: "100%" }} // Adjust maxHeight to make the image larger within the flex container
+                        style={{ maxWidth: "101%", maxHeight: "101%" }}
                     />
                 </div>
                 <div className="d-flex justify-content-center">
                     <Button
                         variant="danger"
                         onClick={handlePreviousImage}
-                        className="me-2"
+                        className="me-2 mt-2"
                         style={{ backgroundColor: "#942cd2", border: "#942cd2" }}
                     >
                         <ChevronLeft />
@@ -525,7 +581,7 @@ function ResumeExtraction({ onStepChange }) {
                     <Button
                         variant="danger"
                         onClick={handleNextImage}
-                        className="ms-2"
+                        className="ms-2 mt-2"
                         style={{ backgroundColor: "#942cd2", border: "#942cd2" }}
                     >
                         <ChevronRight />
