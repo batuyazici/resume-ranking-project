@@ -4,17 +4,15 @@ from pathlib import Path
 
 
 class YOLOParameters:
-    def __init__(self, source_dir, results_dir):
+    def __init__(self, results_dir):
         FILE = Path(__file__).resolve()
         self.ROOT = FILE.parents[0]  # YOLO root directory
-        if str(self.ROOT) not in sys.path:
-            sys.path.append(str(self.ROOT))  # add ROOT to PATH
         self.weights = FILE.parents[1] / 'weights' / 'resumes-detection.pt' # Example model path
         self.stride = None  # Example stride value
         self.pt = None  # Example pt value
         self.names = None
         self.device = ''
-        self.source = source_dir
+        self.source = None
         self.imgsz = (640, 640)
         self.conf_thres = 0.3
         self.iou_thres = 0.3
@@ -70,3 +68,6 @@ class YOLOParameters:
             'half':False,
             'data': None,
         }
+
+    def set_source_dir(self, source_dir):
+        self.source = source_dir

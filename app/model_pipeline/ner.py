@@ -1,0 +1,1 @@
+from model_pipeline.models.ner_model import ner_run, load_gliner_model

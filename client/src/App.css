@@ -441,8 +441,6 @@ span.navbar-text {
 
   }
 
-
-
 .alertContainer { 
   position: fixed;
   top: 0;
@@ -496,7 +494,52 @@ span.navbar-text {
   max-height: 600px; /* Adjust the height as needed */
   overflow-y: auto; /* Enables vertical scrolling */
 }
-
+.detection-layout {
+        .form-control:focus, .form-select:focus {
+        box-shadow: 0 0 0 0.25rem rgba(130, 38, 158, 0.5);
+        border: rgba(130, 38, 158, 0.5);
+      }
+      .sticky-title {
+        position: sticky;
+        top: 0;
+        background-color: white;
+        z-index: 1020;
+        padding: 12px 0;
+        border-bottom: 1px solid #ddd;
+        border-radius: 5px;
+        width: 100%;
+        box-sizing: border-box;
+        margin-top: 8px;
+        }
+      .card-container {
+        padding-top: 2px;
+      }
+      .scrollable-column {
+        overflow-y: auto;
+        height: 600px;
+      }
+      .scrollable-column::-webkit-scrollbar {
+        width: 10px;
+      }
+      .scrollable-column::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 10px;
+      }
+      .scrollable-column::-webkit-scrollbar-thumb {
+        background: #cc71c4;
+        border-radius: 10px;
+      }
+      .scrollable-column::-webkit-scrollbar-thumb:hover {
+        background: #a34b9b;
+      }
+      .info-header {
+        font-weight: bold;
+      }
+      .info-text {
+        font-weight: normal;
+        font-family: Ubuntu, sans-serif;
+      }
+}
 /***** Matching Page ****/
 
 .circle-container {

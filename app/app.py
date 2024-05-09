@@ -1,20 +1,19 @@
-from fastapi import FastAPI, UploadFile, Form, File, BackgroundTasks
+from fastapi import FastAPI, UploadFile, Form, File, BackgroundTasks, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
-from pathlib import Path
-import uuid
-from db import execute_query, fetch_query
+from fastapi.responses import FileResponse
 from typing import List, Optional
-import uvicorn 
-import asyncio
-from pdf2image import convert_from_path
-from comtypes.client import CreateObject
 import os
-import logging
-from pathlib import Path 
+import shutil  
+import glob  
+from db import execute_query, fetch_query, fetch_single_query 
+from helpers import clean_filename, init_upload_batch, check_batch_exists, conf_input_file
+from file_processing import docx_conv, pdf_conv
+from config import UPLOAD_DIR, SAVE_DIR, SAVE_DIR_API
+from model_pipeline.utils.files import FileHandler
+from model_pipeline.utils.params import YOLOParameters
 
-UPLOAD_DIR = Path() / "uploads"
-if not UPLOAD_DIR.exists():
-    UPLOAD_DIR.mkdir(parents=True)
+
+import uvicorn
 
 app = FastAPI()
 
@@ -26,77 +25,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-def run_async(func):
-    def wrapper(*args, **kwargs):
-        return asyncio.run(func(*args, **kwargs))
-    return wrapper
 
-def convert_docx_to_pdf_impl(docx_path, pdf_path):
-    word = None  # Initialize word as None
-    doc = None   # Initialize doc as None
-    try:
-        os.makedirs(os.path.dirname(pdf_path), exist_ok=True)
-        word = CreateObject("Word.Application")
-        word.Visible = False
-        doc = word.Documents.Open(docx_path)
-        doc.SaveAs2(pdf_path, FileFormat=17)
-    except Exception as e:
-        logging.error(f"Failed to convert DOCX to PDF {docx_path}: {str(e)}")
-    finally:
-        if doc is not None:
-            doc.Close()
-        if word is not None:
-            word.Quit()
-
-def convert_pdf_to_jpg_impl(pdf_path, output_dir):
-    try:
-        Path(output_dir).mkdir(parents=True, exist_ok=True)
-        images = convert_from_path(pdf_path)
-        base_filename = Path(pdf_path).stem
-        for i, image in enumerate(images):    
-            image_path = Path(output_dir) / f"{base_filename}-page-{i + 1}.jpg"
-            image.save(image_path, 'JPEG')  
-    except Exception as e:
-        logging.error(f"Failed to convert PDF to JPG {pdf_path}: {str(e)}")
-
-async def convert_docx_to_pdf(docx_path, pdf_path, batch_id, background_tasks):
-    rel_docx_path = Path(docx_path)
-    abs_docx_path = rel_docx_path.resolve()
-    abs_docx_path = str(abs_docx_path)
-    rel_pdf_path = Path(pdf_path)
-    abs_pdf_path = rel_pdf_path.resolve()
-    pdf_path = str(abs_pdf_path)
-    try:
-        convert_docx_to_pdf_impl(abs_docx_path, pdf_path)
-        await execute_query("INSERT INTO conversion_status (batch_id, process_type, file_type, status) VALUES ($1, 'Convert DOCX to PDF', '.pdf', 'completed')", batch_id)
-        background_tasks.add_task(run_async(convert_pdf_to_jpg), pdf_path, abs_pdf_path.parent, batch_id)
-    except Exception as e:
-        logging.error(f"Failed to convert PDF to JPG {pdf_path}: {str(e)}")
-        await execute_query("INSERT INTO conversion_status (batch_id, process_type, file_type, status) VALUES ($1, 'Convert DOCX to PDF', '.pdf', 'failed')", batch_id)
-
-async def convert_pdf_to_jpg(pdf_path, output_dir, batch_id):
-    try:
-        convert_pdf_to_jpg_impl(pdf_path, output_dir)
-        await execute_query("INSERT INTO conversion_status (batch_id, process_type, file_type, status) VALUES ($1, 'Convert PDF to JPG', '.jpg', 'completed')", batch_id)
-    except Exception as e:
-        await execute_query("INSERT INTO conversion_status (batch_id, process_type, file_type, status) VALUES ($1, 'Convert PDF to JPG', '.jpg', 'failed')", batch_id)
-
-async def init_upload_batch():
-    query = "INSERT INTO processing_batches DEFAULT VALUES RETURNING batch_id;"
-    batch_id = await fetch_query(query)
-    return batch_id[0]['batch_id']
-
-async def check_batch_exists(batch_id):
-    if not batch_id:
-        return False
-    query = "SELECT batch_id FROM processing_batches WHERE batch_id = $1;"
-    result = await fetch_query(query, batch_id)
-    return bool(result)
-
-def clean_filename(filename):
-    extension = filename.rsplit('.', 1)[1] if '.' in filename else ''
-    sanitized_name = f"{uuid.uuid4()}.{extension}"
-    return sanitized_name
+file_handler = FileHandler()
+parameters = YOLOParameters(file_handler.results_dir)
 
 @app.post("/uploadfiles/")
 async def create_upload_files(
@@ -110,19 +41,241 @@ async def create_upload_files(
     for file_upload in file_uploads:
         cleaned_name = clean_filename(file_upload.filename)
         file_path = UPLOAD_DIR / cleaned_name
+        
+        c_name, file_ext = cleaned_name.rsplit('.', 1)
+
         with open(file_path, "wb") as file_object:
             file_object.write(await file_upload.read())
-        await execute_query("""
-            INSERT INTO uploaded_files (original_name, storage_name, file_path, batch_id)
-            VALUES ($1, $2, $3, $4);
-            """, file_upload.filename, cleaned_name, str(file_path), batch_id)
-        if cleaned_name.endswith('.docx'):
+        file_id = await fetch_single_query("""
+            INSERT INTO uploaded_files (original_name, storage_name, file_path, batch_id, file_type)
+            VALUES ($1, $2, $3, $4, $5)
+            RETURNING file_id;
+            """, file_upload.filename, c_name, str(file_path), batch_id, file_ext)
+        if file_ext == "docx":
             pdf_path = file_path.with_suffix('.pdf')
-            background_tasks.add_task(convert_docx_to_pdf, str(file_path), str(pdf_path), batch_id, background_tasks)
-        elif cleaned_name.endswith('.pdf'):
-            background_tasks.add_task(convert_pdf_to_jpg, str(file_path), str(file_path.parent), batch_id)
+            background_tasks.add_task(docx_conv, file_id, str(file_path), str(pdf_path), batch_id, str(SAVE_DIR), background_tasks)
+        elif file_ext == "pdf":
+            background_tasks.add_task(pdf_conv, file_id, str(file_path), str(SAVE_DIR) ,batch_id)
 
     return {"message": "Files are being processed", "batch_id": batch_id}
 
+
+
+@app.get("/status/")
+async def get_conversion_status(batch_id: Optional[int] = Query(None)):
+    try:
+        if batch_id:
+            # Fetch basic data
+            basic_query = """
+            SELECT bp.start_date, uf.file_id, cs.process_type, cs.status, cs.number_of_pages, cs.save_path, uf.original_name
+            FROM batch_process bp
+            JOIN uploaded_files uf ON bp.batch_id = uf.batch_id
+            JOIN conversion_status cs ON bp.batch_id = cs.batch_id
+            WHERE bp.batch_id = $1;
+            """
+            basic_results = await fetch_query(basic_query, batch_id)
+
+            # Fetch statuses from various results tables
+            status_queries = {
+                'detection_status': "SELECT status FROM detection_results WHERE batch_id = $1;",
+                'ocr_status': "SELECT status FROM ocr_results WHERE batch_id = $1;",
+                'classification_status': "SELECT status FROM classification_results WHERE batch_id = $1;",
+                'ner_status': "SELECT status FROM ner_results WHERE batch_id = $1;"
+            }
+            statuses = {}
+            for key, query in status_queries.items():
+                result = await fetch_query(query, batch_id)
+                statuses[key] = result[0]['status'] if result else 'No data'
+
+            # Combine results
+            if not basic_results:
+                raise HTTPException(status_code=404, detail="No conversion status found for batch ID {}.".format(batch_id))
+            
+            full_results = basic_results[0]
+            full_results.update(statuses)
+            return full_results
+        else:
+            all_data_query = """
+            SELECT DISTINCT ON (uf.file_id) bp.batch_id, bp.start_date, cs.file_id, 
+            cs.process_type, cs.status AS conversion_status, cs.number_of_pages, 
+            cs.save_path, uf.original_name
+            FROM batch_process bp
+            JOIN uploaded_files uf ON bp.batch_id = uf.batch_id
+            JOIN conversion_status cs ON bp.batch_id = cs.batch_id
+            ORDER BY uf.file_id, bp.batch_id;
+            """
+            results = await fetch_query(all_data_query)
+
+            if not results:
+                raise HTTPException(status_code=404, detail="No conversion statuses found.")
+
+            # Fetch statuses for all batches for each process
+            status_queries = {
+                'detection_status': "SELECT batch_id, status FROM detection_results;",
+                'ocr_status': "SELECT batch_id, status FROM ocr_results;",
+                'classification_status': "SELECT batch_id, status FROM classification_results;",
+                'ner_status': "SELECT batch_id, status FROM ner_results;"
+            }
+            all_statuses = {key: {} for key in status_queries}
+
+            for key, query in status_queries.items():
+                status_results = await fetch_query(query)
+                for status in status_results:
+                    all_statuses[key][status['batch_id']] = status['status']
+
+            # Organize by batch_id
+            batch_dict = {}
+            for result in results:
+                batch_id = result['batch_id']
+                if batch_id not in batch_dict:
+                    batch_dict[batch_id] = {
+                        "start_date": result['start_date'],
+                        "files": [],
+                        "detection_status": all_statuses['detection_status'].get(batch_id, 'No data'),
+                        "ocr_status": all_statuses['ocr_status'].get(batch_id, 'No data'),
+                        "classification_status": all_statuses['classification_status'].get(batch_id, 'No data'),
+                        "ner_status": all_statuses['ner_status'].get(batch_id, 'No data')
+                    }
+                batch_dict[batch_id]['files'].append(result)
+
+            return batch_dict
+
+    except Exception as e:
+        print(e)
+        raise HTTPException(status_code=500, detail=str(e))
+    
+@app.post("/detect/")
+async def detect_run(batch_ids: dict):
+    from model_pipeline.objdet import detect_impl
+    try:
+        
+        batch_ids = batch_ids.get("batch_ids", [])
+        batch_ids = [int(id_str) for id_str in batch_ids]
+
+        input_path = await conf_input_file()
+        query = """
+            SELECT file_id, storage_name, batch_id FROM uploaded_files
+            WHERE batch_id = ANY($1);
+        """
+        files = await fetch_query(query, batch_ids)
+        if not files:
+            raise HTTPException(status_code=404, detail="No files found for the provided batch IDs.")
+
+        parameters.set_source_dir(input_path)
+        
+
+        for file in files:
+            file_pattern = os.path.join(SAVE_DIR_API, f"{file['storage_name']}_page*.jpg")
+            file_paths = glob.glob(file_pattern)
+
+            if not file_paths:
+                continue 
+
+            for file_path in file_paths:
+                new_path = os.path.join(input_path, os.path.basename(file_path))
+                shutil.copy(file_path, new_path)
+        
+        results_path = await detect_impl(parameters)
+        ocr_path = results_path / "crops" / "segment"
+        
+        results = {}
+        for file in files:
+            file_id = file['file_id']
+            storage_name = file['storage_name']
+            specific_result_folder = os.path.join(file_handler.results_dir, storage_name)
+            file_pattern = os.path.join(specific_result_folder, f"{storage_name}_page*.jpg")
+            file_paths = glob.glob(file_pattern)
+
+            if not file_paths:
+                continue
+
+            results[file_id] = [os.path.abspath(fp) for fp in file_paths]
+            
+        update_query = """
+        UPDATE detection_results SET status = 'completed' WHERE batch_id = ANY($1);
+        """
+        await execute_query(update_query, batch_ids)
+        
+        return results
+    except Exception as e:
+        print(str(e))
+        raise HTTPException(status_code=500, detail=str(e))
+            
+@app.get("/files/{storage_name}/{file_name}")
+async def serve_file(storage_name: str, file_name: str):
+    file_path = os.path.join(file_handler.results_dir, storage_name, file_name)
+    if os.path.exists(file_path):
+        return FileResponse(file_path)
+    else:
+        raise HTTPException(status_code=404, detail="File not found.")
+ 
+@app.post("/ocr/")
+async def ocr_run(batch_ids: dict):
+    from model_pipeline.ocr import ocr_impl
+    try:
+        ocr_impl(parameters.lang, file_handler)
+            
+        update_query = """
+        UPDATE ocr_results SET status = 'completed' WHERE batch_id = ANY($1);
+        """
+        await execute_query(update_query, batch_ids)
+        
+        return {"message": "OCR process completed."}
+    except Exception as e:
+        update_fail_query = """
+        UPDATE ocr_results SET status = 'failed' WHERE batch_id = ANY($1);
+        """
+        await execute_query(update_fail_query, batch_ids)
+        print(str(e))
+        raise HTTPException(status_code=500, detail=str(e))
+    
+app.post("/classify/")
+async def classify_run(batch_ids: dict):
+    from model_pipeline.clsf import classify_impl
+    try:
+        classify_impl(parameters.lang, file_handler)
+            
+        update_query = """
+        UPDATE classification_results SET status = 'completed' WHERE batch_id = ANY($1);
+        """
+        await execute_query(update_query, batch_ids)
+        await ner_run(batch_ids)
+        return {"message": "Classification and NER process are completed."}
+    
+    except Exception as e:
+        update_fail_query = """
+        UPDATE classification_results SET status = 'failed' WHERE batch_id = ANY($1);
+        """
+        await execute_query(update_fail_query, batch_ids)
+        print(str(e))
+        raise HTTPException(status_code=500, detail=str(e))    
+    
+@app.post("/ner/")
+async def ner_run(batch_ids: dict):
+    from model_pipeline.ner import ner_impl
+    from model_pipeline.utils.re_extract import re_process
+    try:
+        re_process(**file_handler.re_params())  
+        ner_impl(file_handler)
+            
+        update_query = """
+        UPDATE ner_results SET status = 'completed' WHERE batch_id = ANY($1);
+        """
+        await execute_query(update_query, batch_ids)
+        
+        return {"message": "NER process completed."}
+    
+    except Exception as e:
+        update_fail_query = """
+        UPDATE ner_results SET status = 'failed' WHERE batch_id = ANY($1);
+        """
+        await execute_query(update_fail_query, batch_ids)
+        print(str(e))
+        raise HTTPException(status_code=500, detail=str(e))
+
+    
 if __name__ == "__main__":
     uvicorn.run(app, host="127.0.0.1", port=8000)
+        
+            
+

@@ -4,8 +4,8 @@ import numpy as np
 import torch
 import torch.nn as nn
 
-from utils.downloads import attempt_download
-
+from model_pipeline.utils.downloads import attempt_download
+from model_pipeline.models.yolo import Detect, Model
 
 class Sum(nn.Module):
     # Weighted sum of 2 or more layers https://arxiv.org/abs/1911.09070
@@ -236,7 +236,7 @@ class End2End(nn.Module):
 
 def attempt_load(weights, device=None, inplace=True, fuse=True):
     # Loads an ensemble of models weights=[a,b,c] or a single model weights=[a] or weights=a
-    from models.yolo import Detect, Model
+    
 
     model = Ensemble()
     for w in weights if isinstance(weights, list) else [weights]:

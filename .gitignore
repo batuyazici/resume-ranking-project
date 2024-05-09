@@ -19,14 +19,15 @@ __pycache__/
 poetry.lock
 
 #pipeline
-/model-pipeline/results/
-/model-pipeline/weights/
-/model-pipeline/models/runs/
-/model-pipeline/data/
 
 #FastAPI
 /app/uploads/
-
+/app/model_pipeline/results/
+/app/model_pipeline/weights/
+/app/model_pipeline/models/runs/detect/
+/app/model_pipeline/data/
+/app/model_pipeline/inputs/
+/app/data/
 
 # Editor directories and files
 .vscode/*

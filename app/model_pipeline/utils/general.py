@@ -31,9 +31,9 @@ import torch
 import torchvision
 import yaml
 
-from utils import TryExcept, emojis
-from utils.downloads import gsutil_getsize
-from utils.metrics import box_iou, fitness
+from model_pipeline.utils import TryExcept, emojis
+from model_pipeline.utils.downloads import gsutil_getsize
+from model_pipeline.utils.metrics import box_iou, fitness
 
 FILE = Path(__file__).resolve()
 ROOT = FILE.parents[1]  # YOLO root directory
@@ -558,7 +558,7 @@ def check_dataset(data, autodownload=True):
 
 def check_amp(model):
     # Check PyTorch Automatic Mixed Precision (AMP) functionality. Return True on correct operation
-    from models.common import AutoShape, DetectMultiBackend
+    from app.model_pipeline.models.common import AutoShape, DetectMultiBackend
 
     def amp_allclose(model, im):
         # All close FP32 vs AMP results
