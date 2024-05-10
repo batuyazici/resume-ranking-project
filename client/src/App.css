@@ -489,7 +489,11 @@ span.navbar-text {
 }
 
 /***** Detection Page ****/
-
+.big-spinner {
+  color: rgba(130, 38, 158, 0.5); /* Specific RGBA color for the spinner */
+  width: 125px  !important;
+  height: 125px !important;
+}
 .scrollable-column {
   max-height: 600px; /* Adjust the height as needed */
   overflow-y: auto; /* Enables vertical scrolling */

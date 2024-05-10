@@ -51,7 +51,6 @@ function ResumeExtraction({ onStepChange }) {
     setIsLoading(true);
     try {
       const response = await axios.get(import.meta.env.VITE_FAST_API_STATUS);
-      console.log("Response:", response.data);
       const formattedBatches = Object.entries(response.data).map(
         ([batchId, batchData]) => {
           const {
@@ -83,19 +82,26 @@ function ResumeExtraction({ onStepChange }) {
       );
       setBatches(formattedBatches);
       if (initialLoading) setInitialLoading(false); 
-      console.log("Fetched status:", formattedBatches);
     } catch (error) {
       console.error("Failed to fetch status:", error);
       setIsLoading(false); 
     }
+    setIsLoading(false); 
   };
 
   useEffect(() => {
-    fetchStatus();
-    const intervalId = setInterval(fetchStatus, 5000);
-    return () => clearInterval(intervalId);
-  }, []);
-
+    console.log("Setting up interval");  // Log when the interval is set
+    fetchStatus();  // Fetch immediately on mount
+    const intervalId = setInterval(() => {
+      console.log("Fetching status at interval");  // Log each fetch call
+      fetchStatus();
+    }, 5000);  // Adjust to 6000 if you want it every 6 seconds
+  
+    return () => {
+      console.log("Clearing interval");  // Log when the interval is cleared
+      clearInterval(intervalId);
+    };
+  }, []); 
   {
     /******** Handle button clicks **********/
   }
@@ -110,7 +116,6 @@ function ResumeExtraction({ onStepChange }) {
         import.meta.env.VITE_FAST_API_BASE_URL
       }files/${storageName}/${fileName}`;
     });
-    console.log("Image URLs:", imageUrls);
     if (imageUrls.length > 0) {
       setImages(imageUrls);
       setCurrentImageIndex(0);
@@ -122,15 +127,12 @@ function ResumeExtraction({ onStepChange }) {
 
   const handleDetectClick = async () => {
     if (selectedBatchIds.length === 0) return;
-
-    console.log("Selected Batch IDs:", selectedBatchIds);
     setIsAnimating(true);
     try {
       const response = await axios.post(import.meta.env.VITE_FAST_API_DETECT, {
         batch_ids: selectedBatchIds,
       });
       setDetectionResults(response.data);
-      console.log("Detection results:", response.data);
       SetIsDetected(true);
     } catch (error) {
       console.error("Detection failed:", error.response || error);
@@ -160,7 +162,6 @@ function ResumeExtraction({ onStepChange }) {
         batch_ids: selectedBatchIds,
       });
       setOcrResults(response.data);
-      console.log("OCR results:", response.data);
       setIsOcr(true);
     } catch (error) {
       console.error("OCR failed:", error.response || error);
@@ -168,6 +169,7 @@ function ResumeExtraction({ onStepChange }) {
       setIsAnimating(false);
     }
   };
+
 
   const handleClassifyClick = async () => {
     setIsAnimating(true);
@@ -266,7 +268,19 @@ function ResumeExtraction({ onStepChange }) {
 
   return (
     <>
-      
+              {initialLoading ? (
+          <Container className="mt-4 d-flex justify-content-center">
+              <Spinner animation="grow" className="big-spinner"/>
+              <Spinner animation="grow" className="big-spinner" />
+              <Spinner animation="grow" className="big-spinner" />
+              <Spinner animation="grow" className="big-spinner" />
+              <Spinner animation="grow" className="big-spinner" />
+              <Spinner animation="grow" className="big-spinner" />
+              <Spinner animation="grow" className="big-spinner" />
+              <Spinner animation="grow" className="big-spinner" />
+              <Spinner animation="grow" className="big-spinner" />
+          </Container>
+        ) : (<>
       <Helmet>
         <title>Resumes Info Extraction</title>
         <meta
@@ -275,11 +289,7 @@ function ResumeExtraction({ onStepChange }) {
         />
       </Helmet>
       <Container fluid="md" className="mt-4 px-5 detection-layout">
-        {initialLoading ? (
-          <div className="d-flex justify-content-center">
-            <Spinner animation="border" className="large-spinner" />
-          </div>
-        ) : (
+ 
           <Row className="justify-content-center match-container-1 mt-2 mb-4">
             <Col md={6} className="highlight-section scrollable-column">
               <div className="sticky-title text-center">
@@ -320,7 +330,7 @@ function ResumeExtraction({ onStepChange }) {
                         <br />
                         {isDetected ? (
                           <>
-                            <Badge
+                            <Badge style={{ marginRight: "5px" }} 
                               bg={
                                 batch.detection_status === "completed"
                                   ? "success"
@@ -331,8 +341,8 @@ function ResumeExtraction({ onStepChange }) {
                               {batch.detection_status === "completed"
                                 ? "completed"
                                 : "pending"}
-                            </Badge>{" "}
-                            <Badge
+                            </Badge>
+                            <Badge style={{ marginRight: "5px" }}
                               bg={
                                 batch.ocr_status === "completed"
                                   ? "success"
@@ -344,7 +354,7 @@ function ResumeExtraction({ onStepChange }) {
                                 ? "completed"
                                 : "pending"}
                             </Badge>
-                            <Badge
+                            <Badge style={{ marginRight: "5px" }}
                               bg={
                                 batch.classification_status === "completed"
                                   ? "success"
@@ -355,8 +365,8 @@ function ResumeExtraction({ onStepChange }) {
                               {batch.classification_status === "completed"
                                 ? "completed"
                                 : "pending"}
-                            </Badge>{" "}
-                            <Badge
+                            </Badge>
+                            <Badge style={{ marginRight: "5px" }}
                               bg={
                                 batch.ner_status === "completed"
                                   ? "success"
@@ -367,7 +377,7 @@ function ResumeExtraction({ onStepChange }) {
                               {batch.ner_status === "completed"
                                 ? "completed"
                                 : "pending"}
-                            </Badge>{" "}
+                            </Badge>
                           </>
                         ) : (
                           <>
@@ -486,7 +496,7 @@ function ResumeExtraction({ onStepChange }) {
               )}
             </Col>
           </Row>
-        )}
+       
       </Container>
       <Row className="form-continue-section d-flex justify-content-center">
         {!isDetected && (
@@ -519,127 +529,131 @@ function ResumeExtraction({ onStepChange }) {
       </Row>
 
       <Modal
-        show={showModal}
-        onHide={() => setShowModal(false)}
-        size="xl"
-        className="mt-4"
-      >
-        <Modal.Header closeButton className="text-center">
-          <Modal.Title
-            className="text-dark"
-            style={{ width: "100%", textAlign: "center", fontSize: "20px" }}
+  show={showModal}
+  onHide={() => setShowModal(false)}
+  size="xl"
+  className="mt-4"
+>
+  <Modal.Header closeButton className="text-center">
+    <Modal.Title
+      className="text-dark"
+      style={{ width: "100%", textAlign: "center", fontSize: "20px" }}
+    >
+      File Name Result
+    </Modal.Title>
+  </Modal.Header>
+  <Modal.Body
+    className="d-flex align-items-center justify-content-center"
+    style={{ overflow: "hidden", minHeight: "500px" }}
+  >
+    <Row>
+      {isDetected && (
+        <Col md={6}>
+          <div
+            className="sticky-title text-center text-white"
+            style={{
+              padding: "10px",
+              border: "2px solid #942cd2",
+              marginBottom: "20px",
+              backgroundColor: "#942cd2",
+              borderRadius: "5px",
+            }}
           >
-            File Name Result
-          </Modal.Title>
-        </Modal.Header>
-        <Modal.Body
-          className="d-flex align-items-center justify-content-center"
-          style={{ overflow: "hidden", minHeight: "500px" }}
-        >
-          <Row>
-            <Col
-              className="text-dark"
-              md={6}
-              style={{ overflowY: "auto", maxHeight: "100%" }}
+            <h5 style={{ textAlign: "center", margin: "0", fontSize: "17px" }}>
+              Object Detection
+            </h5>
+          </div>
+          <div
+            style={{
+              flex: 1,
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <img
+              src={images[currentImageIndex]}
+              alt={`Preview ${currentImageIndex + 1}`}
+              style={{ maxWidth: "101%", maxHeight: "101%" }}
+            />
+          </div>
+          <div className="d-flex justify-content-center">
+            <Button
+              variant="danger"
+              onClick={handlePreviousImage}
+              className="me-2 mt-2"
+              style={{ backgroundColor: "#942cd2", border: "#942cd2" }}
             >
-              <div
-                className="sticky-title text-center text-white"
-                style={{
-                  padding: "10px",
-                  border: "2px solid #942cd2",
-                  marginBottom: "20px",
-                  backgroundColor: "#942cd2",
-                  borderRadius: "5px",
-                }}
-              >
-                <h5
-                  style={{ textAlign: "center", margin: "0", fontSize: "17px" }}
-                >
-                  Text Extraction from image
-                </h5>
-              </div>
-              {Object.entries(OcrResults.results || {}).map(([key, texts]) =>
-                texts.map((text, index) => (
-                  <div
-                    key={`${key}-${index}`}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      marginBottom: "10px",
-                      border: "1px solid #000",
-                      padding: "5px",
-                    }}
-                  >
-                    <div style={{ width: "20px", textAlign: "center" }}>
-                      {index}
-                    </div>
-                    <div style={{ marginLeft: "10px" }}>{text}</div>
-                  </div>
-                ))
-              )}
-            </Col>
-            <Col md={6}>
-              <div
-                className="sticky-title text-center text-white"
-                style={{
-                  padding: "10px",
-                  border: "2px solid #942cd2",
-                  marginBottom: "20px",
-                  backgroundColor: "#942cd2",
-                  borderRadius: "5px",
-                }}
-              >
-                <h5
-                  style={{ textAlign: "center", margin: "0", fontSize: "17px" }}
-                >
-                  Object Detection
-                </h5>
-              </div>
-              <div
-                style={{
-                  flex: 1,
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                }}
-              >
-                <img
-                  src={images[currentImageIndex]}
-                  alt={`Preview ${currentImageIndex + 1}`}
-                  style={{ maxWidth: "101%", maxHeight: "101%" }}
-                />
-              </div>
-              <div className="d-flex justify-content-center">
-                <Button
-                  variant="danger"
-                  onClick={handlePreviousImage}
-                  className="me-2 mt-2"
-                  style={{ backgroundColor: "#942cd2", border: "#942cd2" }}
-                >
-                  <ChevronLeft />
-                </Button>
-                <Button
-                  variant="danger"
-                  onClick={handleNextImage}
-                  className="ms-2 mt-2"
-                  style={{ backgroundColor: "#942cd2", border: "#942cd2" }}
-                >
-                  <ChevronRight />
-                </Button>
-              </div>
-            </Col>
-          </Row>
-        </Modal.Body>
-        <Modal.Footer className="d-flex justify-content-center">
-          <Button
-            variant="danger"
-            onClick={handleCloseModal}
-            style={{ backgroundColor: "#942cd2", border: "#942cd2" }}
+              <ChevronLeft />
+            </Button>
+            <Button
+              variant="danger"
+              onClick={handleNextImage}
+              className="ms-2 mt-2"
+              style={{ backgroundColor: "#942cd2", border: "#942cd2" }}
+            >
+              <ChevronRight />
+            </Button>
+          </div>
+        </Col>
+      )}
+      {isOcr && (
+        <Col
+          md={6}
+          style={{ overflowY: "auto", maxHeight: "100%" }}
+        >
+          <div
+            className="sticky-title text-center text-white"
+            style={{
+              padding: "10px",
+              border: "2px solid #942cd2",
+              marginBottom: "20px",
+              backgroundColor: "#942cd2",
+              borderRadius: "5px",
+            }}
           >
-            Close
-          </Button>
-        </Modal.Footer>
-      </Modal>
+            <h5 style={{ textAlign: "center", margin: "0", fontSize: "17px" }}>
+              Text Extraction from Image
+            </h5>
+          </div>
+          {Object.entries(OcrResults.results || {}).map(([key, texts]) =>
+            texts.map((text, index) => (
+              <div
+                key={`${key}-${index}`}
+                style={{
+                  color: "black",
+                  display: "flex",
+                  alignItems: "center",
+                  marginBottom: "10px",
+                  border: "1px solid #000",
+                  padding: "5px",
+                }}
+              >
+                <div style={{ width: "20px", textAlign: "center" }}>
+                  {index}
+                </div>
+                <div style={{ marginLeft: "10px" }}>{text}</div>
+              </div>
+            ))
+          )}
+        </Col>
+      )}
+      {/* Additional conditionally rendered sections can be added here for classification and NER results */}
+    </Row>
+  </Modal.Body>
+  <Modal.Footer className="d-flex justify-content-center">
+    <Button
+      variant="danger"
+      onClick={handleCloseModal}
+      style={{ backgroundColor: "#942cd2", border: "#942cd2" }}
+    >
+      Close
+    </Button>
+  </Modal.Footer>
+</Modal>
+
+      </>
+       )}
     </>
   );
 }
