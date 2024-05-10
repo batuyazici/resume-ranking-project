@@ -96,33 +96,40 @@ async def get_conversion_status(batch_id: Optional[int] = Query(None)):
             full_results.update(statuses)
             return full_results
         else:
-            all_data_query = """
-            SELECT DISTINCT ON (uf.file_id) bp.batch_id, bp.start_date, cs.file_id, 
-            cs.process_type, cs.status AS conversion_status, cs.number_of_pages, 
-            cs.save_path, uf.original_name
+            query = """
+            WITH status_data AS (
+                SELECT 
+                    batch_id,
+                    MAX(CASE WHEN type = 'detection' THEN status ELSE NULL END) AS detection_status,
+                    MAX(CASE WHEN type = 'ocr' THEN status ELSE NULL END) AS ocr_status,
+                    MAX(CASE WHEN type = 'classification' THEN status ELSE NULL END) AS classification_status,
+                    MAX(CASE WHEN type = 'ner' THEN status ELSE NULL END) AS ner_status
+                FROM (
+                    SELECT batch_id, status, 'detection' AS type FROM detection_results
+                    UNION ALL
+                    SELECT batch_id, status, 'ocr' AS type FROM ocr_results
+                    UNION ALL
+                    SELECT batch_id, status, 'classification' AS type FROM classification_results
+                    UNION ALL
+                    SELECT batch_id, status, 'ner' AS type FROM ner_results
+                ) AS results
+                GROUP BY batch_id
+            )
+            SELECT
+                bp.batch_id, bp.start_date, uf.file_id, cs.process_type, 
+                cs.status AS conversion_status, cs.number_of_pages, 
+                cs.save_path, uf.original_name,
+                sd.detection_status, sd.ocr_status, sd.classification_status, sd.ner_status
             FROM batch_process bp
             JOIN uploaded_files uf ON bp.batch_id = uf.batch_id
-            JOIN conversion_status cs ON bp.batch_id = cs.batch_id
-            ORDER BY uf.file_id, bp.batch_id;
+            JOIN conversion_status cs ON uf.file_id = cs.file_id
+            LEFT JOIN status_data sd ON bp.batch_id = sd.batch_id
+            ORDER BY uf.file_id;
             """
-            results = await fetch_query(all_data_query)
+            results = await fetch_query(query)
 
             if not results:
                 raise HTTPException(status_code=404, detail="No conversion statuses found.")
-
-            # Fetch statuses for all batches for each process
-            status_queries = {
-                'detection_status': "SELECT batch_id, status FROM detection_results;",
-                'ocr_status': "SELECT batch_id, status FROM ocr_results;",
-                'classification_status': "SELECT batch_id, status FROM classification_results;",
-                'ner_status': "SELECT batch_id, status FROM ner_results;"
-            }
-            all_statuses = {key: {} for key in status_queries}
-
-            for key, query in status_queries.items():
-                status_results = await fetch_query(query)
-                for status in status_results:
-                    all_statuses[key][status['batch_id']] = status['status']
 
             # Organize by batch_id
             batch_dict = {}
@@ -130,20 +137,34 @@ async def get_conversion_status(batch_id: Optional[int] = Query(None)):
                 batch_id = result['batch_id']
                 if batch_id not in batch_dict:
                     batch_dict[batch_id] = {
+                        "batchId": batch_id,
                         "start_date": result['start_date'],
                         "files": [],
-                        "detection_status": all_statuses['detection_status'].get(batch_id, 'No data'),
-                        "ocr_status": all_statuses['ocr_status'].get(batch_id, 'No data'),
-                        "classification_status": all_statuses['classification_status'].get(batch_id, 'No data'),
-                        "ner_status": all_statuses['ner_status'].get(batch_id, 'No data')
+                        "detection_status": result.get('detection_status', 'No data'),
+                        "ocr_status": result.get('ocr_status', 'No data'),
+                        "classification_status": result.get('classification_status', 'No data'),
+                        "ner_status": result.get('ner_status', 'No data')
                     }
-                batch_dict[batch_id]['files'].append(result)
+                batch_dict[batch_id]['files'].append({
+                    "batch_id": batch_id,
+                    "start_date": result['start_date'],
+                    "file_id": result['file_id'],
+                    "process_type": result['process_type'],
+                    "conversion_status": result['conversion_status'],
+                    "number_of_pages": result['number_of_pages'],
+                    "save_path": result['save_path'],
+                    "original_name": result['original_name'],
+                    "detection_status": result['detection_status'],
+                    "ocr_status": result['ocr_status'],
+                    "classification_status": result['classification_status'],
+                    "ner_status": result['ner_status']
+                })
 
             return batch_dict
-
     except Exception as e:
         print(e)
         raise HTTPException(status_code=500, detail=str(e))
+
     
 @app.post("/detect/")
 async def detect_run(batch_ids: dict):
@@ -256,14 +277,29 @@ app.post("/classify/")
 async def classify_run(batch_ids: dict):
     from model_pipeline.clsf import classify_impl
     try:
+        batch_ids = batch_ids.get("batch_ids", [])
+        batch_ids = [int(id_str) for id_str in batch_ids]
+        query = """
+            SELECT file_id, storage_name, batch_id FROM uploaded_files
+            WHERE batch_id = ANY($1);
+        """
+        files = await fetch_query(query, batch_ids)
         classify_impl(parameters.lang, file_handler)
-            
+        
+        results = {}
+        for file in files:
+            file_id = file['file_id']
+            storage_name = file['storage_name']
+            specific_result_folder = os.path.join(file_handler.results_dir, storage_name)
+            file_path = os.path.join(specific_result_folder, f"{storage_name}_clsf.json")
+            if os.path.exists(file_path):
+                with open(file_path, 'r') as f:
+                    results[file_id] = json.load(f)    
         update_query = """
         UPDATE classification_results SET status = 'completed' WHERE batch_id = ANY($1);
         """
         await execute_query(update_query, batch_ids)
-        await ner_run(batch_ids)
-        return {"message": "Classification and NER process are completed."}
+        return {"message": "Classification is completed."}
     
     except Exception as e:
         update_fail_query = """
@@ -278,9 +314,26 @@ async def ner_run(batch_ids: dict):
     from model_pipeline.ner import ner_impl
     from model_pipeline.utils.re_extract import re_process
     try:
+        batch_ids = batch_ids.get("batch_ids", [])
+        batch_ids = [int(id_str) for id_str in batch_ids]
+        query = """
+            SELECT file_id, storage_name, batch_id FROM uploaded_files
+            WHERE batch_id = ANY($1);
+        """
+        files = await fetch_query(query, batch_ids)
         re_process(**file_handler.re_params())  
         ner_impl(file_handler)
-            
+        
+        results = {}
+        for file in files:
+            file_id = file['file_id']
+            storage_name = file['storage_name']
+            specific_result_folder = os.path.join(file_handler.results_dir, storage_name)
+            file_path = os.path.join(specific_result_folder, f"{storage_name}_ner.json")
+            if os.path.exists(file_path):
+                with open(file_path, 'r') as f:
+                    results[file_id] = json.load(f)  
+                                
         update_query = """
         UPDATE ner_results SET status = 'completed' WHERE batch_id = ANY($1);
         """
@@ -295,6 +348,8 @@ async def ner_run(batch_ids: dict):
         await execute_query(update_fail_query, batch_ids)
         print(str(e))
         raise HTTPException(status_code=500, detail=str(e))
+    
+    
 
     
 if __name__ == "__main__":

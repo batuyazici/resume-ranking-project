@@ -24,6 +24,8 @@ import { useNavigate } from "react-router-dom";
 function ResumeExtraction({ onStepChange }) {
   const [batches, setBatches] = useState([]);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true); 
   const [showModal, setShowModal] = useState(false);
   const [images, setImages] = useState([]);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -46,8 +48,10 @@ function ResumeExtraction({ onStepChange }) {
     /******** Fetch API **********/
   }
   const fetchStatus = async () => {
+    setIsLoading(true);
     try {
       const response = await axios.get(import.meta.env.VITE_FAST_API_STATUS);
+      console.log("Response:", response.data);
       const formattedBatches = Object.entries(response.data).map(
         ([batchId, batchData]) => {
           const {
@@ -78,9 +82,11 @@ function ResumeExtraction({ onStepChange }) {
         }
       );
       setBatches(formattedBatches);
+      if (initialLoading) setInitialLoading(false); 
       console.log("Fetched status:", formattedBatches);
     } catch (error) {
       console.error("Failed to fetch status:", error);
+      setIsLoading(false); 
     }
   };
 
@@ -155,7 +161,7 @@ function ResumeExtraction({ onStepChange }) {
       });
       setOcrResults(response.data);
       console.log("OCR results:", response.data);
-      SetIsOcr(true);
+      setIsOcr(true);
     } catch (error) {
       console.error("OCR failed:", error.response || error);
     } finally {
@@ -260,6 +266,7 @@ function ResumeExtraction({ onStepChange }) {
 
   return (
     <>
+      
       <Helmet>
         <title>Resumes Info Extraction</title>
         <meta
@@ -268,202 +275,218 @@ function ResumeExtraction({ onStepChange }) {
         />
       </Helmet>
       <Container fluid="md" className="mt-4 px-5 detection-layout">
-        <Row className="justify-content-center match-container-1 mt-2 mb-4">
-          <Col md={6} className="highlight-section scrollable-column">
-            <div className="sticky-title text-center">
-              <h3 className="fs-6 m-0 text-dark">Object Detection Step</h3>
-            </div>
-            <div className="card-container mb-2">
-              {batches
-                .filter(
-                  (batch) =>
-                    !isDetected || selectedBatchIds.includes(batch.batchId)
-                )
-                .map((batch) => (
-                  <Card
-                    key={batch.batchId}
-                    onClick={() =>
-                      !isDetected && handleBatchClick(batch.batchId)
-                    }
-                    style={containerStyle(batch.batchId)}
-                    className="mt-2"
-                  >
-                    <Card.Body>
-                      <div className="info-header" style={{ fontSize: "15px" }}>
-                        Date:{" "}
-                        <span className="info-text">
-                          {formatDate(batch.start_date)}
-                        </span>
-                      </div>
-                      <div className="info-header" style={{ fontSize: "15px" }}>
-                        Batch ID:{" "}
-                        <span className="info-text">{batch.batchId}</span>
-                      </div>
-                      <br />
-                      {isDetected ? (
-                        <>
-                          <Badge
-                            bg={
-                              batch.detection_status === "completed"
-                                ? "success"
-                                : "secondary"
-                            }
-                          >
-                            Detection{" "}
-                            {batch.detection_status === "completed"
-                              ? "completed"
-                              : "pending"}
-                          </Badge>{" "}
-                          <Badge
-                            bg={
-                              batch.classification_status === "completed"
-                                ? "success"
-                                : "secondary"
-                            }
-                          >
-                            Classification{" "}
-                            {batch.classification_status === "completed"
-                              ? "completed"
-                              : "pending"}
-                          </Badge>{" "}
-                          <Badge
-                            bg={
-                              batch.ner_status === "completed"
-                                ? "success"
-                                : "secondary"
-                            }
-                          >
-                            NER{" "}
-                            {batch.ner_status === "completed"
-                              ? "completed"
-                              : "pending"}
-                          </Badge>{" "}
-                          <Badge
-                            bg={
-                              batch.ocr_status === "completed"
-                                ? "success"
-                                : "secondary"
-                            }
-                          >
-                            OCR{" "}
-                            {batch.ocr_status === "completed"
-                              ? "completed"
-                              : "pending"}
-                          </Badge>
-                        </>
-                      ) : (
-                        <>
-                          <div
-                            className="info-header"
-                            style={{ fontSize: "15px" }}
-                          >
-                            Completed:{" "}
-                            <span className="info-text">{batch.completed}</span>
-                          </div>
-                          <div
-                            className="info-header"
-                            style={{ fontSize: "15px" }}
-                          >
-                            Pending:{" "}
-                            <span className="info-text">{batch.pending}</span>
-                          </div>
-                          <div
-                            className="info-header"
-                            style={{ fontSize: "15px" }}
-                          >
-                            Failed:{" "}
-                            <span className="info-text">{batch.failed}</span>
-                          </div>
-                          {selectedBatchIds.includes(batch.batchId) && (
-                            <CheckCircleFill
-                              color="purple"
-                              size={20}
-                              style={{
-                                position: "absolute",
-                                top: "5px",
-                                right: "5px",
-                              }}
-                            />
-                          )}
-                        </>
-                      )}
-                    </Card.Body>
-                  </Card>
-                ))}
-            </div>
-          </Col>
-          <Col md={6} className="detail-section scrollable-column">
-            {selectedBatchIds
-              .map((batchId) =>
-                batches.find((batch) => batch.batchId === batchId)
-              )
-              .map((selectedBatch, idx) => (
-                <div key={idx}>
-                  <div className="sticky-title text-center">
-                    <h4 className="fs-6 mb-2 mt-2 text-dark">
-                      Batch {selectedBatch.batchId}
-                      <br />
-                      Uploaded on {formatDate(selectedBatch.start_date)}
-                    </h4>
-                  </div>
-                  {selectedBatch.files.map((file, index) => (
-                    <Card key={index} className="mt-2">
+        {initialLoading ? (
+          <div className="d-flex justify-content-center">
+            <Spinner animation="border" className="large-spinner" />
+          </div>
+        ) : (
+          <Row className="justify-content-center match-container-1 mt-2 mb-4">
+            <Col md={6} className="highlight-section scrollable-column">
+              <div className="sticky-title text-center">
+                <h3 className="fs-6 m-0 text-dark">Object Detection Step</h3>
+              </div>
+              <div className="card-container mb-2">
+                {batches
+                  .filter(
+                    (batch) =>
+                      !isDetected || selectedBatchIds.includes(batch.batchId)
+                  )
+                  .map((batch) => (
+                    <Card
+                      key={batch.batchId}
+                      onClick={() =>
+                        !isDetected && handleBatchClick(batch.batchId)
+                      }
+                      style={containerStyle(batch.batchId)}
+                      className="mt-2"
+                    >
                       <Card.Body>
-                        <div className="mb-1" style={{ fontSize: "15px" }}>
-                          File ID:
-                          <span className="info-text"> {file.file_id}</span>
-                        </div>
-                        <div className="mb-1" style={{ fontSize: "15px" }}>
-                          Process Type:
+                        <div
+                          className="info-header"
+                          style={{ fontSize: "15px" }}
+                        >
+                          Date:{" "}
                           <span className="info-text">
-                            {" "}
-                            {file.process_type}
+                            {formatDate(batch.start_date)}
                           </span>
                         </div>
-                        <div className="mb-1" style={{ fontSize: "15px" }}>
-                          Upload Status:
-                          <span className="info-text"> {file.status}</span>
+                        <div
+                          className="info-header"
+                          style={{ fontSize: "15px" }}
+                        >
+                          Batch ID:{" "}
+                          <span className="info-text">{batch.batchId}</span>
                         </div>
-                        <div className="mb-1" style={{ fontSize: "15px" }}>
-                          Number of Pages:
-                          <span className="info-text">
-                            {" "}
-                            {file.number_of_pages}
-                          </span>
-                        </div>
-                        <div className="mb-1" style={{ fontSize: "15px" }}>
-                          File Name:
-                          <span className="info-text">
-                            {" "}
-                            {file.original_name}
-                          </span>
-                        </div>
-                        {isDetected && (
-                          <Button
-                            variant="primary"
-                            size="sm"
-                            onClick={() => handleFileButtonClick(file.file_id)}
-                            className="mt-2"
-                            style={{
-                              backgroundColor: "#942cd2",
-                              borderColor: "#942cd2",
-                            }}
-                          >
-                            Results
-                          </Button>
+                        <br />
+                        {isDetected ? (
+                          <>
+                            <Badge
+                              bg={
+                                batch.detection_status === "completed"
+                                  ? "success"
+                                  : "secondary"
+                              }
+                            >
+                              Detection{" "}
+                              {batch.detection_status === "completed"
+                                ? "completed"
+                                : "pending"}
+                            </Badge>{" "}
+                            <Badge
+                              bg={
+                                batch.ocr_status === "completed"
+                                  ? "success"
+                                  : "secondary"
+                              }
+                            >
+                              OCR{" "}
+                              {batch.ocr_status === "completed"
+                                ? "completed"
+                                : "pending"}
+                            </Badge>
+                            <Badge
+                              bg={
+                                batch.classification_status === "completed"
+                                  ? "success"
+                                  : "secondary"
+                              }
+                            >
+                              Classification{" "}
+                              {batch.classification_status === "completed"
+                                ? "completed"
+                                : "pending"}
+                            </Badge>{" "}
+                            <Badge
+                              bg={
+                                batch.ner_status === "completed"
+                                  ? "success"
+                                  : "secondary"
+                              }
+                            >
+                              NER{" "}
+                              {batch.ner_status === "completed"
+                                ? "completed"
+                                : "pending"}
+                            </Badge>{" "}
+                          </>
+                        ) : (
+                          <>
+                            <div
+                              className="info-header"
+                              style={{ fontSize: "15px" }}
+                            >
+                              Completed:{" "}
+                              <span className="info-text">
+                                {batch.completed}
+                              </span>
+                            </div>
+                            <div
+                              className="info-header"
+                              style={{ fontSize: "15px" }}
+                            >
+                              Pending:{" "}
+                              <span className="info-text">{batch.pending}</span>
+                            </div>
+                            <div
+                              className="info-header"
+                              style={{ fontSize: "15px" }}
+                            >
+                              Failed:{" "}
+                              <span className="info-text">{batch.failed}</span>
+                            </div>
+                            {selectedBatchIds.includes(batch.batchId) && (
+                              <CheckCircleFill
+                                color="purple"
+                                size={20}
+                                style={{
+                                  position: "absolute",
+                                  top: "5px",
+                                  right: "5px",
+                                }}
+                              />
+                            )}
+                          </>
                         )}
                       </Card.Body>
                     </Card>
                   ))}
-                </div>
-              ))}
-            {selectedBatchIds.length === 0 && (
-              <div className="text-center mt-3">
-                Please select which uploaded files to be detected.
               </div>
-            )}
-          </Col>
-        </Row>
+            </Col>
+            <Col md={6} className="detail-section scrollable-column">
+              {selectedBatchIds
+                .map((batchId) =>
+                  batches.find((batch) => batch.batchId === batchId)
+                )
+                .map((selectedBatch, idx) => (
+                  <div key={idx}>
+                    <div className="sticky-title text-center">
+                      <h4 className="fs-6 mb-2 mt-2 text-dark">
+                        Batch {selectedBatch.batchId}
+                        <br />
+                        Uploaded on {formatDate(selectedBatch.start_date)}
+                      </h4>
+                    </div>
+                    {selectedBatch.files.map((file, index) => (
+                      <Card key={index} className="mt-2">
+                        <Card.Body>
+                          <div className="mb-1" style={{ fontSize: "15px" }}>
+                            File ID:
+                            <span className="info-text"> {file.file_id}</span>
+                          </div>
+                          <div className="mb-1" style={{ fontSize: "15px" }}>
+                            Process Type:
+                            <span className="info-text">
+                              {" "}
+                              {file.process_type}
+                            </span>
+                          </div>
+                          <div className="mb-1" style={{ fontSize: "15px" }}>
+                            Upload Status:
+                            <span className="info-text"> {file.status}</span>
+                          </div>
+                          <div className="mb-1" style={{ fontSize: "15px" }}>
+                            Number of Pages:
+                            <span className="info-text">
+                              {" "}
+                              {file.number_of_pages}
+                            </span>
+                          </div>
+                          <div className="mb-1" style={{ fontSize: "15px" }}>
+                            File Name:
+                            <span className="info-text">
+                              {" "}
+                              {file.original_name}
+                            </span>
+                          </div>
+                          {isDetected && (
+                            <Button
+                              variant="primary"
+                              size="sm"
+                              onClick={() =>
+                                handleFileButtonClick(file.file_id)
+                              }
+                              className="mt-2"
+                              style={{
+                                backgroundColor: "#942cd2",
+                                borderColor: "#942cd2",
+                              }}
+                            >
+                              Results
+                            </Button>
+                          )}
+                        </Card.Body>
+                      </Card>
+                    ))}
+                  </div>
+                ))}
+              {selectedBatchIds.length === 0 && (
+                <div className="text-center mt-3">
+                  Please select which uploaded files to be detected.
+                </div>
+              )}
+            </Col>
+          </Row>
+        )}
       </Container>
       <Row className="form-continue-section d-flex justify-content-center">
         {!isDetected && (
@@ -494,113 +517,129 @@ function ResumeExtraction({ onStepChange }) {
           )}
         </Button>
       </Row>
-      <Modal show={showModal} onHide={() => setShowModal(false)} size="xl" className="mt-4">
-    <Modal.Header closeButton className="text-center">
-        <Modal.Title
+
+      <Modal
+        show={showModal}
+        onHide={() => setShowModal(false)}
+        size="xl"
+        className="mt-4"
+      >
+        <Modal.Header closeButton className="text-center">
+          <Modal.Title
             className="text-dark"
             style={{ width: "100%", textAlign: "center", fontSize: "20px" }}
-        >
+          >
             File Name Result
-        </Modal.Title>
-    </Modal.Header>
-    <Modal.Body
-        className="d-flex align-items-center justify-content-center"
-        style={{ overflow: "hidden", minHeight: "500px" }}
-    >
-        <Row>
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body
+          className="d-flex align-items-center justify-content-center"
+          style={{ overflow: "hidden", minHeight: "500px" }}
+        >
+          <Row>
             <Col
-                className="text-dark"
-                md={6}
-                style={{ overflowY: "auto", maxHeight: "100%" }}
+              className="text-dark"
+              md={6}
+              style={{ overflowY: "auto", maxHeight: "100%" }}
             >
-                <div
-                    className="sticky-title text-center text-white"
-                    style={{
-                        padding: "10px",
-                        border: "2px solid #942cd2",
-                        marginBottom: "20px",
-                        backgroundColor: "#942cd2",
-                        borderRadius: "5px",
-                    }}
+              <div
+                className="sticky-title text-center text-white"
+                style={{
+                  padding: "10px",
+                  border: "2px solid #942cd2",
+                  marginBottom: "20px",
+                  backgroundColor: "#942cd2",
+                  borderRadius: "5px",
+                }}
+              >
+                <h5
+                  style={{ textAlign: "center", margin: "0", fontSize: "17px" }}
                 >
-                    <h5 style={{ textAlign: "center", margin: "0", fontSize: "17px" }}>Text Extraction from image</h5>
-                </div>
-                {Object.entries(OcrResults.results || {}).map(([key, texts]) => (
-                    texts.map((text, index) => (
-                        <div key={`${key}-${index}`}
-                            style={{
-                                display: "flex",
-                                alignItems: "center",
-                                marginBottom: "10px",
-                                border: "1px solid #000",
-                                padding: "5px",
-                            }}
-                        >
-                            <div style={{ width: "20px", textAlign: "center" }}>{index}</div>
-                            <div style={{ marginLeft: "10px" }}>{text}</div>
-                        </div>
-                    ))
-                ))}
+                  Text Extraction from image
+                </h5>
+              </div>
+              {Object.entries(OcrResults.results || {}).map(([key, texts]) =>
+                texts.map((text, index) => (
+                  <div
+                    key={`${key}-${index}`}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      marginBottom: "10px",
+                      border: "1px solid #000",
+                      padding: "5px",
+                    }}
+                  >
+                    <div style={{ width: "20px", textAlign: "center" }}>
+                      {index}
+                    </div>
+                    <div style={{ marginLeft: "10px" }}>{text}</div>
+                  </div>
+                ))
+              )}
             </Col>
             <Col md={6}>
-                <div
-                    className="sticky-title text-center text-white"
-                    style={{
-                        padding: "10px",
-                        border: "2px solid #942cd2",
-                        marginBottom: "20px",
-                        backgroundColor: "#942cd2",
-                        borderRadius: "5px",
-                    }}
+              <div
+                className="sticky-title text-center text-white"
+                style={{
+                  padding: "10px",
+                  border: "2px solid #942cd2",
+                  marginBottom: "20px",
+                  backgroundColor: "#942cd2",
+                  borderRadius: "5px",
+                }}
+              >
+                <h5
+                  style={{ textAlign: "center", margin: "0", fontSize: "17px" }}
                 >
-                    <h5 style={{ textAlign: "center", margin: "0", fontSize: "17px" }}>Object Detection</h5>
-                </div>
-                <div
-                    style={{
-                        flex: 1,
-                        display: "flex",
-                        justifyContent: "center",
-                        alignItems: "center",
-                    }}
+                  Object Detection
+                </h5>
+              </div>
+              <div
+                style={{
+                  flex: 1,
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+              >
+                <img
+                  src={images[currentImageIndex]}
+                  alt={`Preview ${currentImageIndex + 1}`}
+                  style={{ maxWidth: "101%", maxHeight: "101%" }}
+                />
+              </div>
+              <div className="d-flex justify-content-center">
+                <Button
+                  variant="danger"
+                  onClick={handlePreviousImage}
+                  className="me-2 mt-2"
+                  style={{ backgroundColor: "#942cd2", border: "#942cd2" }}
                 >
-                    <img
-                        src={images[currentImageIndex]}
-                        alt={`Preview ${currentImageIndex + 1}`}
-                        style={{ maxWidth: "101%", maxHeight: "101%" }}
-                    />
-                </div>
-                <div className="d-flex justify-content-center">
-                    <Button
-                        variant="danger"
-                        onClick={handlePreviousImage}
-                        className="me-2 mt-2"
-                        style={{ backgroundColor: "#942cd2", border: "#942cd2" }}
-                    >
-                        <ChevronLeft />
-                    </Button>
-                    <Button
-                        variant="danger"
-                        onClick={handleNextImage}
-                        className="ms-2 mt-2"
-                        style={{ backgroundColor: "#942cd2", border: "#942cd2" }}
-                    >
-                        <ChevronRight />
-                    </Button>
-                </div>
+                  <ChevronLeft />
+                </Button>
+                <Button
+                  variant="danger"
+                  onClick={handleNextImage}
+                  className="ms-2 mt-2"
+                  style={{ backgroundColor: "#942cd2", border: "#942cd2" }}
+                >
+                  <ChevronRight />
+                </Button>
+              </div>
             </Col>
-        </Row>
-    </Modal.Body>
-    <Modal.Footer className="d-flex justify-content-center">
-        <Button
+          </Row>
+        </Modal.Body>
+        <Modal.Footer className="d-flex justify-content-center">
+          <Button
             variant="danger"
             onClick={handleCloseModal}
             style={{ backgroundColor: "#942cd2", border: "#942cd2" }}
-        >
+          >
             Close
-        </Button>
-    </Modal.Footer>
-</Modal>
-
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </>
   );
 }
