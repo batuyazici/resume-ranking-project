@@ -124,7 +124,7 @@ function ResumeExtraction({ onStepChange }) {
     if (imageUrls.length > 0) {
       setImages(imageUrls);
 
-      if (isOcr) setOcrLines(OcrResults[fileId] || []);
+      if (isOcr) setOcrLines(OcrResults.results[fileId] || []);
       setCurrentImageIndex(0);
       setShowModal(true);
     } else {
@@ -158,7 +158,16 @@ function ResumeExtraction({ onStepChange }) {
           },
         }
       );
+      const data = response.data;
+      if (data && data[currentFileId.fileId]) {
+        setOcrResults(prevState => ({
+          results: {
+              ...prevState.results,
+              [currentFileId.fileId]: data[currentFileId.fileId]
+          }
+      }));
 
+    }
       console.log("Deleted lines submitted:", response.data);
       setDeletedLines([]); // Reset the list of deleted lines after successful submission
     } catch (error) {
@@ -718,43 +727,103 @@ function ResumeExtraction({ onStepChange }) {
                   </Col>
                 )}
                 {isOcr && currentFileId && (
-                  <Col md={6} style={{ overflowY: "auto", maxHeight: "100%" }}>
-                    <Accordion defaultActiveKey="">
-                      {ocrLines.map((text, index) => (
-                        <Accordion.Item
-                          key={`${currentFileId.fileId}-${index}`}
-                          eventKey={`${index}`}
-                        >
-                          <Accordion.Header>
-                            {truncateText(text)}
-                            <Button
-                              variant="danger"
-                              size="sm"
-                              onClick={(e) => {
-                                e.stopPropagation(); // Prevent accordion toggle
-                                handleDeleteLine(index);
-                              }}
-                              style={{ marginLeft: "10px" }}
-                            >
-                              Delete
-                            </Button>
-                          </Accordion.Header>
-                          <Accordion.Body>{text}</Accordion.Body>
-                        </Accordion.Item>
-                      ))}
-                    </Accordion>
-                    <Button
-                      variant="primary"
-                      onClick={handleSubmitDeletions}
-                      disabled={deletedLines.length === 0}
-                      className="mt-3" // Add some margin top for spacing
-                    >
-                      Submit Deletions
-                    </Button>
-                  </Col>
-                )}
-
-                {/* Additional conditionally rendered sections can be added here for classification and NER results */}
+  <Col md={6} style={{ overflowY: "auto", maxHeight: "100%" }}>
+    {isClassification ? (
+      <Accordion defaultActiveKey="">
+        {classificationResults.map((result, index) => (
+          <Accordion.Item
+            key={`${currentFileId.fileId}-classification-${index}`}
+            eventKey={`${index}`}
+          >
+            <Accordion.Header
+              style={{
+                backgroundColor: "#e0e0e0", // Custom background for classification
+                color: "#034f84" // Custom text color
+              }}
+            >
+              {result.title} {/* Assuming 'title' is part of your classificationResults */}
+              <Button
+                variant="danger"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleModifyClassification(index);
+                }}
+                style={{ marginLeft: "10px" }}
+              >
+                Modify
+              </Button>
+            </Accordion.Header>
+            <Accordion.Body>{result.details}</Accordion.Body>
+          </Accordion.Item>
+        ))}
+      </Accordion>
+    ) : isNer ? (
+      <Accordion defaultActiveKey="">
+        {nerResults.map((entity, index) => (
+          <Accordion.Item
+            key={`${currentFileId.fileId}-ner-${index}`}
+            eventKey={`${index}`}
+          >
+            <Accordion.Header
+              style={{
+                backgroundColor: "#d0f0c0", // Custom background for NER
+                color: "#2c662d" // Custom text color
+              }}
+            >
+              {entity.name} {/* Assuming 'name' is a property of NER entities */}
+              <Button
+                variant="warning"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleModifyNerEntity(index);
+                }}
+                style={{ marginLeft: "10px" }}
+              >
+                Edit
+              </Button>
+            </Accordion.Header>
+            <Accordion.Body>{entity.detail}</Accordion.Body> {/* Assuming 'detail' is a property of NER entities */}
+          </Accordion.Item>
+        ))}
+      </Accordion>
+    ) : (
+      <Accordion defaultActiveKey="">
+        {ocrLines.map((text, index) => (
+          <Accordion.Item
+            key={`${currentFileId.fileId}-${index}`}
+            eventKey={`${index}`}
+          >
+            <Accordion.Header>
+              {truncateText(text)}
+              <Button
+                variant="danger"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation(); // Prevent accordion toggle
+                  handleDeleteLine(index);
+                }}
+                style={{ marginLeft: "10px" }}
+              >
+                Delete
+              </Button>
+            </Accordion.Header>
+            <Accordion.Body>{text}</Accordion.Body>
+          </Accordion.Item>
+        ))}
+      </Accordion>
+    )}
+    <Button
+      variant="primary"
+      onClick={handleSubmitDeletions}
+      disabled={deletedLines.length === 0}
+      className="mt-3"
+    >
+      Submit Deletions
+    </Button>
+  </Col>
+)}
               </Row>
             </Modal.Body>
             <Modal.Footer className="d-flex justify-content-center">

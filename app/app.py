@@ -279,7 +279,7 @@ async def ocr_run(batch_ids: dict):
     
 @app.post("/classify/")
 async def classify_run(batch_ids: dict):
-    from model_pipeline.clsf import classify_impl
+    from model_pipeline.clsf import clsf_impl
     try:
         batch_ids = batch_ids.get("batch_ids", [])
         batch_ids = [int(id_str) for id_str in batch_ids]
@@ -288,7 +288,7 @@ async def classify_run(batch_ids: dict):
             WHERE batch_id = ANY($1);
         """
         files = await fetch_query(query, batch_ids)
-        classify_impl(parameters.lang, file_handler)
+        await clsf_impl(file_handler)
         
         results = {}
         for file in files:
@@ -371,7 +371,7 @@ async def delete_ocr_lines(storage_name: str, file_id: str, deleted_lines: List[
         with open(file_path, 'w') as file:
             json.dump(ocr_data, file, indent=4)
         
-        return {"message": "Deleted lines successfully updated."}
+        return JSONResponse(content= {f"{file_id}":ocr_data})
     except Exception as e:
         print("Error:", str(e))  # Print error to console
         raise HTTPException(status_code=500, detail=str(e))
