@@ -299,7 +299,7 @@ useEffect(() => {
           <Alert
             variant="success"
             dismissible
-            onclose={()=> { setShowUploadSuccessAlert(false) }}
+            onClose={()=> { setShowUploadSuccessAlert(false) }}
             className="m-2 fixed-bottom-alert"
           >
             Files are uploaded successfully. You can continue or upload more

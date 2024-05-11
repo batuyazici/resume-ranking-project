@@ -9,6 +9,7 @@ import {
   Spinner,
   Badge,
   ProgressBar,
+  Accordion,
 } from "react-bootstrap";
 import PropTypes from "prop-types";
 import {
@@ -24,17 +25,25 @@ import { useNavigate } from "react-router-dom";
 
 function ResumeExtraction({ onStepChange }) {
   const [batches, setBatches] = useState([]);
+
   const [isAnimating, setIsAnimating] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [initialLoading, setInitialLoading] = useState(true); 
+  const [initialLoading, setInitialLoading] = useState(true);
+
   const [showModal, setShowModal] = useState(false);
   const [images, setImages] = useState([]);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
   const [selectedBatchIds, setSelectedBatchIds] = useState([]);
+  const [currentFileId, setCurrentFileId] = useState([]);
+
   const [isDetected, SetIsDetected] = useState(false);
   const [detectionResults, setDetectionResults] = useState([]);
+
   const [isOcr, setIsOcr] = useState(false);
   const [OcrResults, setOcrResults] = useState([]);
+  const [ocrLines, setOcrLines] = useState([]);
+  const [deletedLines, setDeletedLines] = useState([]);
+
   const [isClassification, setIsClassification] = useState(false);
   const [classificationResults, setClassificationResults] = useState([]);
   const [isNer, setIsNer] = useState(false);
@@ -49,7 +58,6 @@ function ResumeExtraction({ onStepChange }) {
     /******** Fetch API **********/
   }
   const fetchStatus = async () => {
-    setIsLoading(true);
     try {
       const response = await axios.get(import.meta.env.VITE_FAST_API_STATUS);
       const formattedBatches = Object.entries(response.data).map(
@@ -82,27 +90,22 @@ function ResumeExtraction({ onStepChange }) {
         }
       );
       setBatches(formattedBatches);
-      if (initialLoading) setInitialLoading(false); 
+      if (initialLoading) setInitialLoading(false);
     } catch (error) {
       console.error("Failed to fetch status:", error);
-      setIsLoading(false); 
     }
-    setIsLoading(false); 
   };
 
   useEffect(() => {
-    console.log("Setting up interval");  // Log when the interval is set
-    fetchStatus();  // Fetch immediately on mount
+    fetchStatus(); // Fetch immediately on mount
     const intervalId = setInterval(() => {
-      console.log("Fetching status at interval");  // Log each fetch call
       fetchStatus();
-    }, 5000);  // Adjust to 6000 if you want it every 6 seconds
-  
+    }, 5000); // Adjust to 6000 if you want it every 6 seconds
+
     return () => {
-      console.log("Clearing interval");  // Log when the interval is cleared
       clearInterval(intervalId);
     };
-  }, []); 
+  }, []);
   {
     /******** Handle button clicks **********/
   }
@@ -113,17 +116,68 @@ function ResumeExtraction({ onStepChange }) {
       const pathParts = filePath.split("\\");
       const storageName = pathParts[pathParts.length - 2];
       const fileName = pathParts[pathParts.length - 1];
+      setCurrentFileId({ fileId: fileId, storageName: storageName });
       return `${
         import.meta.env.VITE_FAST_API_BASE_URL
       }files/${storageName}/${fileName}`;
     });
     if (imageUrls.length > 0) {
       setImages(imageUrls);
+
+      if (isOcr) setOcrLines(OcrResults[fileId] || []);
       setCurrentImageIndex(0);
       setShowModal(true);
     } else {
       console.error("No images found for file ID:", fileId);
     }
+  };
+
+  const handleSubmitDeletions = async () => {
+    if (!currentFileId || deletedLines.length === 0) {
+      console.error("No file selected or no lines to delete");
+      return;
+    }
+    try {
+      console.log(
+        "Storage Name:",
+        currentFileId.storageName,
+        "File ID:",
+        currentFileId.fileId
+      );
+      console.log("Deleted Lines:", deletedLines);
+      const response = await axios.post(
+        `${import.meta.env.VITE_FAST_API_BASE_URL}ocrfiles/${
+          currentFileId.storageName
+        }/${currentFileId.fileId}`,
+        {
+          deleted_lines: deletedLines, // This payload should match the server's expectations
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      console.log("Deleted lines submitted:", response.data);
+      setDeletedLines([]); // Reset the list of deleted lines after successful submission
+    } catch (error) {
+      console.error("Failed to submit deletions:", error);
+    }
+  };
+
+  const handleBatchClick = (batchId) => {
+    setSelectedBatchIds((prevIds) => {
+      if (prevIds.includes(batchId)) {
+        return prevIds.filter((id) => id !== batchId); // Toggle off
+      } else {
+        return [...prevIds, batchId]; // Toggle on
+      }
+    });
+  };
+
+  const handleReturnClick = () => {
+    onStepChange("upload");
   };
 
   const handleDetectClick = async () => {
@@ -142,20 +196,6 @@ function ResumeExtraction({ onStepChange }) {
     }
   };
 
-  const handleBatchClick = (batchId) => {
-    setSelectedBatchIds((prevIds) => {
-      if (prevIds.includes(batchId)) {
-        return prevIds.filter((id) => id !== batchId); // Toggle off
-      } else {
-        return [...prevIds, batchId]; // Toggle on
-      }
-    });
-  };
-
-  const handleReturnClick = () => {
-    onStepChange("upload");
-  };
-
   const handleOcrClick = async () => {
     setIsAnimating(true);
     try {
@@ -163,6 +203,7 @@ function ResumeExtraction({ onStepChange }) {
         batch_ids: selectedBatchIds,
       });
       setOcrResults(response.data);
+      console.log();
       setIsOcr(true);
     } catch (error) {
       console.error("OCR failed:", error.response || error);
@@ -171,19 +212,36 @@ function ResumeExtraction({ onStepChange }) {
     }
   };
 
-
   const handleClassifyClick = async () => {
     setIsAnimating(true);
-    // API call for classification
-    setIsAnimating(false);
-    setIsClassification(true);
+    try {
+      const response = await axios.post(import.meta.env.VITE_FAST_API_CLSF, {
+        batch_ids: selectedBatchIds,
+      });
+      setClassificationResults(response.data);
+      console.log();
+      setIsClassification(true);
+    } catch (error) {
+      console.error("Clsf failed:", error.response || error);
+    } finally {
+      setIsAnimating(false);
+    }
   };
 
   const handleNerClick = async () => {
     setIsAnimating(true);
-    // API call for NER
-    setIsAnimating(false);
-    setIsNer(true);
+    try {
+      const response = await axios.post(import.meta.env.VITE_FAST_API_NER, {
+        batch_ids: selectedBatchIds,
+      });
+      setNerResults(response.data);
+      console.log();
+      setIsNer(true);
+    } catch (error) {
+      console.error("NER failed:", error.response || error);
+    } finally {
+      setIsAnimating(false);
+    }
   };
 
   const handleMatchCvs = async () => {
@@ -226,9 +284,23 @@ function ResumeExtraction({ onStepChange }) {
     setShowModal(false);
   };
 
+  const handleDeleteLine = (index) => {
+    const newOcrLines = [...ocrLines];
+    const deletedItem = newOcrLines.splice(index, 1); // Remove the item at the specified index
+    setOcrLines(newOcrLines); // Update state with the remaining items
+    setDeletedLines([...deletedLines, ...deletedItem]); // Add the deleted item to the deletedLines array
+  };
+
   {
     /******** Format code **********/
   }
+  const truncateText = (text, maxLength = 50) => {
+    if (text.length > maxLength) {
+      return `${text.substring(0, maxLength)}...`;
+    }
+    return text;
+  };
+
   const formatDate = (dateString) => {
     const options = {
       year: "numeric",
@@ -259,13 +331,33 @@ function ResumeExtraction({ onStepChange }) {
     pointerEvents: isDetected ? "none" : "auto",
   });
 
-  if (!batches) {
-    return (
-      <Container fluid="md" className="mt-4 px-5 detection-layout">
-        <Spinner animation="grow" size="lg" />
-      </Container>
-    );
-  }
+  const progressLabel = isNer
+    ? "Embedding Step"
+    : isClassification
+    ? "NER"
+    : isOcr
+    ? "Classification"
+    : isDetected
+    ? "OCR"
+    : "Object Detection";
+  const progressPercentage = isNer
+    ? 100
+    : isClassification
+    ? 75
+    : isOcr
+    ? 50
+    : isDetected
+    ? 25
+    : 0;
+  const headerText = isNer
+    ? "All steps are completed"
+    : isClassification
+    ? "Keyword extraction"
+    : isOcr
+    ? "Classification for extracted texts"
+    : isDetected
+    ? "OCR for text extraction"
+    : "Please select resumes to be processed";
 
   return (
     <>
@@ -294,9 +386,14 @@ function ResumeExtraction({ onStepChange }) {
             <Row className="justify-content-center match-container-1 mt-2 mb-4">
               <Col md={6} className="highlight-section scrollable-column">
                 <div className="sticky-title text-center">
-                  <h3 className="fs-6 mb-1 text-dark">Object Detection Step</h3>
+                  <h3 className="fs-6 mb-1 text-dark">{headerText}</h3>
                   <div className="px-3 py-1">
-                    <ProgressBar animated now={isDetected ? 100 : 0} />
+                    <ProgressBar
+                      animated
+                      now={progressPercentage}
+                      label={`${progressLabel}`}
+                      className="custom-progress-bar"
+                    />
                   </div>
                 </div>
                 <div className="card-container mb-2">
@@ -620,51 +717,43 @@ function ResumeExtraction({ onStepChange }) {
                     </div>
                   </Col>
                 )}
-                {isOcr && (
+                {isOcr && currentFileId && (
                   <Col md={6} style={{ overflowY: "auto", maxHeight: "100%" }}>
-                    <div
-                      className="sticky-title text-center text-white"
-                      style={{
-                        padding: "10px",
-                        border: "2px solid #942cd2",
-                        marginBottom: "20px",
-                        backgroundColor: "#942cd2",
-                        borderRadius: "5px",
-                      }}
+                    <Accordion defaultActiveKey="">
+                      {ocrLines.map((text, index) => (
+                        <Accordion.Item
+                          key={`${currentFileId.fileId}-${index}`}
+                          eventKey={`${index}`}
+                        >
+                          <Accordion.Header>
+                            {truncateText(text)}
+                            <Button
+                              variant="danger"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation(); // Prevent accordion toggle
+                                handleDeleteLine(index);
+                              }}
+                              style={{ marginLeft: "10px" }}
+                            >
+                              Delete
+                            </Button>
+                          </Accordion.Header>
+                          <Accordion.Body>{text}</Accordion.Body>
+                        </Accordion.Item>
+                      ))}
+                    </Accordion>
+                    <Button
+                      variant="primary"
+                      onClick={handleSubmitDeletions}
+                      disabled={deletedLines.length === 0}
+                      className="mt-3" // Add some margin top for spacing
                     >
-                      <h5
-                        style={{
-                          textAlign: "center",
-                          margin: "0",
-                          fontSize: "17px",
-                        }}
-                      >
-                        Text Extraction from Image
-                      </h5>
-                    </div>
-                    {Object.entries(OcrResults.results || {}).map(
-                      ([key, texts]) =>
-                        texts.map((text, index) => (
-                          <div
-                            key={`${key}-${index}`}
-                            style={{
-                              color: "black",
-                              display: "flex",
-                              alignItems: "center",
-                              marginBottom: "10px",
-                              border: "1px solid #000",
-                              padding: "5px",
-                            }}
-                          >
-                            <div style={{ width: "20px", textAlign: "center" }}>
-                              {index}
-                            </div>
-                            <div style={{ marginLeft: "10px" }}>{text}</div>
-                          </div>
-                        ))
-                    )}
+                      Submit Deletions
+                    </Button>
                   </Col>
                 )}
+
                 {/* Additional conditionally rendered sections can be added here for classification and NER results */}
               </Row>
             </Modal.Body>

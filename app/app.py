@@ -1,4 +1,4 @@
-from fastapi import FastAPI, UploadFile, Form, File, BackgroundTasks, HTTPException, Query
+from fastapi import FastAPI, UploadFile, Form, File, BackgroundTasks, HTTPException, Query, Body
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from typing import List, Optional
@@ -267,7 +267,7 @@ async def ocr_run(batch_ids: dict):
         """
         await execute_query(update_query, batch_ids)
         
-        return JSONResponse(content={"results": results, "message": "OCR process completed."})
+        return JSONResponse(content={"results": results})
 
     except Exception as e:
         update_fail_query = """
@@ -277,7 +277,7 @@ async def ocr_run(batch_ids: dict):
         print(str(e))
         raise HTTPException(status_code=500, detail=str(e))
     
-app.post("/classify/")
+@app.post("/classify/")
 async def classify_run(batch_ids: dict):
     from model_pipeline.clsf import classify_impl
     try:
@@ -299,11 +299,12 @@ async def classify_run(batch_ids: dict):
             if os.path.exists(file_path):
                 with open(file_path, 'r') as f:
                     results[file_id] = json.load(f)    
+
         update_query = """
         UPDATE classification_results SET status = 'completed' WHERE batch_id = ANY($1);
         """
         await execute_query(update_query, batch_ids)
-        return {"message": "Classification is completed."}
+        return JSONResponse(content={"results": results})
     
     except Exception as e:
         update_fail_query = """
@@ -343,7 +344,7 @@ async def ner_run(batch_ids: dict):
         """
         await execute_query(update_query, batch_ids)
         
-        return {"message": "NER process completed."}
+        return JSONResponse(content={"results": results})
     
     except Exception as e:
         update_fail_query = """
@@ -353,7 +354,67 @@ async def ner_run(batch_ids: dict):
         print(str(e))
         raise HTTPException(status_code=500, detail=str(e))
     
-    
+@app.post("/ocrfiles/{storage_name}/{file_id}")
+async def delete_ocr_lines(storage_name: str, file_id: str, deleted_lines: List[str] = Body(..., embed=True)):
+    file_path = os.path.join(file_handler.results_dir,storage_name,f"{storage_name}_ocr.json")
+    print("File Path:", file_path)  # Debugging output
+    try:
+        if not os.path.exists(file_path):
+            print("File not found")
+            raise HTTPException(status_code=404, detail="File not found.")
+        
+        with open(file_path, 'r') as file:
+            ocr_data = json.load(file)
+        ocr_data = [
+            line for line in ocr_data if line not in deleted_lines
+        ]        
+        with open(file_path, 'w') as file:
+            json.dump(ocr_data, file, indent=4)
+        
+        return {"message": "Deleted lines successfully updated."}
+    except Exception as e:
+        print("Error:", str(e))  # Print error to console
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/clsfiles/{storage_name}/{file_id}")
+async def update_clsf_classes(storage_name: str, file_id: str, clsf_classes: List[str] = Body(..., embed=True)):
+    file_path = os.path.join(file_handler.results_dir, storage_name, f"{storage_name}_clsf.json")
+    print("File Path:", file_path)  # Debugging output
+    try:
+        if not os.path.exists(file_path):
+            print("File not found")
+            raise HTTPException(status_code=404, detail="File not found.")
+        
+        with open(file_path, 'r') as file:
+            clsf_data = json.load(file)
+
+        
+        return {"message": "Deleted lines successfully updated."}
+    except Exception as e:
+        print("Error:", str(e))  # Print error to console
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/nerfiles/{storage_name}/{file_id}")
+async def delete_ocr_lines(storage_name: str, file_id: str, deleted_lines: List[str] = Body(..., embed=True)):
+    file_path = os.path.join(file_handler.results_dir,storage_name,f"{storage_name}_ocr.json")
+    print("File Path:", file_path)  # Debugging output
+    try:
+        if not os.path.exists(file_path):
+            print("File not found")
+            raise HTTPException(status_code=404, detail="File not found.")
+        
+        with open(file_path, 'r') as file:
+            ocr_data = json.load(file)
+        ocr_data = [
+            line for line in ocr_data if line not in deleted_lines
+        ]        
+        with open(file_path, 'w') as file:
+            json.dump(ocr_data, file, indent=4)
+        
+        return {"message": "Deleted lines successfully updated."}
+    except Exception as e:
+        print("Error:", str(e))  # Print error to console
+        raise HTTPException(status_code=500, detail=str(e))    
 
     
 if __name__ == "__main__":
