@@ -35,14 +35,17 @@ function Dropzone({ onStepChange }) {
   const [viewMode, setViewMode] = useState("list");
   const [uploadedFiles, setUploadedFiles] = useState(new Set());
   const [batchId, setBatchId] = useState(null);
+  const [showUploadSuccessAlert, setShowUploadSuccessAlert] = useState(false);
 
-  useEffect(() => {
-    const success = sessionStorage.getItem('uploadSuccess');
-    console.log('Upload Success from sessionStorage:', success);
+useEffect(() => {
+  const success = sessionStorage.getItem("uploadSuccess");
+  console.log("Upload Success from sessionStorage:", success);
 
-    if (success === 'true') {
-        setUploadSuccess(true);
-    }
+  if (success === "true") {
+    setUploadSuccess(true);
+  }
+  // Clear the session storage item after checking it
+  sessionStorage.removeItem("uploadSuccess");
 }, []);
 
   const onDrop = useCallback(
@@ -260,6 +263,7 @@ function Dropzone({ onStepChange }) {
         console.log(response);
         setIsUploading(false);
         setUploadSuccess(true);
+        setShowUploadSuccessAlert(true);
         console.log('Upload successful, setting sessionStorage');
         sessionStorage.setItem('uploadSuccess', 'true');
         setShowFileRejectionMessage(false);
@@ -291,10 +295,11 @@ function Dropzone({ onStepChange }) {
             you cannot upload more than 200 files at once.
           </Alert>
         )}
-        {uploadSuccess && (
+        {showUploadSuccessAlert && (
           <Alert
             variant="success"
             dismissible
+            onclose={()=> { setShowUploadSuccessAlert(false) }}
             className="m-2 fixed-bottom-alert"
           >
             Files are uploaded successfully. You can continue or upload more

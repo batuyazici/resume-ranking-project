@@ -5,18 +5,23 @@ from typing import List, Optional
 import os
 import shutil  
 import glob
-import json  
-from db import execute_query, fetch_query, fetch_single_query 
+import json
+from contextlib import asynccontextmanager  
+from db import init_connection_pool, close_connection_pool, execute_query, fetch_query, fetch_single_query 
 from helpers import clean_filename, init_upload_batch, check_batch_exists, conf_input_file
 from file_processing import docx_conv, pdf_conv
 from config import UPLOAD_DIR, SAVE_DIR, SAVE_DIR_API
 from model_pipeline.utils.files import FileHandler
 from model_pipeline.utils.params import YOLOParameters
-
-
 import uvicorn
 
-app = FastAPI()
+async def lifespan(app: FastAPI):
+    await init_connection_pool()
+    yield
+    await close_connection_pool()
+    
+    
+app = FastAPI(lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -25,7 +30,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 
 file_handler = FileHandler()
 parameters = YOLOParameters(file_handler.results_dir)
