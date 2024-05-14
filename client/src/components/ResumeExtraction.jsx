@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Button,
   Container,
@@ -10,6 +10,11 @@ import {
   Badge,
   ProgressBar,
   Accordion,
+  Dropdown,
+  DropdownButton,
+  Table,
+  Form,
+  Stack,
 } from "react-bootstrap";
 import PropTypes from "prop-types";
 import {
@@ -18,6 +23,9 @@ import {
   ArrowLeftCircle,
   ChevronLeft,
   ChevronRight,
+  ChevronExpand,
+  ChevronContract,
+  Trash,
 } from "react-bootstrap-icons";
 import axios from "axios";
 import { Helmet } from "react-helmet-async";
@@ -46,9 +54,15 @@ function ResumeExtraction({ onStepChange }) {
 
   const [isClassification, setIsClassification] = useState(false);
   const [classificationResults, setClassificationResults] = useState([]);
+  const [clsfLines, setClsfLines] = useState([]);
+  const [changedClsfLines, setChangedClsfLines] = useState([]);
+  const [expandedRows, setExpandedRows] = useState({});
+
   const [isNer, setIsNer] = useState(false);
   const [nerResults, setNerResults] = useState([]);
+  const [changedNerWords, setChangedNerWords] = useState([]);
 
+  const [isCompleted, setIsCompleted] = useState(false);
   {
     /******** Initilization **********/
   }
@@ -110,21 +124,34 @@ function ResumeExtraction({ onStepChange }) {
     /******** Handle button clicks **********/
   }
 
-  const handleFileButtonClick = (fileId) => {
+  const handleFileButtonClick = (fileId, batchId) => {
     const fileDetails = detectionResults[fileId] || [];
     const imageUrls = fileDetails.map((filePath) => {
       const pathParts = filePath.split("\\");
       const storageName = pathParts[pathParts.length - 2];
       const fileName = pathParts[pathParts.length - 1];
-      setCurrentFileId({ fileId: fileId, storageName: storageName });
+      console.log(batches);
+      const originalName =
+        batches
+          .find((b) => b.batchId === batchId)
+          ?.files.find((f) => f.file_id === fileId)?.original_name ||
+        "File or Batch not found";
+      console.log("Original Name:", originalName);
+      setCurrentFileId({
+        fileId: fileId,
+        storageName: storageName,
+        originalName: originalName,
+      });
       return `${
         import.meta.env.VITE_FAST_API_BASE_URL
       }files/${storageName}/${fileName}`;
     });
     if (imageUrls.length > 0) {
       setImages(imageUrls);
+      if (isClassification) {
+        setClsfLines(classificationResults.results[fileId] || []);
+      } else if (isOcr) setOcrLines(OcrResults.results[fileId] || []);
 
-      if (isOcr) setOcrLines(OcrResults.results[fileId] || []);
       setCurrentImageIndex(0);
       setShowModal(true);
     } else {
@@ -133,45 +160,104 @@ function ResumeExtraction({ onStepChange }) {
   };
 
   const handleSubmitDeletions = async () => {
-    if (!currentFileId || deletedLines.length === 0) {
-      console.error("No file selected or no lines to delete");
-      return;
-    }
     try {
-      console.log(
-        "Storage Name:",
-        currentFileId.storageName,
-        "File ID:",
-        currentFileId.fileId
-      );
-      console.log("Deleted Lines:", deletedLines);
-      const response = await axios.post(
-        `${import.meta.env.VITE_FAST_API_BASE_URL}ocrfiles/${
-          currentFileId.storageName
-        }/${currentFileId.fileId}`,
-        {
-          deleted_lines: deletedLines, // This payload should match the server's expectations
-        },
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
+      if (isClassification && !isNer) {
+        if (!currentFileId || changedClsfLines.length === 0) {
+          console.error("No file selected or no lines to change");
+          return;
         }
-      );
-      const data = response.data;
-      if (data && data[currentFileId.fileId]) {
-        setOcrResults(prevState => ({
-          results: {
-              ...prevState.results,
-              [currentFileId.fileId]: data[currentFileId.fileId]
+        const response = await axios.post(
+          `${import.meta.env.VITE_FAST_API_BASE_URL}clsfiles/${
+            currentFileId.storageName
+          }/${currentFileId.fileId}`,
+          {
+            actions: changedClsfLines,
+          },
+          {
+            headers: {
+              "Content-Type": "application/json",
+            },
           }
-      }));
-
-    }
-      console.log("Deleted lines submitted:", response.data);
+        );
+        console.log(response.data);
+        const data = response.data;
+        if (data && data[currentFileId.fileId]) {
+          setClassificationResults((prevState) => ({
+            results: {
+              ...prevState.results,
+              [currentFileId.fileId]: data[currentFileId.fileId],
+            },
+          }));
+        }
+        setChangedClsfLines([]);
+      } else if (isNer) {
+        if (!currentFileId || changedNerWords.length === 0) {
+          console.error("No file selected or no lines to change");
+          return;
+        }
+        const response = await axios.post(
+          `${import.meta.env.VITE_FAST_API_BASE_URL}nerfiles/${
+            currentFileId.storageName
+          }/${currentFileId.fileId}`,
+          {
+            actions: changedNerWords,
+          },
+          {
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        console.log(response.data);
+        const data = response.data;
+        if (data && data[currentFileId.fileId]) {
+          setNerResults((prevState) => ({
+            results: {
+              ...prevState.results,
+              [currentFileId.fileId]: data[currentFileId.fileId],
+            },
+          }));
+        }
+        setChangedNerWords([]);
+      } else {
+        if (!currentFileId || deletedLines.length === 0) {
+          console.error("No file selected or no lines to delete");
+          return;
+        }
+        console.log(
+          "Storage Name:",
+          currentFileId.storageName,
+          "File ID:",
+          currentFileId.fileId
+        );
+        console.log("Deleted Lines:", deletedLines);
+        const response = await axios.post(
+          `${import.meta.env.VITE_FAST_API_BASE_URL}ocrfiles/${
+            currentFileId.storageName
+          }/${currentFileId.fileId}`,
+          {
+            deleted_lines: deletedLines,
+          },
+          {
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        const data = response.data;
+        if (data && data[currentFileId.fileId]) {
+          setOcrResults((prevState) => ({
+            results: {
+              ...prevState.results,
+              [currentFileId.fileId]: data[currentFileId.fileId],
+            },
+          }));
+        }
+        console.log("Deleted lines submitted:", response.data);
+      }
       setDeletedLines([]); // Reset the list of deleted lines after successful submission
     } catch (error) {
-      console.error("Failed to submit deletions:", error);
+      console.error("Failed to submit changes:", error);
     }
   };
 
@@ -227,8 +313,8 @@ function ResumeExtraction({ onStepChange }) {
       const response = await axios.post(import.meta.env.VITE_FAST_API_CLSF, {
         batch_ids: selectedBatchIds,
       });
-      setClassificationResults(response.data);
-      console.log();
+      const classificationData = response.data;
+      setClassificationResults(classificationData);
       setIsClassification(true);
     } catch (error) {
       console.error("Clsf failed:", error.response || error);
@@ -243,8 +329,9 @@ function ResumeExtraction({ onStepChange }) {
       const response = await axios.post(import.meta.env.VITE_FAST_API_NER, {
         batch_ids: selectedBatchIds,
       });
-      setNerResults(response.data);
-      console.log();
+      const NerData = response.data;
+      setNerResults(NerData);
+      console.log(NerData);
       setIsNer(true);
     } catch (error) {
       console.error("NER failed:", error.response || error);
@@ -252,7 +339,20 @@ function ResumeExtraction({ onStepChange }) {
       setIsAnimating(false);
     }
   };
-
+  const handleEmbedClick = async () => {
+    setIsAnimating(true);
+    try {
+      const response = await axios.post(import.meta.env.VITE_FAST_API_EMBEDC, {
+        batch_ids: selectedBatchIds,
+      });
+      console.log(response.data);
+      setIsCompleted(true);
+    } catch (error) {
+      console.error("Embedding failed:", error.response || error);
+    } finally {
+      setIsAnimating(false);
+    }
+  };
   const handleMatchCvs = async () => {
     setIsAnimating(true);
     // Assuming any necessary final checks or setups before navigating
@@ -261,8 +361,10 @@ function ResumeExtraction({ onStepChange }) {
   };
 
   const getButtonProps = () => {
-    if (isNer) {
+    if (isCompleted) {
       return { label: "Match CVs", onClick: handleMatchCvs };
+    } else if (isNer) { 
+      return { label: "Complete process", onClick: handleEmbedClick };
     } else if (isClassification) {
       return { label: "Proceed NER", onClick: handleNerClick };
     } else if (isOcr) {
@@ -300,6 +402,111 @@ function ResumeExtraction({ onStepChange }) {
     setDeletedLines([...deletedLines, ...deletedItem]); // Add the deleted item to the deletedLines array
   };
 
+  const handleDelete = (category, index) => {
+    // Update state to reflect the deletion
+    const updatedCategory = [...clsfLines[category]];
+    updatedCategory.splice(index, 1);
+    setClsfLines((prev) => ({ ...prev, [category]: updatedCategory }));
+
+    // Log the delete action
+    setChangedClsfLines((prev) => [
+      ...prev,
+      {
+        action: "delete",
+        fileId: currentFileId.fileId,
+        category: category,
+        index: index,
+      },
+    ]);
+  };
+
+  const handleClassChange = (newClass, oldClass, item, index) => {
+    setClsfLines((prev) => {
+      const newOldClassItems = prev[oldClass].filter((_, idx) => idx !== index); // Remove item from old class
+      const newNewClassItems = prev[newClass]
+        ? [...prev[newClass], item]
+        : [item]; // Add item to new class
+
+      return {
+        ...prev,
+        [oldClass]: newOldClassItems,
+        [newClass]: newNewClassItems,
+      };
+    });
+
+    setChangedClsfLines((prev) => [
+      ...prev,
+      {
+        action: "change_class",
+        fileId: currentFileId.fileId,
+        oldClass: oldClass,
+        newClass: newClass,
+        item: item,
+      },
+    ]);
+  };
+
+const handleNerDelete = (batchId, category, index) => {
+  const batchData = nerResults.results[batchId];
+  const item = batchData[category][index];
+  const updatedCategory = batchData[category].filter((_, idx) => idx !== index);
+
+  setNerResults((prev) => ({
+    ...prev,
+    results: {
+      ...prev.results,
+      [batchId]: {
+        ...batchData,
+        [category]: updatedCategory,
+      },
+    },
+  }));
+
+  setChangedNerWords((prev) => [
+    ...prev,
+    {
+      action: "delete",
+      batchId,
+      category,
+      item: { ...item },
+    },
+  ]);
+};
+
+const handleNerChange = (batchId, category, itemIndex, newText, newLabel) => {
+  const batchData = nerResults.results[batchId];
+  const items = [...batchData[category]];
+  const item = items[itemIndex];
+  // Update item with new text and label if they are provided
+  if (newText !== undefined) item.text = newText;
+  if (newLabel !== undefined) item.label = newLabel;
+
+  // Update the items array
+  items[itemIndex] = item;
+  setNerResults((prev) => ({
+    ...prev,
+    results: {
+      ...prev.results,
+      [batchId]: {
+        ...batchData,
+        [category]: items,
+      },
+    },
+  }));
+
+  // Log the change
+  setChangedNerWords((prev) => [
+    ...prev,
+    {
+      action: "change",
+      batchId,
+      category,
+      index: itemIndex,
+      newItem: { ...item },
+    },
+  ]);
+};
+
   {
     /******** Format code **********/
   }
@@ -320,6 +527,13 @@ function ResumeExtraction({ onStepChange }) {
       hour12: true,
     };
     return new Date(dateString).toLocaleString("en-US", options);
+  };
+
+  const toggleRow = (category, index) => {
+    const key = `${category}-${index}`;
+    const currentExpandedRows = { ...expandedRows };
+    currentExpandedRows[key] = !currentExpandedRows[key];
+    setExpandedRows(currentExpandedRows);
   };
 
   const containerStyle = (batchId) => ({
@@ -367,6 +581,9 @@ function ResumeExtraction({ onStepChange }) {
     : isDetected
     ? "OCR for text extraction"
     : "Please select resumes to be processed";
+  const categories = Object.keys(clsfLines);
+  
+  const categoriesNer = (isNer) ? nerResults.results[currentFileId.fileId] : {};
 
   return (
     <>
@@ -591,7 +808,10 @@ function ResumeExtraction({ onStepChange }) {
                                 variant="primary"
                                 size="sm"
                                 onClick={() =>
-                                  handleFileButtonClick(file.file_id)
+                                  handleFileButtonClick(
+                                    file.file_id,
+                                    selectedBatch.batchId
+                                  )
                                 }
                                 className="mt-2"
                                 style={{
@@ -656,7 +876,7 @@ function ResumeExtraction({ onStepChange }) {
                 className="text-dark"
                 style={{ width: "100%", textAlign: "center", fontSize: "20px" }}
               >
-                File Name Result
+                {currentFileId.originalName}
               </Modal.Title>
             </Modal.Header>
             <Modal.Body
@@ -683,7 +903,7 @@ function ResumeExtraction({ onStepChange }) {
                           fontSize: "17px",
                         }}
                       >
-                        Object Detection
+                        Object Detection Results
                       </h5>
                     </div>
                     <div
@@ -727,103 +947,260 @@ function ResumeExtraction({ onStepChange }) {
                   </Col>
                 )}
                 {isOcr && currentFileId && (
-  <Col md={6} style={{ overflowY: "auto", maxHeight: "100%" }}>
-    {isClassification ? (
-      <Accordion defaultActiveKey="">
-        {classificationResults.map((result, index) => (
-          <Accordion.Item
-            key={`${currentFileId.fileId}-classification-${index}`}
-            eventKey={`${index}`}
-          >
-            <Accordion.Header
-              style={{
-                backgroundColor: "#e0e0e0", // Custom background for classification
-                color: "#034f84" // Custom text color
-              }}
-            >
-              {result.title} {/* Assuming 'title' is part of your classificationResults */}
-              <Button
-                variant="danger"
-                size="sm"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleModifyClassification(index);
-                }}
-                style={{ marginLeft: "10px" }}
-              >
-                Modify
-              </Button>
-            </Accordion.Header>
-            <Accordion.Body>{result.details}</Accordion.Body>
-          </Accordion.Item>
-        ))}
-      </Accordion>
-    ) : isNer ? (
-      <Accordion defaultActiveKey="">
-        {nerResults.map((entity, index) => (
-          <Accordion.Item
-            key={`${currentFileId.fileId}-ner-${index}`}
-            eventKey={`${index}`}
-          >
-            <Accordion.Header
-              style={{
-                backgroundColor: "#d0f0c0", // Custom background for NER
-                color: "#2c662d" // Custom text color
-              }}
-            >
-              {entity.name} {/* Assuming 'name' is a property of NER entities */}
-              <Button
-                variant="warning"
-                size="sm"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleModifyNerEntity(index);
-                }}
-                style={{ marginLeft: "10px" }}
-              >
-                Edit
-              </Button>
-            </Accordion.Header>
-            <Accordion.Body>{entity.detail}</Accordion.Body> {/* Assuming 'detail' is a property of NER entities */}
-          </Accordion.Item>
-        ))}
-      </Accordion>
-    ) : (
-      <Accordion defaultActiveKey="">
-        {ocrLines.map((text, index) => (
-          <Accordion.Item
-            key={`${currentFileId.fileId}-${index}`}
-            eventKey={`${index}`}
-          >
-            <Accordion.Header>
-              {truncateText(text)}
-              <Button
-                variant="danger"
-                size="sm"
-                onClick={(e) => {
-                  e.stopPropagation(); // Prevent accordion toggle
-                  handleDeleteLine(index);
-                }}
-                style={{ marginLeft: "10px" }}
-              >
-                Delete
-              </Button>
-            </Accordion.Header>
-            <Accordion.Body>{text}</Accordion.Body>
-          </Accordion.Item>
-        ))}
-      </Accordion>
-    )}
-    <Button
-      variant="primary"
-      onClick={handleSubmitDeletions}
-      disabled={deletedLines.length === 0}
-      className="mt-3"
-    >
-      Submit Deletions
-    </Button>
-  </Col>
-)}
+                  <Col md={6} style={{ overflowY: "auto", maxHeight: "100%" }}>
+                    <div
+                      className="sticky-title text-center text-white"
+                      style={{
+                        padding: "10px",
+                        border: "2px solid #942cd2",
+                        marginBottom: "20px",
+                        backgroundColor: "#942cd2",
+                        borderRadius: "5px",
+                      }}
+                    >
+                      <h5
+                        style={{
+                          textAlign: "center",
+                          margin: "0",
+                          fontSize: "17px",
+                        }}
+                      >
+                        {isNer
+                          ? "Named Entity Recognition Results"
+                          : isClassification
+                          ? "Classification Results"
+                          : "OCR Results"}
+                      </h5>
+                    </div>
+                    {isNer ? (
+                      <Accordion className="mb-3">
+                        {Object.entries(categoriesNer).map(
+                          ([category, items], idx) => (
+                            <Accordion.Item eventKey={`${idx}`} key={category}>
+                              <Accordion.Header>
+                                {category.toUpperCase()}{" "}
+                                <Badge bg="secondary">{items.length}</Badge>
+                              </Accordion.Header>
+                              <Accordion.Body>
+                                {items.map((item, subIndex) => (
+                                  <Form.Group className="mb-3" key={subIndex}>
+                                    <Form.Label className="fw-bold">
+                                      Text (Current Label:{" "}
+                                      <Badge bg="info">{item.label}</Badge>)
+                                    </Form.Label>
+                                    <Stack direction="horizontal" gap={3}>
+                                      <Form.Control
+                                        defaultValue={item.text}
+                                        onBlur={(e) =>
+                                          handleNerChange(
+                                            currentFileId.fileId,
+                                            category,
+                                            subIndex,
+                                            e.target.value
+                                          )
+                                        }
+                                        className="me-auto"
+                                      />
+                                      <DropdownButton
+                                        id={`dropdown-label-change-${subIndex}`}
+                                        title="Change Label"
+                                        variant="outline-primary"
+                                        align="end"
+                                      >
+                                        {[
+                                          "person",
+                                          "job title",
+                                          "location",
+                                          "email",
+                                          "phone_number",
+                                          "link",
+                                          "university",
+                                          "degree",
+                                          "date",
+                                          "designation",
+                                          "years of experience",
+                                        ].map((label, labelIndex) => (
+                                          <Dropdown.Item
+                                            key={labelIndex}
+                                            onClick={() =>
+                                              handleNerChange(
+                                                currentFileId.fileId,
+                                                category,
+                                                subIndex,
+                                                undefined,
+                                                label
+                                              )
+                                            }
+                                          >
+                                            {label}
+                                          </Dropdown.Item>
+                                        ))}
+                                      </DropdownButton>
+                                      <Button
+                                        variant="danger"
+                                        onClick={() =>
+                                          handleNerDelete(
+                                            currentFileId.fileId,
+                                            category,
+                                            subIndex
+                                          )
+                                        }
+                                      >
+                                        <Trash />
+                                      </Button>
+                                    </Stack>
+                                  </Form.Group>
+                                ))}
+                              </Accordion.Body>
+                            </Accordion.Item>
+                          )
+                        )}
+                      </Accordion>
+                    ) : isClassification ? (
+                      <Accordion defaultActiveKey="">
+                        {categories.map((category, index) => (
+                          <Accordion.Item eventKey={`${index}`} key={index}>
+                            <Accordion.Header>
+                              {category.toUpperCase()} (
+                              {clsfLines[category].length})
+                            </Accordion.Header>
+                            <Accordion.Body>
+                              <Table striped bordered hover size="sm">
+                                <thead>
+                                  <tr>
+                                    <th>Text (Preview)</th>
+                                    <th>Score</th>
+                                    <th>Actions</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {clsfLines[category].map((item, subIndex) => (
+                                    <React.Fragment key={subIndex}>
+                                      <tr
+                                        style={{ cursor: "pointer" }}
+                                        onClick={() =>
+                                          toggleRow(category, subIndex)
+                                        }
+                                      >
+                                        <td>
+                                          {expandedRows[
+                                            `${category}-${subIndex}`
+                                          ] ? (
+                                            <ChevronContract size={20} />
+                                          ) : (
+                                            <ChevronExpand size={20} />
+                                          )}
+                                          {item.text.substring(0, 50)}
+                                          {item.text.length > 50 ? "..." : ""}
+                                        </td>
+                                        <td>{item.score.toFixed(3)}</td>
+                                        <td
+                                          onClick={(e) => e.stopPropagation()}
+                                        >
+                                          <DropdownButton
+                                            title="Change Class"
+                                            variant="secondary"
+                                            size="sm"
+                                            className="me-2"
+                                            id={`dropdown-${category}-${subIndex}`}
+                                            onSelect={(eventKey) =>
+                                              handleClassChange(
+                                                eventKey,
+                                                category,
+                                                item,
+                                                subIndex
+                                              )
+                                            }
+                                          >
+                                            {categories.map(
+                                              (option, optionIndex) => (
+                                                <Dropdown.Item
+                                                  key={optionIndex}
+                                                  eventKey={option}
+                                                >
+                                                  {option}
+                                                </Dropdown.Item>
+                                              )
+                                            )}
+                                          </DropdownButton>
+                                          <Button
+                                            variant="danger"
+                                            size="sm"
+                                            onClick={(e) => {
+                                              e.stopPropagation(); // Prevent row toggle
+                                              handleDelete(category, subIndex);
+                                            }}
+                                          >
+                                            <Trash />
+                                          </Button>
+                                        </td>
+                                      </tr>
+                                      {expandedRows[
+                                        `${category}-${subIndex}`
+                                      ] && (
+                                        <tr>
+                                          <td colSpan="3">
+                                            <strong>Full Text:</strong>{" "}
+                                            {item.text}
+                                          </td>
+                                        </tr>
+                                      )}
+                                    </React.Fragment>
+                                  ))}
+                                </tbody>
+                              </Table>
+                            </Accordion.Body>
+                          </Accordion.Item>
+                        ))}
+                      </Accordion>
+                    ) : (
+                      <Accordion defaultActiveKey="">
+                        {ocrLines.map((text, index) => (
+                          <Accordion.Item
+                            key={`${currentFileId.fileId}-${index}`}
+                            eventKey={`${index}`}
+                          >
+                            <Accordion.Header>
+                              {truncateText(text)}
+                              <Button
+                                variant="danger"
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation(); // Prevent accordion toggle
+                                  handleDeleteLine(index);
+                                }}
+                                style={{ marginLeft: "10px" }}
+                              >
+                                Delete
+                              </Button>
+                            </Accordion.Header>
+                            <Accordion.Body>{text}</Accordion.Body>
+                          </Accordion.Item>
+                        ))}
+                      </Accordion>
+                    )}
+                    <div className="d-flex justify-content-center">
+                      <Button
+                        variant="primary"
+                        onClick={handleSubmitDeletions}
+                        disabled={
+                          isNer
+                            ? changedNerWords.length === 0
+                            : isClassification
+                            ? changedClsfLines.length == 0
+                            : deletedLines.length === 0
+                        }
+                        className="mt-3"
+                        style={{
+                          backgroundColor: "#942cd2",
+                          border: "#942cd2",
+                        }}
+                      >
+                        Submit Changes
+                      </Button>
+                    </div>
+                  </Col>
+                )}
               </Row>
             </Modal.Body>
             <Modal.Footer className="d-flex justify-content-center">

@@ -1,0 +1,1 @@
+from model_pipeline.models.embed_model import load_sentence_model

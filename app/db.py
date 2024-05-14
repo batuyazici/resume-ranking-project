@@ -1,11 +1,15 @@
 import asyncpg
 from config import DATABASE_URL
+from pgvector.asyncpg import register_vector
 
 pool = None  # Global variable for the connection pool
 
+async def init(conn):
+    await register_vector(conn)
+
 async def init_connection_pool():
     global pool
-    pool = await asyncpg.create_pool(DATABASE_URL)
+    pool = await asyncpg.create_pool(DATABASE_URL,init=init)
     return pool
 
 async def close_connection_pool():

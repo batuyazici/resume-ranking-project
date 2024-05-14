@@ -315,7 +315,7 @@ async def classify_run(batch_ids: dict):
         raise HTTPException(status_code=500, detail=str(e))    
     
 @app.post("/ner/")
-async def ner_run(batch_ids: dict):
+async def ner_process(batch_ids: dict):
     from model_pipeline.ner import ner_impl
     from model_pipeline.utils.re_extract import re_process
     try:
@@ -327,7 +327,7 @@ async def ner_run(batch_ids: dict):
         """
         files = await fetch_query(query, batch_ids)
         re_process(**file_handler.re_params())  
-        ner_impl(file_handler)
+        await ner_impl(file_handler)
         
         results = {}
         for file in files:
@@ -377,9 +377,10 @@ async def delete_ocr_lines(storage_name: str, file_id: str, deleted_lines: List[
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/clsfiles/{storage_name}/{file_id}")
-async def update_clsf_classes(storage_name: str, file_id: str, clsf_classes: List[str] = Body(..., embed=True)):
+async def update_clsf_classes(storage_name: str, file_id: str, actions: List[dict] = Body(..., embed=True)):
     file_path = os.path.join(file_handler.results_dir, storage_name, f"{storage_name}_clsf.json")
     print("File Path:", file_path)  # Debugging output
+
     try:
         if not os.path.exists(file_path):
             print("File not found")
@@ -388,35 +389,117 @@ async def update_clsf_classes(storage_name: str, file_id: str, clsf_classes: Lis
         with open(file_path, 'r') as file:
             clsf_data = json.load(file)
 
-        
-        return {"message": "Deleted lines successfully updated."}
+        # Process each action
+        for action in actions:
+            if action['action'] == 'delete':
+                category = action['category']
+                index = action['index']
+                # Check if category exists and index is valid
+                if category in clsf_data and len(clsf_data[category]) > index:
+                    del clsf_data[category][index]
+                else:
+                    print(f"Invalid category or index for delete: {category}, {index}")
+                    continue  # Skip this action if invalid
+
+            elif action['action'] == 'change_class':
+                old_class = action['oldClass']
+                new_class = action['newClass']
+                item = action['item']
+                # Remove item from old class if it exists
+                if old_class in clsf_data:
+                    clsf_data[old_class] = [i for i in clsf_data[old_class] if i != item]
+                else:
+                    print(f"Old class not found: {old_class}")
+                    continue  # Skip if old class doesn't exist
+
+                # Add item to new class
+                if new_class not in clsf_data:
+                    clsf_data[new_class] = []
+                clsf_data[new_class].append(item)
+
+        # Write the updated data back to the file
+        with open(file_path, 'w') as file:
+            json.dump(clsf_data, file, indent=4)
+
+        return JSONResponse(content={f"{file_id}":clsf_data})
     except Exception as e:
         print("Error:", str(e))  # Print error to console
         raise HTTPException(status_code=500, detail=str(e))
 
+
 @app.post("/nerfiles/{storage_name}/{file_id}")
-async def delete_ocr_lines(storage_name: str, file_id: str, deleted_lines: List[str] = Body(..., embed=True)):
-    file_path = os.path.join(file_handler.results_dir,storage_name,f"{storage_name}_ocr.json")
+async def update_clsf_classes(storage_name: str, file_id: str, actions: List[dict] = Body(..., embed=True)):
+    file_path = os.path.join(file_handler.results_dir, storage_name, f"{storage_name}_ner.json")
     print("File Path:", file_path)  # Debugging output
+
     try:
         if not os.path.exists(file_path):
             print("File not found")
             raise HTTPException(status_code=404, detail="File not found.")
         
         with open(file_path, 'r') as file:
-            ocr_data = json.load(file)
-        ocr_data = [
-            line for line in ocr_data if line not in deleted_lines
-        ]        
+            ner_data = json.load(file)
+
+        # Process actions
+        for action in actions:
+            category = action["category"]
+            if action["action"] == "change":
+                # Change existing item
+                index = action["index"]
+                if index < len(ner_data[category]):
+                    ner_data[category][index] = action["newItem"]
+                else:
+                    print(f"Index {index} out of range for category '{category}'")
+            elif action["action"] == "delete":
+                # Delete item
+                item_to_delete = action["item"]
+                ner_data[category] = [item for item in ner_data[category] if not (
+                    item['start'] == item_to_delete['start'] and
+                    item['end'] == item_to_delete['end'] and
+                    item['text'] == item_to_delete['text']
+                )]
+
+        # Write the updated data back to the file
         with open(file_path, 'w') as file:
-            json.dump(ocr_data, file, indent=4)
-        
-        return {"message": "Deleted lines successfully updated."}
+            json.dump(ner_data, file, indent=4)
+
+        return JSONResponse(content={f"{file_id}": ner_data})
     except Exception as e:
         print("Error:", str(e))  # Print error to console
-        raise HTTPException(status_code=500, detail=str(e))    
+        raise HTTPException(status_code=500, detail=str(e))
 
-    
+   
+
+@app.post("/cv/embed")
+async def get_resume_embed(batch_ids: dict):
+    from model_pipeline.embed import embed_impl
+    try:
+        batch_ids = batch_ids.get("batch_ids", [])
+        batch_ids = [int(id_str) for id_str in batch_ids]
+        query = """
+            SELECT file_id, storage_name, batch_id FROM uploaded_files
+            WHERE batch_id = ANY($1);
+        """
+        files = await fetch_query(query, batch_ids)
+        await embed_impl(file_handler)
+        
+        results = {}
+        for file in files:
+            file_id = file['file_id']
+            storage_name = file['storage_name']
+            specific_result_folder = os.path.join(file_handler.results_dir, storage_name)
+            file_path = os.path.join(specific_result_folder, f"{storage_name}_clsf.json")
+            if os.path.exists(file_path):
+                with open(file_path, 'r') as f:
+                    results[file_id] = json.load(f) 
+                    
+                    
+                    
+# @app.post("/job/embed")
+# async def get_job_embed():
+
+   
+        
 if __name__ == "__main__":
     uvicorn.run(app, host="127.0.0.1", port=8000)
 

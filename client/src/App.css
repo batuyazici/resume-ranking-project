@@ -478,7 +478,23 @@ span.navbar-text {
 }
 
 /***** Resume Info Extraction Page ****/
+.accordion-button:not(.collapsed) {
+  color:black !important;
+  background-color: whitesmoke !important;
+    
+}
 
+.accordion-button {
+  background-color: white !important;
+}
+
+.accordion-button:focus {
+  box-shadow:  0 0 0.5rem rgb(148, 44, 210) !important;
+}
+
+.accordion-button::after{
+    color:white !important;
+}
 .custom-progress-bar .progress-bar {
   color: #fff; /* Ensuring text color is white or any contrasting color */
   background-color: rgb(148, 44, 210); /* Custom purple color */
