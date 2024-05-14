@@ -120,6 +120,7 @@ function ResumeExtraction({ onStepChange }) {
     return () => {
       clearInterval(intervalId);
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   {
     /******** Handle button clicks **********/
@@ -624,6 +625,7 @@ function ResumeExtraction({ onStepChange }) {
               isCompleted ? "w-50" : ""
             }`}
           >
+           
             
             {isCompleted && (
               <div>
@@ -635,14 +637,16 @@ function ResumeExtraction({ onStepChange }) {
                   Files are uploaded successfully. You can continue or upload
                   more files.
                 </Alert>
-                <Card>
-                  <Card.Body>
-                    <h5 className="text-center">All processed files results</h5>
-                  </Card.Body>
-                </Card>
               </div>
             )}
             <Row className="justify-content-center match-container-1 mt-2 mb-4">
+              <div>
+              <Card>
+                  <Card.Body>
+                    <div className="card-container text-center p-2 fs-4">Processed Files Summary</div>
+                  </Card.Body>
+                </Card>
+                </div>
               {!isCompleted && (
                 <Col md={6} className="highlight-section scrollable-column">
                   <div className="sticky-title text-center">
@@ -1009,7 +1013,7 @@ function ResumeExtraction({ onStepChange }) {
                         }}
                       >
                         {isCompleted
-                          ? "All Results"
+                          ? "NLP Results"
                           : isNer
                           ? "Named Entity Recognition Results"
                           : isClassification
@@ -1020,25 +1024,25 @@ function ResumeExtraction({ onStepChange }) {
                     {isCompleted ? (
                       <Accordion defaultActiveKey="">
                         <Accordion.Item eventKey="classification">
-                          <Accordion.Header>
+                        <Accordion.Header>
                             Classification Results
                           </Accordion.Header>
                           <Accordion.Body>
                             {Object.entries(clsfLines).map(
                               ([category, items]) => (
                                 <div key={category} className="mb-4">
-                                  <h5 className="text-primary">
+                                  <h5 className="" style={{ color: 'rgb(148, 44, 210)' }}>
                                     {category.toUpperCase()}{" "}
-                                    <Badge bg="secondary">{items.length}</Badge>
+                                    <Badge bg="" style={{backgroundColor:'#cc71c4'}}>{items.length}</Badge>
                                   </h5>
                                   {items.map((item, subIndex) => (
                                     <div
                                       key={subIndex}
-                                      className="p-2 mb-2 border rounded"
+                                      className="p-3 mb-2 border rounded"
                                     >
-                                      <p className="mb-1">{item.text}</p>
-                                      <small className="text-muted">
-                                        Score: {item.score.toFixed(3)}
+                                      <p className="mb-1 font-monospace">{item.text}</p>
+                                      <small className="text-muted fs-6">
+                                       <Badge bg="" style={{backgroundColor:'#9879b0', color:'white'}} >Score: {item.score.toFixed(3)}</Badge> 
                                       </small>
                                     </div>
                                   ))}
@@ -1057,21 +1061,21 @@ function ResumeExtraction({ onStepChange }) {
                               nerResults.results[currentFileId.fileId] || {}
                             ).map(([category, items]) => (
                               <div key={category} className="mb-4">
-                                <h5 className="text-primary">
+                                <h5 className="" style={{ color: 'rgb(148, 44, 210)' }}>
                                   {category.toUpperCase()}{" "}
-                                  <Badge bg="secondary">{items.length}</Badge>
+                                  <Badge bg="" style={{backgroundColor:'#cc71c4'}}>{items.length}</Badge>
                                 </h5>
                                 {items.map((item, subIndex) => (
                                   <div
                                     key={subIndex}
-                                    className="p-2 mb-2 border rounded"
+                                    className="p-3 mb-2 border rounded"
                                   >
-                                    <p className="mb-1">
+                                    <p className="mb-1 font-monospace">
                                       {item.text}{" "}
-                                      <Badge bg="info">{item.label}</Badge>
+                                      <Badge bg="" style={{ backgroundColor: 'rgb(148, 44, 210)' }}>{item.label}</Badge>
                                     </p>
-                                    <small className="text-muted">
-                                      Score: {item.score.toFixed(3)}
+                                    <small className="text-muted fs-6">
+                                    <Badge bg="" style={{backgroundColor:'#9879b0', color:'white'}}>Score: {item.score.toFixed(3)}</Badge>
                                     </small>
                                   </div>
                                 ))}

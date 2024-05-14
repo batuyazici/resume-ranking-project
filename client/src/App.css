@@ -478,17 +478,28 @@ span.navbar-text {
 
 /***** Resume Info Extraction Page ****/
 .accordion-button:not(.collapsed) {
-  color:black !important;
-  background-color: whitesmoke !important;
+  color:rgb(255, 255, 255) !important;
+  background-color: rgb(148, 44, 210) !important;
     
 }
 
 .accordion-button {
-  background-color: white !important;
+  color:rgb(0, 0, 0) !important;
+  background-color: #f1f1f1 !important;
+    
+}
+
+.accordion-button {
+  background-color: white!important;
+}
+.custom-focus .accordion-button:focus {
+  outline: none;
+  box-shadow: 0 0 0 0.25rem rgb(148, 44, 210, 0.5); /* RGBA for a semi-transparent purple */
 }
 
 .accordion-button:focus {
-  box-shadow:  0 0 0.5rem rgb(148, 44, 210) !important;
+  outline: 0 !important;
+  box-shadow: 0 0 0 0 rgba(0, 0, 0, 0) !important;
 }
 
 .accordion-button::after{
