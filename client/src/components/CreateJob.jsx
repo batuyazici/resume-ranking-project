@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import { useState, useRef } from "react";
 import { X, ChevronLeft, ChevronRight } from "react-bootstrap-icons";
 import "bootstrap/dist/css/bootstrap.min.css";
 import Tiptap from "./Tiptap";
@@ -10,11 +10,11 @@ const CreateJob = () => {
   const [inputValue, setInputValue] = useState("");
 
   const [scores, setScores] = useState({
-    work: 0,
-    education: 0,
     skills: 0,
-    language: 0,
-    certification: 0,
+    experience: 0,
+    education: 0,
+    miscellaneous: 0,
+    necessities: 0,
   });
   const [jobDetails, setJobDetails] = useState({
     jobTitle: "",

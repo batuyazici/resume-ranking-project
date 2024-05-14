@@ -28,8 +28,7 @@
 }
 
 html {
-  scroll-behavior: smooth;
-  scroll-padding-top: 75px;
+
   height: 100%;
   margin: 0;
   padding: 0;
@@ -566,6 +565,15 @@ span.navbar-text {
     font-family: Ubuntu, sans-serif;
   }
 }
+
+.fixed-top-alert {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 9999; /* Ensure it's above other elements */
+}
+
 /***** Matching Page ****/
 
 .circle-container {

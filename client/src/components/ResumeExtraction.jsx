@@ -364,7 +364,7 @@ function ResumeExtraction({ onStepChange }) {
   const getButtonProps = () => {
     if (isCompleted) {
       return { label: "Match CVs", onClick: handleMatchCvs };
-    } else if (isNer) { 
+    } else if (isNer) {
       return { label: "Complete process", onClick: handleEmbedClick };
     } else if (isClassification) {
       return { label: "Proceed NER", onClick: handleNerClick };
@@ -447,66 +447,68 @@ function ResumeExtraction({ onStepChange }) {
     ]);
   };
 
-const handleNerDelete = (batchId, category, index) => {
-  const batchData = nerResults.results[batchId];
-  const item = batchData[category][index];
-  const updatedCategory = batchData[category].filter((_, idx) => idx !== index);
+  const handleNerDelete = (batchId, category, index) => {
+    const batchData = nerResults.results[batchId];
+    const item = batchData[category][index];
+    const updatedCategory = batchData[category].filter(
+      (_, idx) => idx !== index
+    );
 
-  setNerResults((prev) => ({
-    ...prev,
-    results: {
-      ...prev.results,
-      [batchId]: {
-        ...batchData,
-        [category]: updatedCategory,
+    setNerResults((prev) => ({
+      ...prev,
+      results: {
+        ...prev.results,
+        [batchId]: {
+          ...batchData,
+          [category]: updatedCategory,
+        },
       },
-    },
-  }));
+    }));
 
-  setChangedNerWords((prev) => [
-    ...prev,
-    {
-      action: "delete",
-      batchId,
-      category,
-      item: { ...item },
-    },
-  ]);
-};
-
-const handleNerChange = (batchId, category, itemIndex, newText, newLabel) => {
-  const batchData = nerResults.results[batchId];
-  const items = [...batchData[category]];
-  const item = items[itemIndex];
-  // Update item with new text and label if they are provided
-  if (newText !== undefined) item.text = newText;
-  if (newLabel !== undefined) item.label = newLabel;
-
-  // Update the items array
-  items[itemIndex] = item;
-  setNerResults((prev) => ({
-    ...prev,
-    results: {
-      ...prev.results,
-      [batchId]: {
-        ...batchData,
-        [category]: items,
+    setChangedNerWords((prev) => [
+      ...prev,
+      {
+        action: "delete",
+        batchId,
+        category,
+        item: { ...item },
       },
-    },
-  }));
+    ]);
+  };
 
-  // Log the change
-  setChangedNerWords((prev) => [
-    ...prev,
-    {
-      action: "change",
-      batchId,
-      category,
-      index: itemIndex,
-      newItem: { ...item },
-    },
-  ]);
-};
+  const handleNerChange = (batchId, category, itemIndex, newText, newLabel) => {
+    const batchData = nerResults.results[batchId];
+    const items = [...batchData[category]];
+    const item = items[itemIndex];
+    // Update item with new text and label if they are provided
+    if (newText !== undefined) item.text = newText;
+    if (newLabel !== undefined) item.label = newLabel;
+
+    // Update the items array
+    items[itemIndex] = item;
+    setNerResults((prev) => ({
+      ...prev,
+      results: {
+        ...prev.results,
+        [batchId]: {
+          ...batchData,
+          [category]: items,
+        },
+      },
+    }));
+
+    // Log the change
+    setChangedNerWords((prev) => [
+      ...prev,
+      {
+        action: "change",
+        batchId,
+        category,
+        index: itemIndex,
+        newItem: { ...item },
+      },
+    ]);
+  };
 
   {
     /******** Format code **********/
@@ -584,10 +586,14 @@ const handleNerChange = (batchId, category, itemIndex, newText, newLabel) => {
     : "Please select resumes to be processed";
 
   const categories = Object.keys(clsfLines);
-  
- const categoriesNer = isNer && nerResults && nerResults.results && nerResults.results[currentFileId.fileId] 
-  ? nerResults.results[currentFileId.fileId] 
-  : {};
+
+  const categoriesNer =
+    isNer &&
+    nerResults &&
+    nerResults.results &&
+    nerResults.results[currentFileId.fileId]
+      ? nerResults.results[currentFileId.fileId]
+      : {};
 
   return (
     <>
@@ -612,11 +618,29 @@ const handleNerChange = (batchId, category, itemIndex, newText, newLabel) => {
               content="information extraction step from resumes"
             />
           </Helmet>
-          <Container fluid="md" className="mt-4 px-5 detection-layout">
+          <Container
+            fluid="md"
+            className={`mt-4 px-5 detection-layout ${
+              isCompleted ? "w-50" : ""
+            }`}
+          >
+            
             {isCompleted && (
-              <Alert variant="success" className="text-center">
-                Successfully Completed
-              </Alert>
+              <div>
+                <Alert
+                  variant="success"
+                  dismissible
+                  className="fixed-top-alert"
+                >
+                  Files are uploaded successfully. You can continue or upload
+                  more files.
+                </Alert>
+                <Card>
+                  <Card.Body>
+                    <h5 className="text-center">All processed files results</h5>
+                  </Card.Body>
+                </Card>
+              </div>
             )}
             <Row className="justify-content-center match-container-1 mt-2 mb-4">
               {!isCompleted && (
@@ -636,7 +660,8 @@ const handleNerChange = (batchId, category, itemIndex, newText, newLabel) => {
                     {batches
                       .filter(
                         (batch) =>
-                          !isDetected || selectedBatchIds.includes(batch.batchId)
+                          !isDetected ||
+                          selectedBatchIds.includes(batch.batchId)
                       )
                       .map((batch) => (
                         <Card
@@ -768,7 +793,10 @@ const handleNerChange = (batchId, category, itemIndex, newText, newLabel) => {
                   </div>
                 </Col>
               )}
-              <Col md={isCompleted ? 12 : 6} className="detail-section scrollable-column">
+              <Col
+                md={isCompleted ? 12 : 6}
+                className="detail-section scrollable-column"
+              >
                 {selectedBatchIds
                   .map((batchId) =>
                     batches.find((batch) => batch.batchId === batchId)
@@ -791,7 +819,10 @@ const handleNerChange = (batchId, category, itemIndex, newText, newLabel) => {
                             </div>
                             <div className="mb-1" style={{ fontSize: "15px" }}>
                               Process Type:
-                              <span className="info-text"> {file.process_type}</span>
+                              <span className="info-text">
+                                {" "}
+                                {file.process_type}
+                              </span>
                             </div>
                             <div className="mb-1" style={{ fontSize: "15px" }}>
                               Upload Status:
@@ -799,18 +830,27 @@ const handleNerChange = (batchId, category, itemIndex, newText, newLabel) => {
                             </div>
                             <div className="mb-1" style={{ fontSize: "15px" }}>
                               Number of Pages:
-                              <span className="info-text"> {file.number_of_pages}</span>
+                              <span className="info-text">
+                                {" "}
+                                {file.number_of_pages}
+                              </span>
                             </div>
                             <div className="mb-1" style={{ fontSize: "15px" }}>
                               File Name:
-                              <span className="info-text"> {file.original_name}</span>
+                              <span className="info-text">
+                                {" "}
+                                {file.original_name}
+                              </span>
                             </div>
                             {isDetected && (
                               <Button
                                 variant="primary"
                                 size="sm"
                                 onClick={() =>
-                                  handleFileButtonClick(file.file_id, selectedBatch.batchId)
+                                  handleFileButtonClick(
+                                    file.file_id,
+                                    selectedBatch.batchId
+                                  )
                                 }
                                 className="mt-2"
                                 style={{
@@ -818,7 +858,7 @@ const handleNerChange = (batchId, category, itemIndex, newText, newLabel) => {
                                   borderColor: "#942cd2",
                                 }}
                               >
-                                Results
+                                {isCompleted ? "All Results" : "Results"}
                               </Button>
                             )}
                           </Card.Body>
@@ -863,7 +903,7 @@ const handleNerChange = (batchId, category, itemIndex, newText, newLabel) => {
               )}
             </Button>
           </Row>
-  
+
           <Modal
             show={showModal}
             onHide={() => setShowModal(false)}
@@ -873,7 +913,11 @@ const handleNerChange = (batchId, category, itemIndex, newText, newLabel) => {
             <Modal.Header closeButton className="text-center">
               <Modal.Title
                 className="text-dark"
-                style={{ width: "100%", textAlign: "center", fontSize: "20px" }}
+                style={{
+                  width: "100%",
+                  textAlign: "center",
+                  fontSize: "20px",
+                }}
               >
                 {currentFileId.originalName}
               </Modal.Title>
@@ -964,14 +1008,79 @@ const handleNerChange = (batchId, category, itemIndex, newText, newLabel) => {
                           fontSize: "17px",
                         }}
                       >
-                        {isNer
+                        {isCompleted
+                          ? "All Results"
+                          : isNer
                           ? "Named Entity Recognition Results"
                           : isClassification
                           ? "Classification Results"
                           : "OCR Results"}
                       </h5>
                     </div>
-                    {isNer ? (
+                    {isCompleted ? (
+                      <Accordion defaultActiveKey="">
+                        <Accordion.Item eventKey="classification">
+                          <Accordion.Header>
+                            Classification Results
+                          </Accordion.Header>
+                          <Accordion.Body>
+                            {Object.entries(clsfLines).map(
+                              ([category, items]) => (
+                                <div key={category} className="mb-4">
+                                  <h5 className="text-primary">
+                                    {category.toUpperCase()}{" "}
+                                    <Badge bg="secondary">{items.length}</Badge>
+                                  </h5>
+                                  {items.map((item, subIndex) => (
+                                    <div
+                                      key={subIndex}
+                                      className="p-2 mb-2 border rounded"
+                                    >
+                                      <p className="mb-1">{item.text}</p>
+                                      <small className="text-muted">
+                                        Score: {item.score.toFixed(3)}
+                                      </small>
+                                    </div>
+                                  ))}
+                                </div>
+                              )
+                            )}
+                          </Accordion.Body>
+                        </Accordion.Item>
+
+                        <Accordion.Item eventKey="ner">
+                          <Accordion.Header>
+                            Named Entity Recognition (NER) Results
+                          </Accordion.Header>
+                          <Accordion.Body>
+                            {Object.entries(
+                              nerResults.results[currentFileId.fileId] || {}
+                            ).map(([category, items]) => (
+                              <div key={category} className="mb-4">
+                                <h5 className="text-primary">
+                                  {category.toUpperCase()}{" "}
+                                  <Badge bg="secondary">{items.length}</Badge>
+                                </h5>
+                                {items.map((item, subIndex) => (
+                                  <div
+                                    key={subIndex}
+                                    className="p-2 mb-2 border rounded"
+                                  >
+                                    <p className="mb-1">
+                                      {item.text}{" "}
+                                      <Badge bg="info">{item.label}</Badge>
+                                    </p>
+                                    <small className="text-muted">
+                                      Score: {item.score.toFixed(3)}
+                                    </small>
+                                  </div>
+                                ))}
+                              </div>
+                            ))}
+                          </Accordion.Body>
+                        </Accordion.Item>
+                      </Accordion>
+                    ) : isNer ? (
                       <Accordion className="mb-3">
                         {Object.entries(categoriesNer).map(
                           ([category, items], idx) => (
@@ -1178,26 +1287,28 @@ const handleNerChange = (batchId, category, itemIndex, newText, newLabel) => {
                         ))}
                       </Accordion>
                     )}
-                    <div className="d-flex justify-content-center">
-                      <Button
-                        variant="primary"
-                        onClick={handleSubmitDeletions}
-                        disabled={
-                          isNer
-                            ? changedNerWords.length === 0
-                            : isClassification
-                            ? changedClsfLines.length == 0
-                            : deletedLines.length === 0
-                        }
-                        className="mt-3"
-                        style={{
-                          backgroundColor: "#942cd2",
-                          border: "#942cd2",
-                        }}
-                      >
-                        Submit Changes
-                      </Button>
-                    </div>
+                    {!isCompleted && (
+                      <div className="d-flex justify-content-center">
+                        <Button
+                          variant="primary"
+                          onClick={handleSubmitDeletions}
+                          disabled={
+                            isNer
+                              ? changedNerWords.length === 0
+                              : isClassification
+                              ? changedClsfLines.length == 0
+                              : deletedLines.length === 0
+                          }
+                          className="mt-3"
+                          style={{
+                            backgroundColor: "#942cd2",
+                            border: "#942cd2",
+                          }}
+                        >
+                          Submit Changes
+                        </Button>
+                      </div>
+                    )}
                   </Col>
                 )}
               </Row>
@@ -1216,7 +1327,7 @@ const handleNerChange = (batchId, category, itemIndex, newText, newLabel) => {
       )}
     </>
   );
-}  
+}
 ResumeExtraction.propTypes = {
   onStepChange: PropTypes.func.isRequired,
 };
