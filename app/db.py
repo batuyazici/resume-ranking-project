@@ -26,3 +26,7 @@ async def fetch_query(query: str, *args, **kwargs):
 async def fetch_single_query(query: str, *args, **kwargs):
     async with pool.acquire() as connection:
         return await connection.fetchval(query, *args, **kwargs)
+
+async def executemany_query(query: str, values: list):
+    async with pool.acquire() as connection:
+        await connection.executemany(query, values)    

@@ -6,14 +6,14 @@ import os
 import shutil  
 import glob
 import json
-from contextlib import asynccontextmanager  
-from db import init_connection_pool, close_connection_pool, execute_query, fetch_query, fetch_single_query 
+from db import init_connection_pool, close_connection_pool, execute_query, fetch_query, fetch_single_query, executemany_query
 from helpers import clean_filename, init_upload_batch, check_batch_exists, conf_input_file
 from file_processing import docx_conv, pdf_conv
 from config import UPLOAD_DIR, SAVE_DIR, SAVE_DIR_API
 from model_pipeline.utils.files import FileHandler
 from model_pipeline.utils.params import YOLOParameters
 import uvicorn
+
 
 async def lifespan(app: FastAPI):
     await init_connection_pool()
@@ -472,7 +472,7 @@ async def update_clsf_classes(storage_name: str, file_id: str, actions: List[dic
 
 @app.post("/cv/embed")
 async def get_resume_embed(batch_ids: dict):
-    from model_pipeline.embed import embed_impl
+    from model_pipeline.embed import resume_embed_impl
     try:
         batch_ids = batch_ids.get("batch_ids", [])
         batch_ids = [int(id_str) for id_str in batch_ids]
@@ -481,18 +481,18 @@ async def get_resume_embed(batch_ids: dict):
             WHERE batch_id = ANY($1);
         """
         files = await fetch_query(query, batch_ids)
-        await embed_impl(file_handler)
-        
-        results = {}
+        insert_all_query = """INSERT INTO resume_embeddings (file_id, sentence_index, category, embedding)
+                                VALUES ($1, $2, $3, $4)
+                                ON CONFLICT DO NOTHING;
+                            """
         for file in files:
-            file_id = file['file_id']
-            storage_name = file['storage_name']
-            specific_result_folder = os.path.join(file_handler.results_dir, storage_name)
-            file_path = os.path.join(specific_result_folder, f"{storage_name}_clsf.json")
-            if os.path.exists(file_path):
-                with open(file_path, 'r') as f:
-                    results[file_id] = json.load(f) 
-                    
+            embed_values =  await resume_embed_impl(file_handler, file)
+            if embed_values:
+                 await executemany_query(insert_all_query, embed_values)
+
+        return {"status": "success"}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
                     
                     
 # @app.post("/job/embed")
