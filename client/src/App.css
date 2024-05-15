@@ -489,6 +489,28 @@ span.navbar-text {
     
 }
 
+
+.accordion .accordion-button::after {
+  margin-left: 10px; /* Add space to the left of the icons */
+}
+
+/* Ensure specificity and priority */
+.accordion-button:focus .button-delete,
+.accordion-button:active .button-delete {
+    background-color: white !important;
+    color: black !important;
+   
+}
+
+
+
+/* Optional: better focus visibility */
+.accordion-button:focus-visible .button-delete {
+  background-color: #805D93 ;
+  border: none ;
+  color: white ;
+}
+
 .accordion-button {
   background-color: white!important;
 }
