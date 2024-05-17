@@ -1,18 +1,20 @@
 from fastapi import FastAPI, UploadFile, Form, File, BackgroundTasks, HTTPException, Query, Body
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 import os
 import shutil  
 import glob
 import json
 from db import init_connection_pool, close_connection_pool, execute_query, fetch_query, fetch_single_query, executemany_query
-from helpers import clean_filename, init_upload_batch, check_batch_exists, conf_input_file
+from helpers import clean_filename, edit_filename, init_upload_batch, check_batch_exists, conf_input_file, format_record
 from file_processing import docx_conv, pdf_conv
 from config import UPLOAD_DIR, SAVE_DIR, SAVE_DIR_API
 from model_pipeline.utils.files import FileHandler
 from model_pipeline.utils.params import YOLOParameters
+from pydantic import BaseModel
 import uvicorn
+import numpy as np
 
 
 async def lifespan(app: FastAPI):
@@ -41,7 +43,7 @@ async def create_upload_files(
     batch_id: Optional[int] = Form(None)
 ):
     if not await check_batch_exists(batch_id):
-        batch_id = await init_upload_batch()
+        batch_id = await init_upload_batch(str(file_handler.results_dir))
 
     for file_upload in file_uploads:
         cleaned_name = clean_filename(file_upload.filename)
@@ -203,7 +205,12 @@ async def detect_run(batch_ids: dict):
         
         crops_dir = await detect_impl(parameters)
         file_handler.set_crops_dir(crops_dir)
-     
+        print(batch_ids)
+        results_path_query = """
+        UPDATE batch_process SET crops_path = $1 WHERE batch_id = ANY($2);
+        """
+        values = [(str(file_handler.crops_dir), batch_ids)]
+        await executemany_query(results_path_query, values)
         results = {}
         for file in files:
             file_id = file['file_id']
@@ -493,13 +500,173 @@ async def get_resume_embed(batch_ids: dict):
         return {"status": "success"}
     except Exception as e:
         return {"status": "error", "message": str(e)}
+    
+class SubmissionData(BaseModel):
+    scores: Dict[str, int]
+    jobDetails: Dict[str, str]
+    Skills: List[str]
+    JobDesc: str
+    JobDescJSON: Dict[str, Any]                    
                     
-                    
-# @app.post("/job/embed")
-# async def get_job_embed():
-
-   
+@app.post("/job/embed")
+async def get_job_embed(submission: SubmissionData):
+    from model_pipeline.embed import job_embed_impl
+    try:
+        job_title = submission.jobDetails.get("jobTitle", "")
+        filename = edit_filename(job_title)
+        file_path = os.path.join(file_handler.jobs_dir, filename)
+        print(file_path)
+        with open(file_path, 'w') as f:
+            json.dump(submission.model_dump(), f, indent=2)
+        job_process_query = """
+            INSERT INTO job_process (job_path) 
+            VALUES ($1) 
+            RETURNING job_id
+            """
+        job_id = await fetch_single_query(job_process_query, filename)   
+            
+        combined_text = f"Job Title: {submission.jobDetails['jobTitle']}\n" \
+                        f"Company: {submission.jobDetails['company']}\n" \
+                        f"Location: {submission.jobDetails['location']}\n" \
+                        f"Employee Type: {submission.jobDetails['employeeType']}\n" \
+                        f"Skills: {', '.join(submission.Skills)}\n" \
+                        f"Job Description: {submission.JobDesc}"
         
+        # Check if combined_text is empty or only contains whitespace
+        if not combined_text.strip():
+            raise ValueError("Combined text is empty. Please ensure all job details are provided.")
+                    
+        batch_values = await job_embed_impl(job_id, combined_text)
+        
+        if batch_values:
+            await executemany_query("""
+            INSERT INTO job_embeddings (job_id, sentence_index, embedding)
+            VALUES ($1, $2, $3)
+            """, batch_values)
+            update_query = """
+            UPDATE job_process SET status = 'completed' WHERE job_id = $1;
+            """
+            await execute_query(update_query, job_id)
+
+        return {"message": "Job details processed and embeddings stored successfully."}
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/match/data")
+async def get_match_data():
+    batch_query = """
+        SELECT 
+            bp.batch_id, 
+            bp.results_path, 
+            bp.start_date,
+            up.file_id, 
+            up.storage_name, 
+            up.original_name, 
+            cs.process_type, 
+            cs.file_id
+        FROM 
+            batch_process bp
+            JOIN uploaded_files up ON bp.batch_id = up.batch_id
+            JOIN conversion_status cs ON up.file_id = cs.file_id
+            JOIN batch_status bs ON bp.batch_id = bs.batch_id
+            JOIN detection_results dr ON bs.detect_id = dr.detect_id
+            JOIN ocr_results ocr ON bs.ocr_id = ocr.ocr_id
+            JOIN classification_results cr ON bs.class_id = cr.class_id
+            JOIN ner_results nr ON bs.ner_id = nr.ner_id
+        WHERE 
+            dr.status = 'completed' 
+            AND ocr.status = 'completed' 
+            AND cr.status = 'completed' 
+            AND nr.status = 'completed';
+    """
+
+    job_query = """
+        SELECT 
+            job_id, 
+            job_path, 
+            create_date 
+        FROM 
+            job_process 
+        WHERE 
+            status = 'completed';
+    """
+    
+    batch_results = await fetch_query(batch_query)
+    job_results = await fetch_query(job_query)
+    formatted_batch_results = [format_record(record) for record in batch_results]
+    formatted_job_results = [format_record(record) for record in job_results]
+    return JSONResponse(content={"batches": formatted_batch_results, "jobs": formatted_job_results})
+
+@app.get("/jobdesc/{job_id}")
+async def get_job_desc(job_id: int):
+    job_query = """
+        SELECT job_path FROM job_process WHERE job_id = $1;
+    """
+    job_path = await fetch_single_query(job_query, job_id)
+    job_loc = os.path.join(file_handler.jobs_dir, job_path)
+    if not job_path:
+        raise HTTPException(status_code=404, detail="Job description not found.")
+    with open(job_loc, 'r') as f:
+        job_data = json.load(f)
+    return JSONResponse(content=job_data.get('JobDescJSON'))
+
+class MatchRequest(BaseModel):
+    batch_ids: List[str]
+    job_id: int
+    
+@app.post("/match")
+async def get_match_results(match_request: MatchRequest):
+    from model_pipeline.match import match_impl
+    try:
+        batch_ids = match_request.batch_ids
+        job_id = match_request.job_id
+        
+        files_data = []
+        for batch_id in batch_ids:
+            files = await fetch_query("""
+                SELECT f.file_id, f.storage_name, b.results_path 
+                FROM uploaded_files f 
+                JOIN batch_process b ON f.batch_id = b.batch_id 
+                WHERE f.batch_id = $1
+            """, int(batch_id))
+            
+            for file in files:
+                files_data.append({
+                    "file_id": file["file_id"],
+                    "storage_name": file["storage_name"],
+                    "results_path": file["results_path"]
+                })
+
+        # Fetching job_id and job_path
+        job = await fetch_query("SELECT job_id, job_path FROM job_process WHERE job_id = $1", job_id)
+        if job is None:
+            raise HTTPException(status_code=404, detail="Job not found")
+        
+        job_data = {
+            "job_id": job[0]["job_id"],
+            "job_path": job[0]["job_path"]
+        }
+        
+        results = await match_impl(file_handler.jobs_dir, files_data, job_data) 
+                # Ensure all data is JSON serializable
+        def make_serializable(obj):
+            if isinstance(obj, np.ndarray):
+                return obj.tolist()
+            elif isinstance(obj, dict):
+                return {k: make_serializable(v) for k, v in obj.items()}
+            elif isinstance(obj, list):
+                return [make_serializable(i) for i in obj]
+            else:
+                return obj
+        
+        serializable_results = make_serializable(results)
+        
+        return JSONResponse(content=serializable_results) 
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+    
 if __name__ == "__main__":
     uvicorn.run(app, host="127.0.0.1", port=8000)
 

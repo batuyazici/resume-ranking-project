@@ -2,15 +2,27 @@ import uuid
 from config import SAVE_DIR, INPUT_DIR
 from db import execute_query, fetch_query 
 import pathlib
+from datetime import datetime
 def clean_filename(filename):
     extension = filename.rsplit('.', 1)[1] if '.' in filename else ''
     sanitized_name = f"{uuid.uuid4()}.{extension}"
     return sanitized_name
 
-async def init_upload_batch():
+def edit_filename(job_title):
+    job_id = str(uuid.uuid4())
+    # Create a slug and remove characters that are not alphanumeric, hyphens, or underscores
+    job_title_slug = re.sub(r'[^a-zA-Z0-9-_]', '', job_title.lower().replace(" ", "-"))
+    filename = f"{job_id}_{job_title_slug}.json"
+    return filename
+
+async def init_upload_batch(results_dir):
 	# Insert into batch_process table
-    batch_query = "INSERT INTO batch_process DEFAULT VALUES RETURNING batch_id;"
-    batch_id = await fetch_query(batch_query)
+    batch_query ="""
+    INSERT INTO batch_process (results_path, crops_path)
+    VALUES ($1, NULL)
+    RETURNING batch_id;
+    """
+    batch_id = await fetch_query(batch_query, results_dir)
     batch_id = batch_id[0]['batch_id']
 	
     # Insert into detection_results table
@@ -19,17 +31,17 @@ async def init_upload_batch():
     detect_id = detect_id[0]['detect_id']
     
     # Insert into ocr_results table
-    ocr_query = f"INSERT INTO ocr_results (batch_id, ocr_path, status) VALUES ({batch_id}, NULL, 'pending') RETURNING ocr_id;"
+    ocr_query = f"INSERT INTO ocr_results (batch_id, status) VALUES ({batch_id},'pending') RETURNING ocr_id;"
     ocr_id = await fetch_query(ocr_query)
     ocr_id = ocr_id[0]['ocr_id']
     
     # Insert into classification_results table
-    classification_query = f"INSERT INTO classification_results (batch_id, clasf_path, status) VALUES ({batch_id}, NULL, 'pending') RETURNING class_id;"
+    classification_query = f"INSERT INTO classification_results (batch_id, status) VALUES ({batch_id},  'pending') RETURNING class_id;"
     class_id = await fetch_query(classification_query)
     class_id = class_id[0]['class_id']
     
     # Insert into ner_results table
-    ner_query = f"INSERT INTO ner_results (batch_id, ner_path, status) VALUES ({batch_id}, NULL, 'pending') RETURNING ner_id;"
+    ner_query = f"INSERT INTO ner_results (batch_id, status) VALUES ({batch_id}, 'pending') RETURNING ner_id;"
     ner_id = await fetch_query(ner_query)
     ner_id = ner_id[0]['ner_id']
     
@@ -55,3 +67,6 @@ async def conf_input_file():
     input_path = INPUT_DIR / f"run{run_number}"
     input_path.mkdir()
     return input_path
+
+def format_record(record):
+    return {key: (value.strftime('%Y-%m-%d %H:%M:%S') if isinstance(value, datetime) else value) for key, value in record.items()}

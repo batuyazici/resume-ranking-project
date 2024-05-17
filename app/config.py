@@ -13,5 +13,5 @@ if not UPLOAD_DIR.exists():
 
 SAVE_DIR = Path() /"data"
 
-SAVE_DIR_API = Path() /  "data"
+SAVE_DIR_API = Path() /"data"
 INPUT_DIR = Path() /"model_pipeline" / "inputs"

@@ -1,13 +1,25 @@
 import { useState, useRef } from "react";
+import { useNavigate } from "react-router-dom"; // Import useNavigate
 import { X, ChevronLeft, ChevronRight } from "react-bootstrap-icons";
 import "bootstrap/dist/css/bootstrap.min.css";
 import Tiptap from "./Tiptap";
-import { Form, Button, Container, Row, Col, Badge } from "react-bootstrap";
+import {
+  Form,
+  Button,
+  Container,
+  Row,
+  Col,
+  Badge,
+  Alert,
+} from "react-bootstrap";
 import spectrumGradient from "../assets/img/spectrum-gradient.svg";
 
 const CreateJob = () => {
   const [skills, setSkills] = useState([]);
   const [inputValue, setInputValue] = useState("");
+  const [buttonText, setButtonText] = useState("Submit"); // Button text state
+  const [showSuccess, setShowSuccess] = useState(false); // Success alert state
+  const navigate = useNavigate(); // Initialize useNavigate
 
   const [scores, setScores] = useState({
     skills: 0,
@@ -24,17 +36,17 @@ const CreateJob = () => {
   });
   const tiptapEditorRef = useRef(null);
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
-    
+
     const jobDescriptionJSON = tiptapEditorRef.current
       ? tiptapEditorRef.current.getJSON()
       : {};
-  
+
     // Function to extract text content from the JSON
     const extractText = (nodes) => {
       let textContent = "";
-      nodes.forEach(node => {
+      nodes.forEach((node) => {
         if (node.content) {
           textContent += extractText(node.content);
         }
@@ -44,21 +56,59 @@ const CreateJob = () => {
       });
       return textContent;
     };
-  
+
     const textOutput = extractText(jobDescriptionJSON.content || []).trim();
-  
+
     const submissionData = {
       scores: scores,
       jobDetails: jobDetails,
       Skills: skills,
       JobDesc: textOutput,
-      JobDescJSON: jobDescriptionJSON // Include the full JSON structure for HTML operations
+      JobDescJSON: jobDescriptionJSON, // Include the full JSON structure for HTML operations
     };
-  
+
+    try {
+      const response = await fetch(import.meta.env.VITE_FAST_API_EMBEDJ, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(submissionData),
+      });
+
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+
+      }
+
+      const result = await response.json();
+      console.log("Success:", result);
+      console.log(result);
+-      setShowSuccess(true); // Show success alert
+      // Clear the form data after submission
+      setScores({
+        skills: 0,
+        experience: 0,
+        education: 0,
+        miscellaneous: 0,
+        necessities: 0,
+      });
+      setJobDetails({
+        jobTitle: "",
+        company: "",
+        location: "",
+        employeeType: "",
+      });
+      setSkills([]);
+      setInputValue("");
+      tiptapEditorRef.current.clearContent();
+    } catch (error) {
+      console.error("Error:", error);
+    }
+
     // Pretty print JSON with indentation
     console.log("Submission Data:", JSON.stringify(submissionData, null, 2));
   };
-  
 
   const handleInputChange = (event) => {
     const { name, value } = event.target;
@@ -101,6 +151,16 @@ const CreateJob = () => {
     setSkills((prevSkills) => prevSkills.filter((_, i) => i !== index));
   };
 
+  const handleKeyDown = (event) => {
+    if (event.key === "Enter") {
+      event.preventDefault(); // Prevent form submission on Enter key press
+    }
+  };
+
+  const handleMatchClick = () => {
+    navigate("/match");
+  };
+
   return (
     <>
       <style type="text/css">
@@ -124,8 +184,18 @@ const CreateJob = () => {
           padding: "20px",
         }}
       >
+        {showSuccess && (
+          <Alert
+            variant="success"
+            onClose={() => setShowSuccess(false)}
+            dismissible
+          >
+            Job posted successfully!
+          </Alert>
+        )}
         <Form
           onSubmit={handleSubmit}
+          onKeyDown={handleKeyDown} // Prevent form submission on Enter key press
           className="border-3 text-dark p-3 bg-white"
           style={{ borderRadius: "15px" }}
         >
@@ -204,7 +274,7 @@ const CreateJob = () => {
             />
           </Form.Group>
           <Form.Group className="mb-1" controlId="location">
-            <Form.Label>Employee Location</Form.Label>
+            <Form.Label>Job Location</Form.Label>
             <Form.Control
               type="text"
               placeholder="Enter location"
@@ -214,7 +284,7 @@ const CreateJob = () => {
             />
           </Form.Group>
           <Form.Group className="mb-1" controlId="jobType">
-            <Form.Label>Employee Type</Form.Label>
+            <Form.Label>Job Type</Form.Label>
             <Form.Select
               aria-label="Employee type select"
               name="employeeType"
@@ -274,11 +344,24 @@ const CreateJob = () => {
               className="mt-1 btn-sm"
               size="lg"
             >
-              Submit
+              {buttonText}
             </Button>
           </div>
         </Form>
       </Container>
+      {showSuccess && (
+        <div className="d-flex justify-content-center mt-1">
+          <Button
+            type="submit"
+            variant="outline-dark"
+            className="btn-sm"
+            size="lg"
+            onClick={handleMatchClick}
+          >
+            Match CVs
+          </Button>
+        </div>
+      )}
     </>
   );
 };

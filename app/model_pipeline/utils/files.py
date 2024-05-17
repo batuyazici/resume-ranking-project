@@ -15,6 +15,7 @@ class FileHandler:
             run_number += 1
         self.results_dir = results_base / f"run{run_number}"
         self.results_dir.mkdir()  # Create the new run directory
+        self.jobs_dir = ROOT / "jobs"
         self.file_groups = None
         self.crops_dir = None
 

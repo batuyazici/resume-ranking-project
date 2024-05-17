@@ -1,4 +1,4 @@
-import React, { forwardRef, useImperativeHandle } from 'react';
+import { forwardRef, useImperativeHandle } from "react";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { Button, ButtonGroup } from "react-bootstrap";
@@ -39,8 +39,8 @@ const TiptapEditor = forwardRef((props, ref) => {
   });
 
   useImperativeHandle(ref, () => ({
-    getJSON: () => editor ? editor.getJSON() : {},
-    getHTML: () => editor ? editor.getHTML() : ''
+    getJSON: () => (editor ? editor.getJSON() : {}),
+    getHTML: () => (editor ? editor.getHTML() : ""),
   }));
 
   if (!editor) {
@@ -49,9 +49,7 @@ const TiptapEditor = forwardRef((props, ref) => {
 
   return (
     <div className="mt-0 border-dark">
-      <div
-        className="editor-header border border-dark bg-light border-bottom rounded p-2"
-      >
+      <div className="editor-header border border-dark bg-light border-bottom rounded p-2">
         <ButtonGroup className="button-group-big">
           <Button
             className="big-button"
@@ -154,5 +152,7 @@ const TiptapEditor = forwardRef((props, ref) => {
     </div>
   );
 });
+
+TiptapEditor.displayName = "TiptapEditor";
 
 export default TiptapEditor;
