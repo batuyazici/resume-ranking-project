@@ -551,6 +551,7 @@ async def get_job_embed(submission: SubmissionData):
         return {"message": "Job details processed and embeddings stored successfully."}
     
     except Exception as e:
+        print(str(e))
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/match/data")

@@ -18,7 +18,7 @@ import Bold from "@tiptap/extension-bold";
 import Italic from "@tiptap/extension-italic";
 import BulletList from "@tiptap/extension-bullet-list";
 import ListItem from "@tiptap/extension-list-item";
-
+import HardBreak from "@tiptap/extension-hard-break";
 const extensions = [
   Document,
   Paragraph,
@@ -27,6 +27,7 @@ const extensions = [
   Italic,
   BulletList,
   ListItem,
+  HardBreak
 ];
 
 const MatchOperation = () => {

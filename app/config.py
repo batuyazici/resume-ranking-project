@@ -11,7 +11,7 @@ UPLOAD_DIR = Path() / "uploads"
 if not UPLOAD_DIR.exists():
     UPLOAD_DIR.mkdir(parents=True)
 
-SAVE_DIR = Path() /"data"
+SAVE_DIR = Path()  / "data"
 
-SAVE_DIR_API = Path() /"data"
-INPUT_DIR = Path() /"model_pipeline" / "inputs"
+SAVE_DIR_API = Path() / "data"
+INPUT_DIR = Path()  / "model_pipeline" / "inputs"

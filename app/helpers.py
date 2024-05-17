@@ -3,6 +3,7 @@ from config import SAVE_DIR, INPUT_DIR
 from db import execute_query, fetch_query 
 import pathlib
 from datetime import datetime
+import re
 def clean_filename(filename):
     extension = filename.rsplit('.', 1)[1] if '.' in filename else ''
     sanitized_name = f"{uuid.uuid4()}.{extension}"

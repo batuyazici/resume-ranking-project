@@ -644,6 +644,15 @@ function ResumeExtraction({ onStepChange }) {
               </div>
             )}
             <Row className="justify-content-center match-container-1 mt-2 mb-4">
+              {isCompleted && (
+                <Card>
+                  <Card.Body>
+                    <div className="card-container text-center p-2 fs-4">
+                      Processed Files Summary
+                    </div>
+                  </Card.Body>
+                </Card>
+              )}
               {!isCompleted && (
                 <Col md={6} className="highlight-section scrollable-column">
                   <div className="sticky-title text-center">
@@ -1128,16 +1137,15 @@ function ResumeExtraction({ onStepChange }) {
                           ([category, items], idx) => (
                             <Accordion.Item eventKey={`${idx}`} key={category}>
                               <Accordion.Header>
-                                <th>{category.toUpperCase()}{" "} </th>
+                                <th>{category.toUpperCase()} </th>
                                 <Badge
                                   bg=""
                                   style={{
                                     backgroundColor: "#cc71c4",
                                     marginLeft: "5px",
-                                    
                                   }}
                                 >
-                                 {items.length}
+                                  {items.length}
                                 </Badge>
                               </Accordion.Header>
                               <Accordion.Body>
@@ -1145,7 +1153,15 @@ function ResumeExtraction({ onStepChange }) {
                                   <Form.Group className="mb-3" key={subIndex}>
                                     <Form.Label className="fw-bold">
                                       Text (Current Label:{" "}
-                                      <Badge bg="" style={{backgroundColor:'rgba(130, 38, 158)'}}>{item.label}</Badge>)
+                                      <Badge
+                                        bg=""
+                                        style={{
+                                          backgroundColor: "rgba(130, 38, 158)",
+                                        }}
+                                      >
+                                        {item.label}
+                                      </Badge>
+                                      )
                                     </Form.Label>
                                     <Stack direction="horizontal" gap={3}>
                                       <Form.Control
@@ -1166,7 +1182,6 @@ function ResumeExtraction({ onStepChange }) {
                                         size="sm"
                                         variant="secondary"
                                         align="end"
-                                       
                                       >
                                         {[
                                           "person",
@@ -1278,7 +1293,7 @@ function ResumeExtraction({ onStepChange }) {
                                               title="Change Class"
                                               variant="secondary"
                                               size="sm"
-                                              className="me-2" 
+                                              className="me-2"
                                               id={`dropdown-${category}-${subIndex}`}
                                               onSelect={(eventKey) =>
                                                 handleClassChange(
@@ -1343,7 +1358,9 @@ function ResumeExtraction({ onStepChange }) {
                           >
                             <Accordion.Header>
                               <div className="d-flex justify-content-between font-monospace align-items-center w-100">
-                                <th><span>{truncateText(text)}</span></th>
+                                <th>
+                                  <span>{truncateText(text)}</span>
+                                </th>
                                 {activeKey == `${index}` && ( // Conditionally render the button
                                   <Button
                                     size="sm"

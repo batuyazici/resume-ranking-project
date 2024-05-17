@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { useNavigate } from "react-router-dom"; // Import useNavigate
+import { useNavigate } from "react-router-dom";
 import { X, ChevronLeft, ChevronRight } from "react-bootstrap-icons";
 import "bootstrap/dist/css/bootstrap.min.css";
 import Tiptap from "./Tiptap";
@@ -11,15 +11,17 @@ import {
   Col,
   Badge,
   Alert,
+  Spinner,
 } from "react-bootstrap";
 import spectrumGradient from "../assets/img/spectrum-gradient.svg";
 
 const CreateJob = () => {
   const [skills, setSkills] = useState([]);
   const [inputValue, setInputValue] = useState("");
-  const [buttonText, setButtonText] = useState("Submit"); // Button text state
-  const [showSuccess, setShowSuccess] = useState(false); // Success alert state
-  const navigate = useNavigate(); // Initialize useNavigate
+  const [buttonText, setButtonText] = useState("Submit");
+  const [isLoading, setIsLoading] = useState(false); // Loading state
+  const [showSuccess, setShowSuccess] = useState(false);
+  const navigate = useNavigate();
 
   const [scores, setScores] = useState({
     skills: 0,
@@ -38,12 +40,12 @@ const CreateJob = () => {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    setIsLoading(true); // Set loading to true
 
     const jobDescriptionJSON = tiptapEditorRef.current
       ? tiptapEditorRef.current.getJSON()
       : {};
 
-    // Function to extract text content from the JSON
     const extractText = (nodes) => {
       let textContent = "";
       nodes.forEach((node) => {
@@ -64,7 +66,7 @@ const CreateJob = () => {
       jobDetails: jobDetails,
       Skills: skills,
       JobDesc: textOutput,
-      JobDescJSON: jobDescriptionJSON, // Include the full JSON structure for HTML operations
+      JobDescJSON: jobDescriptionJSON,
     };
 
     try {
@@ -77,15 +79,14 @@ const CreateJob = () => {
       });
 
       if (!response.ok) {
+        console.log(response);
         throw new Error("Network response was not ok");
-
       }
 
       const result = await response.json();
       console.log("Success:", result);
-      console.log(result);
--      setShowSuccess(true); // Show success alert
-      // Clear the form data after submission
+      setShowSuccess(true); // Show success alert
+
       setScores({
         skills: 0,
         experience: 0,
@@ -104,9 +105,10 @@ const CreateJob = () => {
       tiptapEditorRef.current.clearContent();
     } catch (error) {
       console.error("Error:", error);
+    } finally {
+      setIsLoading(false); // Set loading to false
     }
 
-    // Pretty print JSON with indentation
     console.log("Submission Data:", JSON.stringify(submissionData, null, 2));
   };
 
@@ -153,7 +155,7 @@ const CreateJob = () => {
 
   const handleKeyDown = (event) => {
     if (event.key === "Enter") {
-      event.preventDefault(); // Prevent form submission on Enter key press
+      event.preventDefault();
     }
   };
 
@@ -166,7 +168,7 @@ const CreateJob = () => {
       <style type="text/css">
         {`
           .form-control:focus, .form-select:focus {
-            box-shadow: 0 0 0 0.25rem rgba(130, 38, 158, 0.5); /* Purple shadow */
+            box-shadow: 0 0 0 0.25rem rgba(130, 38, 158, 0.5);
             border: rgba(130, 38, 158, 0.5);
           }
         `}
@@ -195,7 +197,7 @@ const CreateJob = () => {
         )}
         <Form
           onSubmit={handleSubmit}
-          onKeyDown={handleKeyDown} // Prevent form submission on Enter key press
+          onKeyDown={handleKeyDown}
           className="border-3 text-dark p-3 bg-white"
           style={{ borderRadius: "15px" }}
         >
@@ -312,7 +314,7 @@ const CreateJob = () => {
                 <Badge
                   key={index}
                   bg=""
-                  className="d-flex align-items-center mb-2 ml-0 mt-0 "
+                  className="d-flex align-items-center mb-2 ml-0 mt-0"
                   style={{
                     borderRadius: "10px",
                     backgroundColor: "#8729cc",
@@ -344,7 +346,20 @@ const CreateJob = () => {
               className="mt-1 btn-sm"
               size="lg"
             >
-              {buttonText}
+              {isLoading ? (
+                <>
+                  <Spinner
+                    as="span"
+                    animation="border"
+                    size="sm"
+                    role="status"
+                    aria-hidden="true"
+                  />
+                  <span className="sr-only"> Loading...</span>
+                </>
+              ) : (
+                buttonText
+              )}
             </Button>
           </div>
         </Form>
@@ -354,7 +369,7 @@ const CreateJob = () => {
           <Button
             type="submit"
             variant="outline-dark"
-            className="btn-sm"
+            className="btn-sm mb-2"
             size="lg"
             onClick={handleMatchClick}
           >
