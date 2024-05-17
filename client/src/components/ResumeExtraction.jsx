@@ -50,6 +50,8 @@ function ResumeExtraction({ onStepChange }) {
 
   const [isOcr, setIsOcr] = useState(false);
   const [OcrResults, setOcrResults] = useState([]);
+  const [activeKey, setActiveKey] = useState("");
+
   const [ocrLines, setOcrLines] = useState([]);
   const [deletedLines, setDeletedLines] = useState([]);
 
@@ -120,7 +122,7 @@ function ResumeExtraction({ onStepChange }) {
     return () => {
       clearInterval(intervalId);
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   {
     /******** Handle button clicks **********/
@@ -159,6 +161,10 @@ function ResumeExtraction({ onStepChange }) {
     } else {
       console.error("No images found for file ID:", fileId);
     }
+  };
+
+  const handleSelect = (eventKey) => {
+    setActiveKey(activeKey === eventKey ? "" : eventKey);
   };
 
   const handleSubmitDeletions = async () => {
@@ -514,7 +520,7 @@ function ResumeExtraction({ onStepChange }) {
   {
     /******** Format code **********/
   }
-  const truncateText = (text, maxLength = 50) => {
+  const truncateText = (text, maxLength = 35) => {
     if (text.length > maxLength) {
       return `${text.substring(0, maxLength)}...`;
     }
@@ -625,8 +631,6 @@ function ResumeExtraction({ onStepChange }) {
               isCompleted ? "w-50" : ""
             }`}
           >
-           
-            
             {isCompleted && (
               <div>
                 <Alert
@@ -640,13 +644,6 @@ function ResumeExtraction({ onStepChange }) {
               </div>
             )}
             <Row className="justify-content-center match-container-1 mt-2 mb-4">
-              <div>
-              <Card>
-                  <Card.Body>
-                    <div className="card-container text-center p-2 fs-4">Processed Files Summary</div>
-                  </Card.Body>
-                </Card>
-                </div>
               {!isCompleted && (
                 <Col md={6} className="highlight-section scrollable-column">
                   <div className="sticky-title text-center">
@@ -1024,25 +1021,43 @@ function ResumeExtraction({ onStepChange }) {
                     {isCompleted ? (
                       <Accordion defaultActiveKey="">
                         <Accordion.Item eventKey="classification">
-                        <Accordion.Header>
+                          <Accordion.Header>
                             Classification Results
                           </Accordion.Header>
                           <Accordion.Body>
                             {Object.entries(clsfLines).map(
                               ([category, items]) => (
                                 <div key={category} className="mb-4">
-                                  <h5 className="" style={{ color: 'rgb(148, 44, 210)' }}>
+                                  <h5
+                                    className=""
+                                    style={{ color: "rgb(148, 44, 210)" }}
+                                  >
                                     {category.toUpperCase()}{" "}
-                                    <Badge bg="" style={{backgroundColor:'#cc71c4'}}>{items.length}</Badge>
+                                    <Badge
+                                      bg=""
+                                      style={{ backgroundColor: "#cc71c4" }}
+                                    >
+                                      {items.length}
+                                    </Badge>
                                   </h5>
                                   {items.map((item, subIndex) => (
                                     <div
                                       key={subIndex}
                                       className="p-3 mb-2 border rounded"
                                     >
-                                      <p className="mb-1 font-monospace">{item.text}</p>
+                                      <p className="mb-1 font-monospace">
+                                        {item.text}
+                                      </p>
                                       <small className="text-muted fs-6">
-                                       <Badge bg="" style={{backgroundColor:'#9879b0', color:'white'}} >Score: {item.score.toFixed(3)}</Badge> 
+                                        <Badge
+                                          bg=""
+                                          style={{
+                                            backgroundColor: "#9879b0",
+                                            color: "white",
+                                          }}
+                                        >
+                                          Score: {item.score.toFixed(3)}
+                                        </Badge>
                                       </small>
                                     </div>
                                   ))}
@@ -1061,9 +1076,17 @@ function ResumeExtraction({ onStepChange }) {
                               nerResults.results[currentFileId.fileId] || {}
                             ).map(([category, items]) => (
                               <div key={category} className="mb-4">
-                                <h5 className="" style={{ color: 'rgb(148, 44, 210)' }}>
+                                <h5
+                                  className=""
+                                  style={{ color: "rgb(148, 44, 210)" }}
+                                >
                                   {category.toUpperCase()}{" "}
-                                  <Badge bg="" style={{backgroundColor:'#cc71c4'}}>{items.length}</Badge>
+                                  <Badge
+                                    bg=""
+                                    style={{ backgroundColor: "#cc71c4" }}
+                                  >
+                                    {items.length}
+                                  </Badge>
                                 </h5>
                                 {items.map((item, subIndex) => (
                                   <div
@@ -1072,10 +1095,25 @@ function ResumeExtraction({ onStepChange }) {
                                   >
                                     <p className="mb-1 font-monospace">
                                       {item.text}{" "}
-                                      <Badge bg="" style={{ backgroundColor: 'rgb(148, 44, 210)' }}>{item.label}</Badge>
+                                      <Badge
+                                        bg=""
+                                        style={{
+                                          backgroundColor: "rgb(148, 44, 210)",
+                                        }}
+                                      >
+                                        {item.label}
+                                      </Badge>
                                     </p>
                                     <small className="text-muted fs-6">
-                                    <Badge bg="" style={{backgroundColor:'#9879b0', color:'white'}}>Score: {item.score.toFixed(3)}</Badge>
+                                      <Badge
+                                        bg=""
+                                        style={{
+                                          backgroundColor: "#9879b0",
+                                          color: "white",
+                                        }}
+                                      >
+                                        Score: {item.score.toFixed(3)}
+                                      </Badge>
                                     </small>
                                   </div>
                                 ))}
@@ -1085,20 +1123,29 @@ function ResumeExtraction({ onStepChange }) {
                         </Accordion.Item>
                       </Accordion>
                     ) : isNer ? (
-                      <Accordion className="mb-3">
+                      <Accordion className="mb-3 font-monospace">
                         {Object.entries(categoriesNer).map(
                           ([category, items], idx) => (
                             <Accordion.Item eventKey={`${idx}`} key={category}>
                               <Accordion.Header>
-                                {category.toUpperCase()}{" "}
-                                <Badge bg="secondary">{items.length}</Badge>
+                                <th>{category.toUpperCase()}{" "} </th>
+                                <Badge
+                                  bg=""
+                                  style={{
+                                    backgroundColor: "#cc71c4",
+                                    marginLeft: "5px",
+                                    
+                                  }}
+                                >
+                                 {items.length}
+                                </Badge>
                               </Accordion.Header>
                               <Accordion.Body>
                                 {items.map((item, subIndex) => (
                                   <Form.Group className="mb-3" key={subIndex}>
                                     <Form.Label className="fw-bold">
                                       Text (Current Label:{" "}
-                                      <Badge bg="info">{item.label}</Badge>)
+                                      <Badge bg="" style={{backgroundColor:'rgba(130, 38, 158)'}}>{item.label}</Badge>)
                                     </Form.Label>
                                     <Stack direction="horizontal" gap={3}>
                                       <Form.Control
@@ -1116,8 +1163,10 @@ function ResumeExtraction({ onStepChange }) {
                                       <DropdownButton
                                         id={`dropdown-label-change-${subIndex}`}
                                         title="Change Label"
-                                        variant="outline-primary"
+                                        size="sm"
+                                        variant="secondary"
                                         align="end"
+                                       
                                       >
                                         {[
                                           "person",
@@ -1150,6 +1199,7 @@ function ResumeExtraction({ onStepChange }) {
                                       </DropdownButton>
                                       <Button
                                         variant="danger"
+                                        size="sm"
                                         onClick={() =>
                                           handleNerDelete(
                                             currentFileId.fileId,
@@ -1172,12 +1222,21 @@ function ResumeExtraction({ onStepChange }) {
                       <Accordion defaultActiveKey="">
                         {categories.map((category, index) => (
                           <Accordion.Item eventKey={`${index}`} key={index}>
-                            <Accordion.Header>
-                              {category.toUpperCase()} (
-                              {clsfLines[category].length})
+                            <Accordion.Header className="font-monospace">
+                              <th>
+                                {" "}
+                                {category.toUpperCase()} (
+                                {clsfLines[category].length})
+                              </th>
                             </Accordion.Header>
                             <Accordion.Body>
-                              <Table striped bordered hover size="sm">
+                              <Table
+                                striped
+                                bordered
+                                hover
+                                size="md"
+                                className="font-monospace border border-dark"
+                              >
                                 <thead>
                                   <tr>
                                     <th>Text (Preview)</th>
@@ -1209,42 +1268,52 @@ function ResumeExtraction({ onStepChange }) {
                                         <td
                                           onClick={(e) => e.stopPropagation()}
                                         >
-                                          <DropdownButton
-                                            title="Change Class"
-                                            variant="secondary"
-                                            size="sm"
-                                            className="me-2"
-                                            id={`dropdown-${category}-${subIndex}`}
-                                            onSelect={(eventKey) =>
-                                              handleClassChange(
-                                                eventKey,
-                                                category,
-                                                item,
-                                                subIndex
-                                              )
-                                            }
+                                          <div
+                                            className="d-flex align-items-center justify-content-center"
+                                            style={{ width: "100%" }}
                                           >
-                                            {categories.map(
-                                              (option, optionIndex) => (
-                                                <Dropdown.Item
-                                                  key={optionIndex}
-                                                  eventKey={option}
-                                                >
-                                                  {option}
-                                                </Dropdown.Item>
-                                              )
-                                            )}
-                                          </DropdownButton>
-                                          <Button
-                                            variant="danger"
-                                            size="sm"
-                                            onClick={(e) => {
-                                              e.stopPropagation(); // Prevent row toggle
-                                              handleDelete(category, subIndex);
-                                            }}
-                                          >
-                                            <Trash />
-                                          </Button>
+                                            {" "}
+                                            {/* Updated to center content */}
+                                            <DropdownButton
+                                              title="Change Class"
+                                              variant="secondary"
+                                              size="sm"
+                                              className="me-2" 
+                                              id={`dropdown-${category}-${subIndex}`}
+                                              onSelect={(eventKey) =>
+                                                handleClassChange(
+                                                  eventKey,
+                                                  category,
+                                                  item,
+                                                  subIndex
+                                                )
+                                              }
+                                            >
+                                              {categories.map(
+                                                (option, optionIndex) => (
+                                                  <Dropdown.Item
+                                                    key={optionIndex}
+                                                    eventKey={option}
+                                                  >
+                                                    {option}
+                                                  </Dropdown.Item>
+                                                )
+                                              )}
+                                            </DropdownButton>
+                                            <Button
+                                              variant="danger"
+                                              size="sm"
+                                              onClick={(e) => {
+                                                e.stopPropagation(); // Prevent row toggle
+                                                handleDelete(
+                                                  category,
+                                                  subIndex
+                                                );
+                                              }}
+                                            >
+                                              <Trash />
+                                            </Button>
+                                          </div>
                                         </td>
                                       </tr>
                                       {expandedRows[
@@ -1266,27 +1335,37 @@ function ResumeExtraction({ onStepChange }) {
                         ))}
                       </Accordion>
                     ) : (
-                      <Accordion defaultActiveKey="">
+                      <Accordion defaultActiveKey="" onSelect={handleSelect}>
                         {ocrLines.map((text, index) => (
                           <Accordion.Item
                             key={`${currentFileId.fileId}-${index}`}
                             eventKey={`${index}`}
                           >
                             <Accordion.Header>
-                              {truncateText(text)}
-                              <Button
-                                variant="danger"
-                                size="sm"
-                                onClick={(e) => {
-                                  e.stopPropagation(); // Prevent accordion toggle
-                                  handleDeleteLine(index);
-                                }}
-                                style={{ marginLeft: "10px" }}
-                              >
-                                Delete
-                              </Button>
+                              <div className="d-flex justify-content-between font-monospace align-items-center w-100">
+                                <th><span>{truncateText(text)}</span></th>
+                                {activeKey == `${index}` && ( // Conditionally render the button
+                                  <Button
+                                    size="sm"
+                                    onClick={(e) => {
+                                      e.stopPropagation(); // Prevent accordion toggle
+                                      handleDeleteLine(index);
+                                    }}
+                                    className="button-delete ms-auto"
+                                    style={{
+                                      backgroundColor: "white",
+                                      border: "none",
+                                      color: "black",
+                                    }}
+                                  >
+                                    Delete
+                                  </Button>
+                                )}
+                              </div>
                             </Accordion.Header>
-                            <Accordion.Body>{text}</Accordion.Body>
+                            <Accordion.Body className="font-monospace">
+                              {text}
+                            </Accordion.Body>
                           </Accordion.Item>
                         ))}
                       </Accordion>
