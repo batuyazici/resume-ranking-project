@@ -91,7 +91,7 @@ CREATE TABLE "resume_embeddings" (
   "file_id" INT NOT NULL,
   "sentence_index" INT,
   "category" VARCHAR(50),
-  "embedding" vector(1024),
+  "embedding" vector,
   "create_date" TIMESTAMP DEFAULT (CURRENT_TIMESTAMP)
 );
 
@@ -99,8 +99,7 @@ CREATE TABLE "job_embeddings" (
   "embedding_id" SERIAL PRIMARY KEY,
   "job_id" INT NOT NULL,
   "sentence_index" INT,
-  "embedding" vector(1024),
-  "avg_idf_score" FLOAT,
+  "embedding" vector,
   "create_date" TIMESTAMP DEFAULT (CURRENT_TIMESTAMP)
 );
 

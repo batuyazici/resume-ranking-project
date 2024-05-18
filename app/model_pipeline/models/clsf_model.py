@@ -16,10 +16,11 @@ def load_distilBERT_model():
         model = model.cuda()
     else:
         print("CUDA is not available. Using CPU instead.")
-
+    model.eval()
     return tokenizer, model
 
 def classify_text(text, tokenizer, model):
+
     # Encode text inputs and truncate to the maximum sequence length of the model, typically 512 tokens
     inputs = tokenizer(text, return_tensors="pt", truncation=True, max_length=512)
 
