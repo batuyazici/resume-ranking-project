@@ -27,6 +27,7 @@ import {
   ChevronExpand,
   ChevronContract,
   Trash,
+  HourglassSplit,
 } from "react-bootstrap-icons";
 import axios from "axios";
 import { Helmet } from "react-helmet-async";
@@ -74,56 +75,81 @@ function ResumeExtraction({ onStepChange }) {
   {
     /******** Fetch API **********/
   }
-  const fetchStatus = async () => {
-    try {
-      const response = await axios.get(import.meta.env.VITE_FAST_API_STATUS);
-      const formattedBatches = Object.entries(response.data).map(
-        ([batchId, batchData]) => {
-          const {
-            start_date,
-            files,
-            detection_status,
-            ocr_status,
-            classification_status,
-            ner_status,
-          } = batchData;
-          return {
-            batchId,
-            start_date,
-            files,
-            completed: files.filter(
-              (file) => file.conversion_status === "completed"
-            ).length,
-            pending: files.filter(
-              (file) => file.conversion_status === "pending"
-            ).length,
-            failed: files.filter((file) => file.conversion_status === "failed")
-              .length,
-            detection_status,
-            ocr_status,
-            classification_status,
-            ner_status,
-          };
-        }
-      );
-      setBatches(formattedBatches);
-      if (initialLoading) setInitialLoading(false);
-    } catch (error) {
-      console.error("Failed to fetch status:", error);
+const fetchStatus = async (selectedBatchIds = []) => {
+  try {
+    const apiUrl = isDetected
+      ? `${import.meta.env.VITE_FAST_API_STATUS}?batch_ids=${selectedBatchIds.join(",")}`
+      : import.meta.env.VITE_FAST_API_STATUS;
+
+    const response = await axios.get(apiUrl);
+    const formattedBatches = Object.entries(response.data).map(
+      ([batchId, batchData]) => {
+        const {
+          start_date,
+          files,
+          detection_status,
+          ocr_status,
+          classification_status,
+          ner_status,
+        } = batchData;
+        return {
+          batchId,
+          start_date,
+          files,
+          completed: files.filter(
+            (file) => file.conversion_status === "completed"
+          ).length,
+          pending: files.filter((file) => file.conversion_status === "pending")
+            .length,
+          failed: files.filter((file) => file.conversion_status === "failed")
+            .length,
+          detection_status,
+          ocr_status,
+          classification_status,
+          ner_status,
+        };
+      }
+    );
+    setBatches(formattedBatches);
+    if (initialLoading) setInitialLoading(false);
+  } catch (error) {
+    console.error("Failed to fetch status:", error);
+  }
+  };
+  
+useEffect(() => {
+  let intervalId;
+
+  const fetchData = async () => {
+    if (!isDetected) {
+      await fetchStatus();
+    } else {
+      clearInterval(intervalId); 
     }
   };
 
-  useEffect(() => {
-    fetchStatus(); // Fetch immediately on mount
-    const intervalId = setInterval(() => {
-      fetchStatus();
-    }, 5000); // Adjust to 6000 if you want it every 6 seconds
+  fetchData(); 
 
-    return () => {
-      clearInterval(intervalId);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  if (!isDetected) {
+    intervalId = setInterval(fetchData, 5000); 
+  }
+
+  return () => {
+    clearInterval(intervalId);
+  };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, [isDetected]);
+
+const handleFetchAfterApiCall = async (selectedBatchIds) => {
+  if (selectedBatchIds.length > 0) {
+    try {
+      await fetchStatus(selectedBatchIds);
+    } catch (error) {
+      console.error("Failed to fetch status after API call:", error);
+    }
+  }
+  };
+
   {
     /******** Handle button clicks **********/
   }
@@ -292,6 +318,7 @@ function ResumeExtraction({ onStepChange }) {
       });
       setDetectionResults(response.data);
       SetIsDetected(true);
+      await handleFetchAfterApiCall(selectedBatchIds);
     } catch (error) {
       console.error("Detection failed:", error.response || error);
     } finally {
@@ -308,6 +335,7 @@ function ResumeExtraction({ onStepChange }) {
       setOcrResults(response.data);
       console.log();
       setIsOcr(true);
+      await handleFetchAfterApiCall(selectedBatchIds);
     } catch (error) {
       console.error("OCR failed:", error.response || error);
     } finally {
@@ -324,6 +352,7 @@ function ResumeExtraction({ onStepChange }) {
       const classificationData = response.data;
       setClassificationResults(classificationData);
       setIsClassification(true);
+      await handleFetchAfterApiCall(selectedBatchIds);
     } catch (error) {
       console.error("Clsf failed:", error.response || error);
     } finally {
@@ -341,6 +370,7 @@ function ResumeExtraction({ onStepChange }) {
       setNerResults(NerData);
       console.log(NerData);
       setIsNer(true);
+      await handleFetchAfterApiCall(selectedBatchIds);
     } catch (error) {
       console.error("NER failed:", error.response || error);
     } finally {
@@ -564,33 +594,44 @@ function ResumeExtraction({ onStepChange }) {
     pointerEvents: isDetected ? "none" : "auto",
   });
 
-  const progressLabel = isNer
-    ? "Embedding Step"
-    : isClassification
-    ? "NER"
-    : isOcr
-    ? "Classification"
-    : isDetected
-    ? "OCR"
-    : "Object Detection";
-  const progressPercentage = isNer
-    ? 100
-    : isClassification
-    ? 75
-    : isOcr
-    ? 50
-    : isDetected
-    ? 25
-    : 0;
-  const headerText = isNer
-    ? "All steps are completed"
-    : isClassification
-    ? "Keyword extraction"
-    : isOcr
-    ? "Classification for extracted texts"
-    : isDetected
-    ? "OCR for text extraction"
-    : "Please select resumes to be processed";
+const progressSteps = [
+  {
+    label: "Object Detection",
+    percentage: 0,
+    header: "Select resume batches to process",
+  },
+  {
+    label: "OCR",
+    percentage: 25,
+    header: "Extracting text from resumes",
+  },
+  {
+    label: "Classification",
+    percentage: 50,
+    header: "Classifying extracted text",
+  },
+  {
+    label: "NER",
+    percentage: 75,
+    header: "Extracting keywords with NER and regex",
+  },
+  {
+    label: "Embedding Step",
+    percentage: 100,
+    header: "All processing steps completed",
+  },
+];
+
+let currentStep = 0;
+
+if (isDetected) currentStep = 1;
+if (isOcr) currentStep = 2;
+if (isClassification) currentStep = 3;
+if (isNer) currentStep = 4;
+
+const progressLabel = progressSteps[currentStep].label;
+const progressPercentage = progressSteps[currentStep].percentage;
+const headerText = progressSteps[currentStep].header;
 
   const categories = Object.keys(clsfLines);
 
@@ -625,6 +666,17 @@ function ResumeExtraction({ onStepChange }) {
               content="information extraction step from resumes"
             />
           </Helmet>
+          {isCompleted && (
+            <Alert
+              variant="success"
+              dismissible
+              className="center-alert alert-slide"
+            >
+              Files are uploaded successfully. You can continue or upload more
+              files.
+            </Alert>
+          )}
+
           <Container
             fluid="md"
             className={`mt-4 px-5 detection-layout ${
@@ -632,27 +684,15 @@ function ResumeExtraction({ onStepChange }) {
             }`}
           >
             {isCompleted && (
-              <div>
-                <Alert
-                  variant="success"
-                  dismissible
-                  className="fixed-top-alert"
-                >
-                  Files are uploaded successfully. You can continue or upload
-                  more files.
-                </Alert>
-              </div>
+              <Row fluid="md" className="match-container-1 px-3">
+                <Card>
+                  <div className="text-center fs-4 px-3 py-2">
+                    Processed Files Summary
+                  </div>
+                </Card>
+              </Row>
             )}
             <Row className="justify-content-center match-container-1 mt-2 mb-4">
-              {isCompleted && (
-                <Card>
-                  <Card.Body>
-                    <div className="card-container text-center p-2 fs-4">
-                      Processed Files Summary
-                    </div>
-                  </Card.Body>
-                </Card>
-              )}
               {!isCompleted && (
                 <Col md={6} className="highlight-section scrollable-column">
                   <div className="sticky-title text-center">
@@ -673,133 +713,182 @@ function ResumeExtraction({ onStepChange }) {
                           !isDetected ||
                           selectedBatchIds.includes(batch.batchId)
                       )
-                      .map((batch) => (
-                        <Card
-                          key={batch.batchId}
-                          onClick={() =>
-                            !isDetected && handleBatchClick(batch.batchId)
-                          }
-                          style={containerStyle(batch.batchId)}
-                          className="mt-2"
-                        >
-                          <Card.Body>
-                            <div
-                              className="info-header"
-                              style={{ fontSize: "15px" }}
-                            >
-                              Date:{" "}
-                              <span className="info-text">
-                                {formatDate(batch.start_date)}
-                              </span>
-                            </div>
-                            <div
-                              className="info-header"
-                              style={{ fontSize: "15px" }}
-                            >
-                              Batch ID:{" "}
-                              <span className="info-text">{batch.batchId}</span>
-                            </div>
-                            <br />
-                            {isDetected ? (
-                              <>
-                                <Badge
-                                  style={{ marginRight: "5px" }}
-                                  bg={
-                                    batch.detection_status === "completed"
-                                      ? "success"
-                                      : "secondary"
-                                  }
-                                >
-                                  Detection{" "}
-                                  {batch.detection_status === "completed"
-                                    ? "completed"
-                                    : "pending"}
-                                </Badge>
-                                <Badge
-                                  style={{ marginRight: "5px" }}
-                                  bg={
-                                    batch.ocr_status === "completed"
-                                      ? "success"
-                                      : "secondary"
-                                  }
-                                >
-                                  OCR{" "}
-                                  {batch.ocr_status === "completed"
-                                    ? "completed"
-                                    : "pending"}
-                                </Badge>
-                                <Badge
-                                  style={{ marginRight: "5px" }}
-                                  bg={
-                                    batch.classification_status === "completed"
-                                      ? "success"
-                                      : "secondary"
-                                  }
-                                >
-                                  Classification{" "}
-                                  {batch.classification_status === "completed"
-                                    ? "completed"
-                                    : "pending"}
-                                </Badge>
-                                <Badge
-                                  style={{ marginRight: "5px" }}
-                                  bg={
-                                    batch.ner_status === "completed"
-                                      ? "success"
-                                      : "secondary"
-                                  }
-                                >
-                                  NER{" "}
-                                  {batch.ner_status === "completed"
-                                    ? "completed"
-                                    : "pending"}
-                                </Badge>
-                              </>
-                            ) : (
-                              <>
-                                <div
-                                  className="info-header"
-                                  style={{ fontSize: "15px" }}
-                                >
-                                  Completed:{" "}
-                                  <span className="info-text">
-                                    {batch.completed}
-                                  </span>
-                                </div>
-                                <div
-                                  className="info-header"
-                                  style={{ fontSize: "15px" }}
-                                >
-                                  Pending:{" "}
-                                  <span className="info-text">
-                                    {batch.pending}
-                                  </span>
-                                </div>
-                                <div
-                                  className="info-header"
-                                  style={{ fontSize: "15px" }}
-                                >
-                                  Failed:{" "}
-                                  <span className="info-text">
-                                    {batch.failed}
-                                  </span>
-                                </div>
-                                {selectedBatchIds.includes(batch.batchId) && (
-                                  <CheckCircleFill
-                                    color="purple"
-                                    size={20}
-                                    style={{
-                                      position: "absolute",
-                                      top: "5px",
-                                      right: "5px",
-                                    }}
-                                  />
-                                )}
-                              </>
-                            )}
-                          </Card.Body>
-                        </Card>
-                      ))}
+                      .map((batch) => {
+                        const allFilesCompleted = batch.files.every(
+                          (file) => file.conversion_status === "completed"
+                        );
+
+                        return (
+                          <Card
+                            key={batch.batchId}
+                            onClick={() =>
+                              allFilesCompleted &&
+                              !isDetected &&
+                              handleBatchClick(batch.batchId)
+                            }
+                            style={containerStyle(batch.batchId)}
+                            className="mt-2"
+                          >
+                            <Card.Body>
+                              <div
+                                className="info-header"
+                                style={{ fontSize: "15px" }}
+                              >
+                                Date:{" "}
+                                <span className="info-text">
+                                  {formatDate(batch.start_date)}
+                                </span>
+                              </div>
+                              <div
+                                className="info-header"
+                                style={{ fontSize: "15px" }}
+                              >
+                                Batch ID:{" "}
+                                <span className="info-text">
+                                  {batch.batchId}
+                                </span>
+                              </div>
+                              <br />
+                              {isDetected ? (
+                                <>
+                                  <Badge
+                                    className="me-2"
+                                    bg={
+                                      batch.detection_status === "completed"
+                                        ? "success"
+                                        : "secondary"
+                                    }
+                                    title={`Detection: ${
+                                      batch.detection_status === "completed"
+                                        ? "Completed"
+                                        : "Pending"
+                                    }`}
+                                  >
+                                    Detection{" "}
+                                    {batch.detection_status === "completed" ? (
+                                      <CheckCircleFill className="ms-1" />
+                                    ) : (
+                                      <HourglassSplit className="ms-1" />
+                                    )}
+                                  </Badge>
+                                  <Badge
+                                    className="me-2"
+                                    bg={
+                                      batch.ocr_status === "completed"
+                                        ? "success"
+                                        : "secondary"
+                                    }
+                                    title={`OCR: ${
+                                      batch.ocr_status === "completed"
+                                        ? "Completed"
+                                        : "Pending"
+                                    }`}
+                                  >
+                                    OCR{" "}
+                                    {batch.ocr_status === "completed" ? (
+                                      <CheckCircleFill className="ms-1" />
+                                    ) : (
+                                      <HourglassSplit className="ms-1" />
+                                    )}
+                                  </Badge>
+                                  <Badge
+                                    className="me-2"
+                                    bg={
+                                      batch.classification_status ===
+                                      "completed"
+                                        ? "success"
+                                        : "secondary"
+                                    }
+                                    title={`Classification: ${
+                                      batch.classification_status ===
+                                      "completed"
+                                        ? "Completed"
+                                        : "Pending"
+                                    }`}
+                                  >
+                                    Classification{" "}
+                                    {batch.classification_status ===
+                                    "completed" ? (
+                                      <CheckCircleFill className="ms-1" />
+                                    ) : (
+                                      <HourglassSplit className="ms-1" />
+                                    )}
+                                  </Badge>
+                                  <Badge
+                                    className="me-2"
+                                    bg={
+                                      batch.ner_status === "completed"
+                                        ? "success"
+                                        : "secondary"
+                                    }
+                                    title={`NER: ${
+                                      batch.ner_status === "completed"
+                                        ? "Completed"
+                                        : "Pending"
+                                    }`}
+                                  >
+                                    NER{" "}
+                                    {batch.ner_status === "completed" ? (
+                                      <CheckCircleFill className="ms-1" />
+                                    ) : (
+                                      <HourglassSplit className="ms-1" />
+                                    )}
+                                  </Badge>
+                                </>
+                              ) : (
+                                <>
+                                  <div className="info-header">
+                                    {allFilesCompleted
+                                      ? "Uploading Status"
+                                      : "Uploading..."}
+                                    {!allFilesCompleted && (
+                                      <HourglassSplit className="ms-2" />
+                                    )}
+                                  </div>
+                                  <div
+                                    className="info-header"
+                                    style={{ fontSize: "15px" }}
+                                  >
+                                    Completed:{" "}
+                                    <span className="info-text">
+                                      {batch.completed}
+                                    </span>
+                                  </div>
+                                  <div
+                                    className="info-header"
+                                    style={{ fontSize: "15px" }}
+                                  >
+                                    Pending:{" "}
+                                    <span className="info-text">
+                                      {batch.pending}
+                                    </span>
+                                  </div>
+                                  <div
+                                    className="info-header"
+                                    style={{ fontSize: "15px" }}
+                                  >
+                                    Failed:{" "}
+                                    <span className="info-text">
+                                      {batch.failed}
+                                    </span>
+                                  </div>
+                                  {selectedBatchIds.includes(batch.batchId) && (
+                                    <CheckCircleFill
+                                      color="purple"
+                                      size={20}
+                                      style={{
+                                        position: "absolute",
+                                        top: "5px",
+                                        right: "5px",
+                                      }}
+                                    />
+                                  )}
+                                </>
+                              )}
+                            </Card.Body>
+                          </Card>
+                        );
+                      })}
                   </div>
                 </Col>
               )}
@@ -836,7 +925,10 @@ function ResumeExtraction({ onStepChange }) {
                             </div>
                             <div className="mb-1" style={{ fontSize: "15px" }}>
                               Upload Status:
-                              <span className="info-text"> {file.status}</span>
+                              <span className="info-text">
+                                {" "}
+                                {file.conversion_status}
+                              </span>
                             </div>
                             <div className="mb-1" style={{ fontSize: "15px" }}>
                               Number of Pages:
@@ -877,9 +969,7 @@ function ResumeExtraction({ onStepChange }) {
                     </div>
                   ))}
                 {selectedBatchIds.length === 0 && (
-                  <div className="text-center mt-3">
-                    Please select which uploaded files to be detected.
-                  </div>
+                  <div className="text-center mt-3"></div>
                 )}
               </Col>
             </Row>
@@ -901,7 +991,7 @@ function ResumeExtraction({ onStepChange }) {
               disabled={selectedBatchIds.length === 0 || isAnimating}
               className={`mt-1 mb-5 btn-sm mx-3 ${isDetected ? "mx-auto" : ""}`} // Add `mx-auto` to center the button when alone
               size="lg"
-              style={{ width: "150px" }}
+              style={{ width: `${isNer ? "180px" : "150px"}` }}
               onClick={onClick}
             >
               {isAnimating ? (

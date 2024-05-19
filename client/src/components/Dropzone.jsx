@@ -39,12 +39,10 @@ function Dropzone({ onStepChange }) {
 
 useEffect(() => {
   const success = sessionStorage.getItem("uploadSuccess");
-  console.log("Upload Success from sessionStorage:", success);
 
   if (success === "true") {
     setUploadSuccess(true);
   }
-  // Clear the session storage item after checking it
   sessionStorage.removeItem("uploadSuccess");
 }, []);
 
@@ -248,8 +246,6 @@ useEffect(() => {
     });
 
     if (batchId) formData.append("batch_id", String(batchId));
-
-    console.log(formData);
     try {
       const endpoint = import.meta.env.VITE_FAST_API_UPLOAD;
       const response = await fetch(endpoint, {
@@ -260,11 +256,10 @@ useEffect(() => {
 
       if (response.ok) {
         setBatchId(data.batch_id);
-        console.log(response);
+        
         setIsUploading(false);
         setUploadSuccess(true);
         setShowUploadSuccessAlert(true);
-        console.log('Upload successful, setting sessionStorage');
         sessionStorage.setItem('uploadSuccess', 'true');
         setShowFileRejectionMessage(false);
         files.forEach((file) => uploadedFiles.add(file.name));

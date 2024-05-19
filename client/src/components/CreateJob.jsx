@@ -171,8 +171,40 @@ const CreateJob = () => {
             box-shadow: 0 0 0 0.25rem rgba(130, 38, 158, 0.5);
             border: rgba(130, 38, 158, 0.5);
           }
+          .fixed-top-alert {
+            position: fixed;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 500px;
+            z-index: 1050;
+          }
+          @keyframes slideFromTop {
+            0% {
+              top: -50px;
+              opacity: 0;
+            }
+            100% {
+              top: 0;
+              opacity: 1;
+            }
+          }
+          .alert-slide {
+            animation: slideFromTop 0.5s ease-out;
+          }
         `}
       </style>
+
+      {showSuccess && (
+        <Alert
+          variant="success"
+          dismissible
+          className="fixed-top-alert alert-slide"
+        >
+          Job posted successfully!
+        </Alert>
+      )}
 
       <Container
         fluid="md"
@@ -186,15 +218,6 @@ const CreateJob = () => {
           padding: "20px",
         }}
       >
-        {showSuccess && (
-          <Alert
-            variant="success"
-            onClose={() => setShowSuccess(false)}
-            dismissible
-          >
-            Job posted successfully!
-          </Alert>
-        )}
         <Form
           onSubmit={handleSubmit}
           onKeyDown={handleKeyDown}

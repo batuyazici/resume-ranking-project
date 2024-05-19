@@ -76,14 +76,9 @@ CREATE TABLE "match_process" (
   "match_id" SERIAL PRIMARY KEY,
   "batch_id" INT NOT NULL,
   "job_id" INT NOT NULL,
+  "match_name" VARCHAR(255),
+  "match_path" TEXT,
   "match_date" TIMESTAMP DEFAULT (CURRENT_TIMESTAMP)
-);
-
-CREATE TABLE "match_details" (
-  "detail_id" SERIAL PRIMARY KEY,
-  "match_id" INT NOT NULL,
-  "file_id" INT NOT NULL,
-  "match_score" FLOAT
 );
 
 CREATE TABLE "resume_embeddings" (
@@ -101,14 +96,6 @@ CREATE TABLE "job_embeddings" (
   "sentence_index" INT,
   "embedding" vector,
   "create_date" TIMESTAMP DEFAULT (CURRENT_TIMESTAMP)
-);
-
-CREATE TABLE "embedding_match_scores" (
-  "match_id" SERIAL PRIMARY KEY,
-  "resume_embedding_id" INT NOT NULL,
-  "job_embedding_id" INT NOT NULL,
-  "match_score" FLOAT,
-  "match_date" TIMESTAMP DEFAULT (CURRENT_TIMESTAMP)
 );
 
 ALTER TABLE "uploaded_files" ADD FOREIGN KEY ("batch_id") REFERENCES "batch_process" ("batch_id");
@@ -133,14 +120,16 @@ ALTER TABLE "match_process" ADD FOREIGN KEY ("batch_id") REFERENCES "batch_proce
 
 ALTER TABLE "match_process" ADD FOREIGN KEY ("job_id") REFERENCES "job_process" ("job_id");
 
-ALTER TABLE "match_details" ADD FOREIGN KEY ("match_id") REFERENCES "match_process" ("match_id");
-
-ALTER TABLE "match_details" ADD FOREIGN KEY ("file_id") REFERENCES "uploaded_files" ("file_id");
-
 ALTER TABLE "resume_embeddings" ADD FOREIGN KEY ("file_id") REFERENCES "uploaded_files" ("file_id");
 
 ALTER TABLE "job_embeddings" ADD FOREIGN KEY ("job_id") REFERENCES "job_process" ("job_id");
 
-ALTER TABLE "embedding_match_scores" ADD FOREIGN KEY ("resume_embedding_id") REFERENCES "resume_embeddings" ("embedding_id");
+CREATE INDEX idx_detection_results_batch_id ON detection_results(batch_id);
+CREATE INDEX idx_ocr_results_batch_id ON ocr_results(batch_id);
+CREATE INDEX idx_classification_results_batch_id ON classification_results(batch_id);
+CREATE INDEX idx_ner_results_batch_id ON ner_results(batch_id);
 
-ALTER TABLE "embedding_match_scores" ADD FOREIGN KEY ("job_embedding_id") REFERENCES "job_embeddings" ("embedding_id");
+CREATE INDEX idx_batch_process_batch_id ON batch_process(batch_id);
+CREATE INDEX idx_uploaded_files_batch_id ON uploaded_files(batch_id);
+CREATE INDEX idx_conversion_status_file_id ON conversion_status(file_id);
+CREATE INDEX idx_conversion_status_batch_id ON conversion_status(batch_id);

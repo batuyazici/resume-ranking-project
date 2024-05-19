@@ -6,8 +6,14 @@ import json
 import db
 import string
 import numpy as np
+
 nltk.download('punkt')
 nltk.download('stopwords')
+
+def tokenize_doc(text):
+    tokens = nltk.word_tokenize(text.lower())
+    tokens = [token for token in tokens if token not in string.punctuation]
+    return tokens
 
 def remove_punctuation(text):
     return text.translate(str.maketrans('', '', string.punctuation))
@@ -100,7 +106,7 @@ async def match_impl(jobs_dir, files_data, job_data):
         return {"status": "error", "message": f"Job description file not found at {job_path}"}
     except json.JSONDecodeError:
         return {"status": "error", "message": f"Error decoding job description JSON at {job_path}"}                          
-        # Fetch job embeddings
+
     job_embeddings = await fetch_job_embeddings(job_data["job_id"])
     
     bm25_weight = job_scores['necessities'] / 2 / 100   
@@ -110,12 +116,8 @@ async def match_impl(jobs_dir, files_data, job_data):
     miscellaneous_weight = job_scores['miscellaneous'] / 100
     
     corpus = [job_details_text, skills_text, job_desc_text]
-    tokenized_corpus = []
-    for document in corpus:
-        clean_doc = remove_punctuation(document).lower()
-        tokens = nltk.word_tokenize(clean_doc)
-        tokenized_corpus.append(tokens)
-        
+    tokenized_corpus = [tokenize_doc(document) for document in corpus]
+
     # Initialize BM25 model
     bm25 = BM25Okapi(tokenized_corpus)
     
@@ -131,7 +133,7 @@ async def match_impl(jobs_dir, files_data, job_data):
         file_scores = {}
         similarity_scores = {}
         for query in queries:
-            tokenized_query = nltk.word_tokenize(remove_punctuation(query).lower())
+            tokenized_query = tokenize_doc(query)
             scores = bm25.get_scores(tokenized_query)
             for score in scores:
                 if score > 0:
@@ -155,10 +157,11 @@ async def match_impl(jobs_dir, files_data, job_data):
                 weight = 0
             similarity_scores[category] = round(weight * max_cos_sim_score, 3)
             
-        final_score = sum(file_scores.values()) + sum(similarity_scores.values())
+        final_score = round(sum(file_scores.values()) + sum(similarity_scores.values()), 2)
 
         match_results["matches"].append({
             "file_id": file_info["file_id"],
+            "original_name": file_info["original_name"],  
             "extracted_info": extracted_info,
             "bm25_scores": file_scores,
             "similarity_scores": similarity_scores,

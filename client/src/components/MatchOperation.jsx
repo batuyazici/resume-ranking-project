@@ -268,14 +268,21 @@ const MatchOperation = () => {
                     >
                       <Card.Body>
                         <Card.Title style={{ fontSize: "14px" }}>
-                          Date: {formatDate(batch.start_date)}
+                          <b>Date: </b> {formatDate(batch.start_date)}
                         </Card.Title>
                         <Card.Title style={{ fontSize: "14px" }}>
-                          Batch ID: {batch.batch_id}
+                          <b> Batch ID: </b> {batch.batch_id}
                         </Card.Title>
                         <Card.Title style={{ fontSize: "14px" }}>
-                          Uploaded Resumes:{" "}
-                          <Badge bg="info">{batch.resumes.length}</Badge>
+                          <b> Uploaded Resumes </b>
+                          <Badge
+                            bg=""
+                            style={{
+                              backgroundColor: "rgb(148, 44, 210)",
+                            }}
+                          >
+                            {batch.resumes.length}
+                          </Badge>
                         </Card.Title>
                         <Button
                           variant="outline-dark"
@@ -285,9 +292,11 @@ const MatchOperation = () => {
                             handleExpandBatch(batch.batch_id);
                           }}
                         >
-                          {expandedBatch === batch.batch_id
-                            ? "Hide Resumes"
-                            : "View Resumes"}
+                          <b>
+                            {expandedBatch === batch.batch_id
+                              ? "Hide Resumes"
+                              : "View Resumes"}{" "}
+                          </b>
                         </Button>
                         {expandedBatch === batch.batch_id && (
                           <div>
@@ -401,7 +410,9 @@ const MatchOperation = () => {
                 <Accordion.Item eventKey={index.toString()} key={index}>
                   <Accordion.Header>
                     <span className="me-2">File ID: {match.file_id}</span>
-                      <span className="ms-auto">Final Score: {match.final_score}</span>
+                    <span className="ms-auto">
+                      Final Score: {match.final_score}
+                    </span>
                   </Accordion.Header>
                   <Accordion.Body>
                     <div className="d-flex justify-content-between flex-wrap">

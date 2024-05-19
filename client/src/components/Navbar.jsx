@@ -7,7 +7,7 @@ import { useNavigate } from "react-router-dom"; // Import useNavigate
 
 import { useState, useEffect } from "react";
 
-function BasicExample() {
+function HeaderNavbar() {
   const navigate = useNavigate();
   const [activeLink, SetActiveLink] = useState("home");
   const [scrolled, seScrolled] = useState(false);
@@ -60,6 +60,16 @@ function BasicExample() {
             >
               Create a Job
             </Nav.Link>
+            <Nav.Link
+              as={Link}
+              to="/jobs"
+              className={
+                activeLink === "jobs" ? "active navbar-link" : "navbar-link"
+              }
+              onClick={() => onUpdateActiveLink("results")}
+            >
+              Match Results
+            </Nav.Link>
           </Nav>
           <span className="navbar-text">
             <button className="vvd" onClick={() => navigate("/match")}>
@@ -72,4 +82,4 @@ function BasicExample() {
   );
 }
 
-export default BasicExample;
+export default HeaderNavbar;

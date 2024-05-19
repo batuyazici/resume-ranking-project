@@ -14,6 +14,13 @@
   font-style: normal;
 }
 
+@font-face {
+  font-family: "Montserrat-Regular";
+  src: url("./assets/font/Montserrat-Regular.ttf") format("truetype");
+  font-weight: 400; 
+  font-style: normal;
+}
+
 /************ Default Css ************/
 * {
   margin: 0;
@@ -40,7 +47,8 @@ body {
   position: relative;
   background-color: #ffffff !important;
   color: #fff !important;
-  font-family: "Montserrat-Bold" !important;
+  font-family: "Montserrat-Regular" !important;
+  
   height: 100%;
   margin: 0;
   padding: 0;
@@ -598,14 +606,31 @@ span.navbar-text {
     font-family: Ubuntu, sans-serif;
   }
 }
-
-.fixed-top-alert {
+.center-alert {
   position: fixed;
-  top: 0;
-  left: 0;
+  top: 20px; /* Adjust this to add margin from the top */
+  left: 50%;
+  transform: translateX(-50%);
   width: 100%;
-  z-index: 9999; /* Ensure it's above other elements */
+  max-width: 500px;
 }
+
+@keyframes slideFromLeft {
+  0% {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(-50%);
+    opacity: 1;
+  }
+}
+
+.alert-slide {
+  animation: slideFromLeft 0.5s ease-out;
+}
+
+
 
 /***** Matching Page ****/
 

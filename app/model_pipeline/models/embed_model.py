@@ -1,11 +1,8 @@
 from sentence_transformers import SentenceTransformer
-# def split_into_tokens(text, tokenizer, max_length=512):
-#     tokens = tokenizer.tokenize(text)
-#     return [' '.join(tokens[i:i + max_length]) for i in range(0, len(tokens), max_length)]
-
 
 def load_sentence_model():
     model = SentenceTransformer('Alibaba-NLP/gte-large-en-v1.5', trust_remote_code=True)
+    model.max_seq_length = 2048
     return model
 
 
@@ -35,6 +32,10 @@ def extract_sentences(data):
     for exp in professional_experiences_data:
         experience.append(exp.get('cleaned_text', ''))
 
+    projects_data = data.get('projects', {}).get('extracted_data', [])
+    for project in projects_data:
+        experience.append(project.get('cleaned_text', ''))
+        
     # Miscellaneous extraction
     awards_data = data.get('awards', {}).get('extracted_data', [])
     for award in awards_data:
@@ -55,10 +56,6 @@ def extract_sentences(data):
     para_data = data.get('para', {}).get('extracted_data', [])
     for para in para_data:
         miscellaneous.append(para.get('cleaned_text', ''))
-
-    projects_data = data.get('projects', {}).get('extracted_data', [])
-    for project in projects_data:
-        miscellaneous.append(project.get('cleaned_text', ''))
 
     return {
         "skills": skills,

@@ -67,109 +67,89 @@ async def create_upload_files(
     return {"message": "Files are being processed", "batch_id": batch_id}
 
 
-
 @app.get("/status/")
-async def get_conversion_status(batch_id: Optional[int] = Query(None)):
+async def get_conversion_status(batch_ids: Optional[str] = Query(None)):
     try:
-        if batch_id:
-            # Fetch basic data
-            basic_query = """
-            SELECT bp.start_date, uf.file_id, cs.process_type, cs.status, cs.number_of_pages, cs.save_path, uf.original_name
-            FROM batch_process bp
-            JOIN uploaded_files uf ON bp.batch_id = uf.batch_id
-            JOIN conversion_status cs ON bp.batch_id = cs.batch_id
-            WHERE bp.batch_id = $1;
-            """
-            basic_results = await fetch_query(basic_query, batch_id)
-
-            # Fetch statuses from various results tables
-            status_queries = {
-                'detection_status': "SELECT status FROM detection_results WHERE batch_id = $1;",
-                'ocr_status': "SELECT status FROM ocr_results WHERE batch_id = $1;",
-                'classification_status': "SELECT status FROM classification_results WHERE batch_id = $1;",
-                'ner_status': "SELECT status FROM ner_results WHERE batch_id = $1;"
-            }
-            statuses = {}
-            for key, query in status_queries.items():
-                result = await fetch_query(query, batch_id)
-                statuses[key] = result[0]['status'] if result else 'No data'
-
-            # Combine results
-            if not basic_results:
-                raise HTTPException(status_code=404, detail="No conversion status found for batch ID {}.".format(batch_id))
-            
-            full_results = basic_results[0]
-            full_results.update(statuses)
-            return full_results
+        if batch_ids:
+            batch_ids_list = [int(id) for id in batch_ids.split(',')]
         else:
-            query = """
-            WITH status_data AS (
-                SELECT 
-                    batch_id,
-                    MAX(CASE WHEN type = 'detection' THEN status ELSE NULL END) AS detection_status,
-                    MAX(CASE WHEN type = 'ocr' THEN status ELSE NULL END) AS ocr_status,
-                    MAX(CASE WHEN type = 'classification' THEN status ELSE NULL END) AS classification_status,
-                    MAX(CASE WHEN type = 'ner' THEN status ELSE NULL END) AS ner_status
-                FROM (
-                    SELECT batch_id, status, 'detection' AS type FROM detection_results
-                    UNION ALL
-                    SELECT batch_id, status, 'ocr' AS type FROM ocr_results
-                    UNION ALL
-                    SELECT batch_id, status, 'classification' AS type FROM classification_results
-                    UNION ALL
-                    SELECT batch_id, status, 'ner' AS type FROM ner_results
-                ) AS results
-                GROUP BY batch_id
-            )
-            SELECT
-                bp.batch_id, bp.start_date, uf.file_id, cs.process_type, 
-                cs.status AS conversion_status, cs.number_of_pages, 
-                cs.save_path, uf.original_name,
-                sd.detection_status, sd.ocr_status, sd.classification_status, sd.ner_status
-            FROM batch_process bp
-            JOIN uploaded_files uf ON bp.batch_id = uf.batch_id
-            JOIN conversion_status cs ON uf.file_id = cs.file_id
-            LEFT JOIN status_data sd ON bp.batch_id = sd.batch_id
+            batch_ids_list = None
+
+        query_common = """
+        WITH status_data AS (
+            SELECT 
+                batch_id,
+                MAX(CASE WHEN type = 'detection' THEN status ELSE NULL END) AS detection_status,
+                MAX(CASE WHEN type = 'ocr' THEN status ELSE NULL END) AS ocr_status,
+                MAX(CASE WHEN type = 'classification' THEN status ELSE NULL END) AS classification_status,
+                MAX(CASE WHEN type = 'ner' THEN status ELSE NULL END) AS ner_status
+            FROM (
+                SELECT batch_id, status, 'detection' AS type FROM detection_results
+                UNION ALL
+                SELECT batch_id, status, 'ocr' AS type FROM ocr_results
+                UNION ALL
+                SELECT batch_id, status, 'classification' AS type FROM classification_results
+                UNION ALL
+                SELECT batch_id, status, 'ner' AS type FROM ner_results
+            ) AS results
+            GROUP BY batch_id
+        )
+        SELECT
+            bp.batch_id, bp.start_date, uf.file_id, cs.process_type, 
+            cs.status AS conversion_status, cs.number_of_pages, 
+            cs.save_path, uf.original_name,
+            sd.detection_status, sd.ocr_status, sd.classification_status, sd.ner_status
+        FROM batch_process bp
+        JOIN uploaded_files uf ON bp.batch_id = uf.batch_id
+        JOIN conversion_status cs ON uf.file_id = cs.file_id
+        LEFT JOIN status_data sd ON bp.batch_id = sd.batch_id
+        """
+
+        if batch_ids_list:
+            query = query_common + """
+            WHERE bp.batch_id = ANY($1::int[])
+            ORDER BY uf.file_id;
+            """
+            results = await fetch_query(query, batch_ids_list)
+        else:
+            query = query_common + """
+            WHERE sd.detection_status != 'completed' OR sd.ocr_status != 'completed' 
+                  OR sd.classification_status != 'completed' OR sd.ner_status != 'completed'
             ORDER BY uf.file_id;
             """
             results = await fetch_query(query)
 
-            if not results:
-                raise HTTPException(status_code=404, detail="No conversion statuses found.")
+        if not results:
+            raise HTTPException(status_code=404, detail="No conversion status found.")
 
-            # Organize by batch_id
-            batch_dict = {}
-            for result in results:
-                batch_id = result['batch_id']
-                if batch_id not in batch_dict:
-                    batch_dict[batch_id] = {
-                        "batchId": batch_id,
-                        "start_date": result['start_date'],
-                        "files": [],
-                        "detection_status": result.get('detection_status', 'No data'),
-                        "ocr_status": result.get('ocr_status', 'No data'),
-                        "classification_status": result.get('classification_status', 'No data'),
-                        "ner_status": result.get('ner_status', 'No data')
-                    }
-                batch_dict[batch_id]['files'].append({
-                    "batch_id": batch_id,
+        # Organize results into the desired format
+        batch_dict = {}
+        for result in results:
+            batch_id = result['batch_id']
+            if batch_id not in batch_dict:
+                batch_dict[batch_id] = {
+                    "batchId": batch_id,
                     "start_date": result['start_date'],
-                    "file_id": result['file_id'],
-                    "process_type": result['process_type'],
-                    "conversion_status": result['conversion_status'],
-                    "number_of_pages": result['number_of_pages'],
-                    "save_path": result['save_path'],
-                    "original_name": result['original_name'],
-                    "detection_status": result['detection_status'],
-                    "ocr_status": result['ocr_status'],
-                    "classification_status": result['classification_status'],
-                    "ner_status": result['ner_status']
-                })
+                    "files": [],
+                    "detection_status": result.get('detection_status', 'No data'),
+                    "ocr_status": result.get('ocr_status', 'No data'),
+                    "classification_status": result.get('classification_status', 'No data'),
+                    "ner_status": result.get('ner_status', 'No data')
+                }
+            batch_dict[batch_id]['files'].append({
+                "file_id": result['file_id'],
+                "process_type": result['process_type'],
+                "conversion_status": result['conversion_status'],
+                "number_of_pages": result['number_of_pages'],
+                "save_path": result['save_path'],
+                "original_name": result['original_name']
+            })
 
-            return batch_dict
+        return batch_dict
     except Exception as e:
         print(e)
         raise HTTPException(status_code=500, detail=str(e))
+
 
     
 @app.post("/detect/")
@@ -626,7 +606,7 @@ async def get_match_results(match_request: MatchRequest):
         files_data = []
         for batch_id in batch_ids:
             files = await fetch_query("""
-                SELECT f.file_id, f.storage_name, b.results_path 
+                SELECT f.file_id, f.storage_name, f.original_name b.results_path 
                 FROM uploaded_files f 
                 JOIN batch_process b ON f.batch_id = b.batch_id 
                 WHERE f.batch_id = $1
@@ -636,7 +616,8 @@ async def get_match_results(match_request: MatchRequest):
                 files_data.append({
                     "file_id": file["file_id"],
                     "storage_name": file["storage_name"],
-                    "results_path": file["results_path"]
+                    "results_path": file["results_path"],
+                    "original_name": file["original_name"]
                 })
 
         # Fetching job_id and job_path
