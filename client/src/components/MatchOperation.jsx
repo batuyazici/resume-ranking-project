@@ -564,7 +564,7 @@ const MatchOperation = () => {
                                           <td>{match.weights.miscellaneous}</td>
                                         </tr>
                                         <tr>
-                                          <td>BM25</td>
+                                          <td>Keyword Match</td>
                                           <td>
                                             {Object.values(
                                               match.bm25_scores
