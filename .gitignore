@@ -6,6 +6,7 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
+
 #Vite
 node_modules
 dist
@@ -17,10 +18,18 @@ dist-ssr
 __pycache__/
 poetry.lock
 
+#pipeline
+
 #FastAPI
 /app/uploads/
-
-
+/app/model_pipeline/results/
+/app/model_pipeline/weights/
+/app/model_pipeline/models/runs/detect/
+/app/model_pipeline/data/
+/app/model_pipeline/inputs/
+/app/data/
+/app/model_pipeline/jobs
+/app/model_pipeline/matches/
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
