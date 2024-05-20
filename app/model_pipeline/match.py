@@ -167,7 +167,7 @@ async def match_impl(file_handler, files_data, job_data):
             "bm25_scores": file_scores,
             "similarity_scores": similarity_scores,
             "weights": {
-                "bm25": bm25_weight,
+                "bm25": bm25_weight * 2,
                 "skills": skills_weight,
                 "experience": experience_weight,
                 "education": education_weight,
