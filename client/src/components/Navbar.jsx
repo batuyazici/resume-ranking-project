@@ -64,7 +64,9 @@ function HeaderNavbar() {
               as={Link}
               to="/results/match"
               className={
-                activeLink === "/results/match" ? "active navbar-link" : "navbar-link"
+                activeLink === "/results/match"
+                  ? "active navbar-link"
+                  : "navbar-link"
               }
               onClick={() => onUpdateActiveLink("results/match")}
             >

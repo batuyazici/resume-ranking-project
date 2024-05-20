@@ -42,14 +42,12 @@ const extensions = [
 
 const MatchOperation = () => {
   const [matchResult, setMatchResult] = useState(null);
-  const [matches, setMatches] = useState([]);
   const [showResultButton, setShowResultButton] = useState(false);
   const [selectedContainers, setSelectedContainers] = useState([]);
   const [batches, setBatches] = useState([]);
   const [jobs, setJobs] = useState([]);
   const [expandedBatch, setExpandedBatch] = useState(null);
   const [jobDescriptions, setJobDescriptions] = useState({});
-  const [loading, setLoading] = useState(false);
   const [buttonLoading, setButtonLoading] = useState(false);
   const [open, setOpen] = useState({});
 
@@ -141,13 +139,7 @@ const MatchOperation = () => {
       }
 
       const result = await response.json();
-
-      const sortedMatches = result.matches.sort(
-        (a, b) => b.final_score - a.final_score
-      );
-
       setMatchResult(result);
-      setMatches(sortedMatches);
       setShowResultButton(true);
     } catch (error) {
       console.error("Error matching data:", error);
@@ -265,15 +257,19 @@ const MatchOperation = () => {
     return jobDescriptions[jobId] ? "Hide Details" : "Job Details";
   };
 
+  if (batches.length === 0 && jobs.length === 0) {
+    return (
+      <Container
+        fluid="md"
+        className="d-flex justify-content-center match-container-1 mt-4 w-50"
+      >
+        <h3>There is no data available for batches and jobs</h3>
+      </Container>
+    );
+  }
   return (
     <Container fluid="md" className="mt-4">
-      {loading ? (
-        <div className="d-flex justify-content-center mt-5">
-          <Spinner animation="border" role="status">
-            <span className="sr-only">Loading...</span>
-          </Spinner>
-        </div>
-      ) : !showResultButton ? (
+      {!showResultButton ? (
         <>
           <Row className="justify-content-center match-container-1 mt-4 mb-4">
             <Col md={6}>
@@ -492,142 +488,171 @@ const MatchOperation = () => {
                     </Accordion.Header>
 
                     <Accordion.Body>
-                      {matchResult.matches.map((match, fileIndex) => (
-                        <div key={fileIndex}>
-                          <Card>
-                            <Card.Header
-                              onClick={() => toggleFile(match.file_id)}
-                              aria-controls={`file-details-${match.file_id}`}
-                              aria-expanded={open[match.file_id]}
-                              style={{
-                                cursor: "pointer",
-                                backgroundColor: "#f9f9f9",
-                              }}
-                            >
-                              <div className="d-flex justify-content-between">
-                                <div>
-                                  <strong>File ID:</strong> {match.file_id}
+                      {matchResult.matches
+                        .slice() // Create a copy of the array
+                        .sort((a, b) => b.final_score - a.final_score) // Sort in descending order based on final_score
+                        .map((match, fileIndex) => (
+                          <div key={fileIndex}>
+                            <Card>
+                              <Card.Header
+                                onClick={() => toggleFile(match.file_id)}
+                                aria-controls={`file-details-${match.file_id}`}
+                                aria-expanded={open[match.file_id]}
+                                style={{
+                                  cursor: "pointer",
+                                  backgroundColor: "#f9f9f9",
+                                }}
+                              >
+                                <div className="d-flex justify-content-between">
+                                  <div>
+                                    <strong>File ID:</strong> {match.file_id}
+                                  </div>
+                                  <div>{match.original_name}</div>
+                                  <div>
+                                    <strong>Final Score:</strong>{" "}
+                                    {match.final_score}
+                                  </div>
                                 </div>
-                                <div>{match.original_name}</div>
-                                <div>
-                                  <strong>Final Score:</strong>{" "}
-                                  {match.final_score}
-                                </div>
-                              </div>
-                            </Card.Header>
-                            <Collapse in={open[match.file_id]}>
-                              <div id={`file-details-${match.file_id}`}>
-                                <Card.Body>
-                                  <h5>Scores</h5>
-                                  <Table bordered hover className="mb-3">
-                                    <thead
-                                      style={{
-                                        backgroundColor: "rgb(148, 44, 210)",
-                                        color: "white",
-                                      }}
-                                    >
-                                      <tr>
-                                        <th>Category</th>
-                                        <th>Score</th>
-                                      </tr>
-                                    </thead>
-                                    <tbody>
-                                      <tr>
-                                        <td>Skills</td>
-                                        <td>
-                                          {match.similarity_scores.skills}
-                                        </td>
-                                      </tr>
-                                      <tr>
-                                        <td>Experience</td>
-                                        <td>
-                                          {match.similarity_scores.experience}
-                                        </td>
-                                      </tr>
-                                      <tr>
-                                        <td>Education</td>
-                                        <td>
-                                          {match.similarity_scores.education}
-                                        </td>
-                                      </tr>
-                                      <tr>
-                                        <td>Miscellaneous</td>
-                                        <td>
-                                          {
-                                            match.similarity_scores
-                                              .miscellaneous
-                                          }
-                                        </td>
-                                      </tr>
-                                      <tr>
-                                        <td>BM25</td>
-                                        <td>
-                                          {Object.values(
-                                            match.bm25_scores
-                                          ).reduce((a, b) => a + b, 0)}
-                                        </td>
-                                      </tr>
-                                    </tbody>
-                                  </Table>
-                                  <h5>BM25 Scores Detail</h5>
-                                  <ListGroup variant="flush" className="mb-3">
-                                    {Object.entries(match.bm25_scores).length >
-                                    0 ? (
-                                      Object.entries(match.bm25_scores).map(
-                                        ([key, value]) => (
-                                          <ListGroup.Item
-                                            key={key}
-                                            style={{
-                                              color:
-                                                value > 0 ? "green" : "inherit",
-                                            }}
-                                          >
-                                            <strong>{key}:</strong> {value}{" "}
-                                            {(value === 0 && "No matches")}
-                                          </ListGroup.Item>
-                                        )
-                                      )
-                                    ) : (
-                                      <ListGroup.Item>
-                                        No BM25 scores available
-                                      </ListGroup.Item>
-                                    )}
-                                  </ListGroup>
-                                  <h5>Extracted Information</h5>
-                                  <ListGroup variant="flush">
-                                    {Object.entries(match.extracted_info)
-                                      .length > 0 ? (
-                                      Object.entries(match.extracted_info).map(
-                                        ([key, value]) => (
+                              </Card.Header>
+                              <Collapse in={open[match.file_id]}>
+                                <div id={`file-details-${match.file_id}`}>
+                                  <Card.Body>
+                                    <h5>Scores</h5>
+                                    <Table bordered hover className="mb-3">
+                                      <thead
+                                        style={{
+                                          backgroundColor: "rgb(148, 44, 210)",
+                                          color: "white",
+                                        }}
+                                      >
+                                        <tr>
+                                          <th>Category</th>
+                                          <th>Score</th>
+                                          <th>Weight</th>
+                                        </tr>
+                                      </thead>
+                                      <tbody>
+                                        <tr>
+                                          <td>Skills</td>
+                                          <td>
+                                            {match.similarity_scores.skills}
+                                          </td>
+                                          <td>{match.weights.skills}</td>
+                                        </tr>
+                                        <tr>
+                                          <td>Experience</td>
+                                          <td>
+                                            {match.similarity_scores.experience}
+                                          </td>
+                                          <td>{match.weights.experience}</td>
+                                        </tr>
+                                        <tr>
+                                          <td>Education</td>
+                                          <td>
+                                            {match.similarity_scores.education}
+                                          </td>
+                                          <td>{match.weights.education}</td>
+                                        </tr>
+                                        <tr>
+                                          <td>Miscellaneous</td>
+                                          <td>
+                                            {
+                                              match.similarity_scores
+                                                .miscellaneous
+                                            }
+                                          </td>
+                                          <td>{match.weights.miscellaneous}</td>
+                                        </tr>
+                                        <tr>
+                                          <td>BM25</td>
+                                          <td>
+                                            {Object.values(
+                                              match.bm25_scores
+                                            ).reduce((a, b) => a + b, 0)}
+                                          </td>
+                                          <td>{match.weights.bm25}</td>
+                                        </tr>
+                                      </tbody>
+                                    </Table>
+                                    <h5>Keyword Matches Detail</h5>
+                                    <Table bordered hover>
+                                      <thead
+                                        style={{
+                                          backgroundColor: "rgb(148, 44, 210)",
+                                          color: "white",
+                                        }}
+                                      >
+                                        <tr>
+                                          <th>Keyword</th>
+                                          <th>Score</th>
+                                        </tr>
+                                      </thead>
+                                      <tbody>
+                                        {Object.entries(match.bm25_scores)
+                                          .length > 0 ? (
+                                          Object.entries(match.bm25_scores).map(
+                                            ([key, value]) => (
+                                              <tr key={key}>
+                                                <td>{key}</td>
+                                                <td
+                                                  style={{
+                                                    color:
+                                                      value > 0
+                                                        ? "green"
+                                                        : "inherit",
+                                                  }}
+                                                >
+                                                  {value}{" "}
+                                                  {value === 0 &&
+                                                    "(No matches)"}
+                                                </td>
+                                              </tr>
+                                            )
+                                          )
+                                        ) : (
+                                          <tr>
+                                            <td colSpan={2}>
+                                              No BM25 scores available
+                                            </td>
+                                          </tr>
+                                        )}
+                                      </tbody>
+                                    </Table>
+                                    <h5>Extracted Information</h5>
+                                    <ListGroup variant="flush">
+                                      {Object.entries(match.extracted_info)
+                                        .length > 0 ? (
+                                        Object.entries(
+                                          match.extracted_info
+                                        ).map(([key, value]) => (
                                           <ListGroup.Item key={key}>
                                             <strong>{key}:</strong>{" "}
                                             {value.join(", ")}
                                           </ListGroup.Item>
-                                        )
-                                      )
-                                    ) : (
-                                      <ListGroup.Item>
-                                        No extracted information available
-                                      </ListGroup.Item>
-                                    )}
-                                  </ListGroup>
-                                </Card.Body>
-                              </div>
-                            </Collapse>
-                          </Card>
-                        </div>
-                      ))}
+                                        ))
+                                      ) : (
+                                        <ListGroup.Item>
+                                          No extracted information available
+                                        </ListGroup.Item>
+                                      )}
+                                    </ListGroup>
+                                  </Card.Body>
+                                </div>
+                              </Collapse>
+                            </Card>
+                          </div>
+                        ))}
                     </Accordion.Body>
                   </Accordion.Item>
                 </Accordion>
               </Row>
-              <div className="d-flex justify-content-center align-items-center vh-50">
+              <div className="d-flex justify-content-center align-items-center vh-50 mb-4">
                 <Button
                   variant="outline-dark"
                   size="sm"
                   onClick={() => setShowResultButton(false)}
                 >
-                  <b>Return</b> <ArrowLeftCircle size={25}/>
+                  <b>Return</b> <ArrowLeftCircle size={25} />
                 </Button>
               </div>
             </Container>

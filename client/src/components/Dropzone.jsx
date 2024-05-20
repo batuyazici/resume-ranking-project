@@ -37,14 +37,14 @@ function Dropzone({ onStepChange }) {
   const [batchId, setBatchId] = useState(null);
   const [showUploadSuccessAlert, setShowUploadSuccessAlert] = useState(false);
 
-useEffect(() => {
-  const success = sessionStorage.getItem("uploadSuccess");
+  useEffect(() => {
+    const success = sessionStorage.getItem("uploadSuccess");
 
-  if (success === "true") {
-    setUploadSuccess(true);
-  }
-  sessionStorage.removeItem("uploadSuccess");
-}, []);
+    if (success === "true") {
+      setUploadSuccess(true);
+    }
+    sessionStorage.removeItem("uploadSuccess");
+  }, []);
 
   const onDrop = useCallback(
     (acceptedFiles, rejectedFiles) => {
@@ -256,11 +256,11 @@ useEffect(() => {
 
       if (response.ok) {
         setBatchId(data.batch_id);
-        
+
         setIsUploading(false);
         setUploadSuccess(true);
         setShowUploadSuccessAlert(true);
-        sessionStorage.setItem('uploadSuccess', 'true');
+        sessionStorage.setItem("uploadSuccess", "true");
         setShowFileRejectionMessage(false);
         files.forEach((file) => uploadedFiles.add(file.name));
         setUploadedFiles(new Set(uploadedFiles));
@@ -294,7 +294,9 @@ useEffect(() => {
           <Alert
             variant="success"
             dismissible
-            onClose={()=> { setShowUploadSuccessAlert(false) }}
+            onClose={() => {
+              setShowUploadSuccessAlert(false);
+            }}
             className="m-2 fixed-bottom-alert"
           >
             Files are uploaded successfully. You can continue or upload more

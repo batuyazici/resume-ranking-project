@@ -75,79 +75,82 @@ function ResumeExtraction({ onStepChange }) {
   {
     /******** Fetch API **********/
   }
-const fetchStatus = async (selectedBatchIds = []) => {
-  try {
-    const apiUrl = isDetected
-      ? `${import.meta.env.VITE_FAST_API_STATUS}?batch_ids=${selectedBatchIds.join(",")}`
-      : import.meta.env.VITE_FAST_API_STATUS;
-
-    const response = await axios.get(apiUrl);
-    const formattedBatches = Object.entries(response.data).map(
-      ([batchId, batchData]) => {
-        const {
-          start_date,
-          files,
-          detection_status,
-          ocr_status,
-          classification_status,
-          ner_status,
-        } = batchData;
-        return {
-          batchId,
-          start_date,
-          files,
-          completed: files.filter(
-            (file) => file.conversion_status === "completed"
-          ).length,
-          pending: files.filter((file) => file.conversion_status === "pending")
-            .length,
-          failed: files.filter((file) => file.conversion_status === "failed")
-            .length,
-          detection_status,
-          ocr_status,
-          classification_status,
-          ner_status,
-        };
-      }
-    );
-    setBatches(formattedBatches);
-    if (initialLoading) setInitialLoading(false);
-  } catch (error) {
-    console.error("Failed to fetch status:", error);
-  }
-  };
-  
-useEffect(() => {
-  let intervalId;
-
-  const fetchData = async () => {
-    if (!isDetected) {
-      await fetchStatus();
-    } else {
-      clearInterval(intervalId); 
-    }
-  };
-
-  fetchData(); 
-
-  if (!isDetected) {
-    intervalId = setInterval(fetchData, 5000); 
-  }
-
-  return () => {
-    clearInterval(intervalId);
-  };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-}, [isDetected]);
-
-const handleFetchAfterApiCall = async (selectedBatchIds) => {
-  if (selectedBatchIds.length > 0) {
+  const fetchStatus = async (selectedBatchIds = []) => {
     try {
-      await fetchStatus(selectedBatchIds);
+      const apiUrl = isDetected
+        ? `${
+            import.meta.env.VITE_FAST_API_STATUS
+          }?batch_ids=${selectedBatchIds.join(",")}`
+        : import.meta.env.VITE_FAST_API_STATUS;
+
+      const response = await axios.get(apiUrl);
+      const formattedBatches = Object.entries(response.data).map(
+        ([batchId, batchData]) => {
+          const {
+            start_date,
+            files,
+            detection_status,
+            ocr_status,
+            classification_status,
+            ner_status,
+          } = batchData;
+          return {
+            batchId,
+            start_date,
+            files,
+            completed: files.filter(
+              (file) => file.conversion_status === "completed"
+            ).length,
+            pending: files.filter(
+              (file) => file.conversion_status === "pending"
+            ).length,
+            failed: files.filter((file) => file.conversion_status === "failed")
+              .length,
+            detection_status,
+            ocr_status,
+            classification_status,
+            ner_status,
+          };
+        }
+      );
+      setBatches(formattedBatches);
+      if (initialLoading) setInitialLoading(false);
     } catch (error) {
-      console.error("Failed to fetch status after API call:", error);
+      console.error("Failed to fetch status:", error);
     }
-  }
+  };
+
+  useEffect(() => {
+    let intervalId;
+
+    const fetchData = async () => {
+      if (!isDetected) {
+        await fetchStatus();
+      } else {
+        clearInterval(intervalId);
+      }
+    };
+
+    fetchData();
+
+    if (!isDetected) {
+      intervalId = setInterval(fetchData, 5000);
+    }
+
+    return () => {
+      clearInterval(intervalId);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isDetected]);
+
+  const handleFetchAfterApiCall = async (selectedBatchIds) => {
+    if (selectedBatchIds.length > 0) {
+      try {
+        await fetchStatus(selectedBatchIds);
+      } catch (error) {
+        console.error("Failed to fetch status after API call:", error);
+      }
+    }
   };
 
   {
@@ -594,44 +597,44 @@ const handleFetchAfterApiCall = async (selectedBatchIds) => {
     pointerEvents: isDetected ? "none" : "auto",
   });
 
-const progressSteps = [
-  {
-    label: "Object Detection",
-    percentage: 0,
-    header: "Select resume batches to process",
-  },
-  {
-    label: "OCR",
-    percentage: 25,
-    header: "Extracting text from resumes",
-  },
-  {
-    label: "Classification",
-    percentage: 50,
-    header: "Classifying extracted text",
-  },
-  {
-    label: "NER",
-    percentage: 75,
-    header: "Extracting keywords with NER and regex",
-  },
-  {
-    label: "Embedding Step",
-    percentage: 100,
-    header: "All processing steps completed",
-  },
-];
+  const progressSteps = [
+    {
+      label: "Object Detection",
+      percentage: 0,
+      header: "Select resume batches to process",
+    },
+    {
+      label: "OCR",
+      percentage: 25,
+      header: "Extracting text from resumes",
+    },
+    {
+      label: "Classification",
+      percentage: 50,
+      header: "Classifying extracted text",
+    },
+    {
+      label: "NER",
+      percentage: 75,
+      header: "Extracting keywords with NER and regex",
+    },
+    {
+      label: "Embedding Step",
+      percentage: 100,
+      header: "All processing steps completed",
+    },
+  ];
 
-let currentStep = 0;
+  let currentStep = 0;
 
-if (isDetected) currentStep = 1;
-if (isOcr) currentStep = 2;
-if (isClassification) currentStep = 3;
-if (isNer) currentStep = 4;
+  if (isDetected) currentStep = 1;
+  if (isOcr) currentStep = 2;
+  if (isClassification) currentStep = 3;
+  if (isNer) currentStep = 4;
 
-const progressLabel = progressSteps[currentStep].label;
-const progressPercentage = progressSteps[currentStep].percentage;
-const headerText = progressSteps[currentStep].header;
+  const progressLabel = progressSteps[currentStep].label;
+  const progressPercentage = progressSteps[currentStep].percentage;
+  const headerText = progressSteps[currentStep].header;
 
   const categories = Object.keys(clsfLines);
 
@@ -696,7 +699,9 @@ const headerText = progressSteps[currentStep].header;
               {!isCompleted && (
                 <Col md={6} className="highlight-section scrollable-column">
                   <div className="sticky-title text-center">
-                    <h3 className="fs-6 mb-1 text-dark"><b>{headerText}</b></h3>
+                    <h3 className="fs-6 mb-1 text-dark">
+                      <b>{headerText}</b>
+                    </h3>
                     <div className="px-3 py-1">
                       <ProgressBar
                         animated
@@ -906,7 +911,9 @@ const headerText = progressSteps[currentStep].header;
                         <h4 className="fs-6 mb-2 mt-2 text-dark">
                           <b>Batch {selectedBatch.batchId}</b>
                           <br />
-                          <b>Uploaded on {formatDate(selectedBatch.start_date)}</b>
+                          <b>
+                            Uploaded on {formatDate(selectedBatch.start_date)}
+                          </b>
                         </h4>
                       </div>
                       {selectedBatch.files.map((file, index) => (
@@ -938,7 +945,7 @@ const headerText = progressSteps[currentStep].header;
                               </span>
                             </div>
                             <div className="mb-1" style={{ fontSize: "15px" }}>
-                             <b> File Name:</b>
+                              <b> File Name:</b>
                               <span className="info-text">
                                 {" "}
                                 {file.original_name}

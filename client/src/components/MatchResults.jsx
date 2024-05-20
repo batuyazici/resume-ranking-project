@@ -62,7 +62,17 @@ function MatchResults() {
       </div>
     );
   }
-
+    if (matchResults.length === 0) {
+      return (
+        <Container
+          fluid="md"
+          className="d-flex justify-content-center match-container-1 mt-4 w-50"
+        >
+            <h3 className="">There is no matched resumes or jobs</h3>
+        </Container>
+      );
+  }
+  
   return (
     <div className="form-continue-section d-flex justify-content-center">
       <div style={{ width: "100%", maxWidth: "800px" }}>
@@ -76,16 +86,24 @@ function MatchResults() {
                 borderRadius: "5px",
               }}
             >
-              <h3 style={{ margin: "0", textAlign: "center" }}>Match Results</h3>
+              <h3 style={{ margin: "0", textAlign: "center" }}>
+                Match Results
+              </h3>
             </div>
           </Row>
           <Row className="justify-content-center mb-4">
-            <Accordion defaultActiveKey="0" style={{ width: "100%", padding: "0" }}>
+            <Accordion
+              defaultActiveKey="0"
+              style={{ width: "100%", padding: "0" }}
+            >
               {matchResults.map((matchResult, index) => (
                 <Accordion.Item eventKey={index.toString()} key={index}>
                   <Accordion.Header>
-                    <div className="d-flex w-100 justify-content-between align-items-center flex-nowrap" style={{ gap: "10px", fontSize: "0.9rem"}}>
-                    <div>
+                    <div
+                      className="d-flex w-100 justify-content-between align-items-center flex-nowrap"
+                      style={{ fontSize: "0.9rem" }}
+                    >
+                      <div>
                         <strong>Match ID:</strong> {matchResult.match_id}
                       </div>
                       <div>
@@ -95,98 +113,165 @@ function MatchResults() {
                         <strong>Company:</strong> {matchResult.company}
                       </div>
                       <div>
-                        <strong>Match Date:</strong> {formatDate(matchResult.match_date)}
+                        <strong>Match Date:</strong>{" "}
+                        {formatDate(matchResult.match_date)}
                       </div>
                     </div>
                   </Accordion.Header>
                   <Accordion.Body>
-                    {matchResult.matches.map((match, fileIndex) => (
-                      <div key={fileIndex}>
-                        <Card>
-                          <Card.Header
-                            onClick={() => toggleFile(match.file_id)}
-                            aria-controls={`file-details-${match.file_id}`}
-                            aria-expanded={open[match.file_id]}
-                            style={{
-                              cursor: "pointer",
-                              backgroundColor: "#f9f9f9",
-                            }}
-                          >
-                            <div className="d-flex justify-content-between">
-                              <div>
-                                <strong>File ID:</strong> {match.file_id}
+                    {matchResult.matches
+                      .slice() // Create a copy of the array
+                      .sort((a, b) => b.final_score - a.final_score) // Sort in descending order based on final_score
+                      .map((match, fileIndex) => (
+                        <div key={fileIndex}>
+                          <Card>
+                            <Card.Header
+                              onClick={() => toggleFile(match.file_id)}
+                              aria-controls={`file-details-${match.file_id}`}
+                              aria-expanded={open[match.file_id]}
+                              style={{
+                                cursor: "pointer",
+                                backgroundColor: "#f9f9f9",
+                              }}
+                            >
+                              <div className="d-flex justify-content-between">
+                                <div>
+                                  <strong>File ID:</strong> {match.file_id}
+                                </div>
+                                <div>{match.original_name}</div>
+                                <div>
+                                  <strong>Final Score:</strong>{" "}
+                                  {match.final_score}
+                                </div>
                               </div>
-                              <div>{match.original_name}</div>
-                              <div>
-                                <strong>Final Score:</strong> {match.final_score}
+                            </Card.Header>
+                            <Collapse in={open[match.file_id]}>
+                              <div id={`file-details-${match.file_id}`}>
+                                <Card.Body>
+                                  <h5>Scores</h5>
+                                  <Table bordered hover className="mb-3">
+                                    <thead
+                                      style={{
+                                        backgroundColor: "rgb(148, 44, 210)",
+                                        color: "white",
+                                      }}
+                                    >
+                                      <tr>
+                                        <th>Category</th>
+                                        <th>Score</th>
+                                        <th>Weight</th>
+                                      </tr>
+                                    </thead>
+                                    <tbody>
+                                      <tr>
+                                        <td>Skills</td>
+                                        <td>
+                                          {match.similarity_scores.skills}
+                                        </td>
+                                        <td>{match.weights.skills}</td>
+                                      </tr>
+                                      <tr>
+                                        <td>Experience</td>
+                                        <td>
+                                          {match.similarity_scores.experience}
+                                        </td>
+                                        <td>{match.weights.experience}</td>
+                                      </tr>
+                                      <tr>
+                                        <td>Education</td>
+                                        <td>
+                                          {match.similarity_scores.education}
+                                        </td>
+                                        <td>{match.weights.education}</td>
+                                      </tr>
+                                      <tr>
+                                        <td>Miscellaneous</td>
+                                        <td>
+                                          {
+                                            match.similarity_scores
+                                              .miscellaneous
+                                          }
+                                        </td>
+                                        <td>{match.weights.miscellaneous}</td>
+                                      </tr>
+                                      <tr>
+                                        <td>Keyword Match</td>
+                                        <td>
+                                          {Object.values(
+                                            match.bm25_scores
+                                          ).reduce((a, b) => a + b, 0)}
+                                        </td>
+                                        <td>{match.weights.bm25}</td>
+                                      </tr>
+                                    </tbody>
+                                  </Table>
+                                  <h5>Keyword Matches Detail</h5>
+                                  <Table bordered hover>
+                                    <thead
+                                      style={{
+                                        backgroundColor: "rgb(148, 44, 210)",
+                                        color: "white",
+                                      }}
+                                    >
+                                      <tr>
+                                        <th>Keyword</th>
+                                        <th>Score</th>
+                                      </tr>
+                                    </thead>
+                                    <tbody>
+                                      {Object.entries(match.bm25_scores)
+                                        .length > 0 ? (
+                                        Object.entries(match.bm25_scores).map(
+                                          ([key, value]) => (
+                                            <tr key={key}>
+                                              <td>{key}</td>
+                                              <td
+                                                style={{
+                                                  color:
+                                                    value > 0
+                                                      ? "green"
+                                                      : "inherit",
+                                                }}
+                                              >
+                                                {value}{" "}
+                                                {value === 0 && "(No matches)"}
+                                              </td>
+                                            </tr>
+                                          )
+                                        )
+                                      ) : (
+                                        <tr>
+                                          <td colSpan={2}>
+                                            No BM25 scores available
+                                          </td>
+                                        </tr>
+                                      )}
+                                    </tbody>
+                                  </Table>
+                                  <h5>Extracted Information</h5>
+                                  <ListGroup variant="flush">
+                                    {Object.entries(match.extracted_info)
+                                      .length > 0 ? (
+                                      Object.entries(match.extracted_info).map(
+                                        ([key, value]) => (
+                                          <ListGroup.Item key={key}>
+                                            <strong>{key}:</strong>{" "}
+                                            {value.join(", ")}
+                                          </ListGroup.Item>
+                                        )
+                                      )
+                                    ) : (
+                                      <ListGroup.Item>
+                                        No extracted information available
+                                      </ListGroup.Item>
+                                    )}
+                                  </ListGroup>
+                                </Card.Body>
                               </div>
-                            </div>
-                          </Card.Header>
-                          <Collapse in={open[match.file_id]}>
-                            <div id={`file-details-${match.file_id}`}>
-                              <Card.Body>
-                                <h5>Scores</h5>
-                                <Table bordered hover className="mb-3">
-                                  <thead style={{ backgroundColor: "rgb(148, 44, 210)", color: "white" }}>
-                                    <tr>
-                                      <th>Category</th>
-                                      <th>Score</th>
-                                    </tr>
-                                  </thead>
-                                  <tbody>
-                                    <tr>
-                                      <td>Skills</td>
-                                      <td>{match.similarity_scores.skills}</td>
-                                    </tr>
-                                    <tr>
-                                      <td>Experience</td>
-                                      <td>{match.similarity_scores.experience}</td>
-                                    </tr>
-                                    <tr>
-                                      <td>Education</td>
-                                      <td>{match.similarity_scores.education}</td>
-                                    </tr>
-                                    <tr>
-                                      <td>Miscellaneous</td>
-                                      <td>{match.similarity_scores.miscellaneous}</td>
-                                    </tr>
-                                    <tr>
-                                      <td>Keyword Match</td>
-                                      <td>{Object.values(match.bm25_scores).reduce((a, b) => a + b, 0)}</td>
-                                    </tr>
-                                  </tbody>
-                                </Table>
-                                <h5>Keyword Matches Detail</h5>
-                                <ListGroup variant="flush" className="mb-3">
-                                  {Object.entries(match.bm25_scores).length > 0 ? (
-                                    Object.entries(match.bm25_scores).map(([key, value]) => (
-                                      <ListGroup.Item key={key} style={{ color: value > 0 ? "green" : "inherit" }}>
-                                            <strong>Keyword:</strong>{" "} {key} <strong>Score: </strong> {value} {" "}
-                                            {(value === 0 && "(No matches)")}
-                                      </ListGroup.Item>
-                                    ))
-                                  ) : (
-                                    <ListGroup.Item>No BM25 scores available</ListGroup.Item>
-                                  )}
-                                </ListGroup>
-                                <h5>Extracted Information</h5>
-                                <ListGroup variant="flush">
-                                  {Object.entries(match.extracted_info).length > 0 ? (
-                                    Object.entries(match.extracted_info).map(([key, value]) => (
-                                      <ListGroup.Item key={key}>
-                                        <strong>{key}:</strong> {value.join(", ")}
-                                      </ListGroup.Item>
-                                    ))
-                                  ) : (
-                                    <ListGroup.Item>No extracted information available</ListGroup.Item>
-                                  )}
-                                </ListGroup>
-                              </Card.Body>
-                            </div>
-                          </Collapse>
-                        </Card>
-                      </div>
-                    ))}
+                            </Collapse>
+                          </Card>
+                        </div>
+                      ))}
                   </Accordion.Body>
                 </Accordion.Item>
               ))}

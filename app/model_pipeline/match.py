@@ -80,7 +80,7 @@ async def match_impl(file_handler, files_data, job_data):
                 embeddings = await fetch_cv_embeddings(file["file_id"])
                 files_list.append({
                     "file_id": file["file_id"],
-                     "original_name": file["original_name"],
+                    "original_name": file["original_name"],
                     "extracted_info": extracted_info,
                     "embeddings": embeddings
                 })
@@ -166,6 +166,13 @@ async def match_impl(file_handler, files_data, job_data):
             "extracted_info": extracted_info,
             "bm25_scores": file_scores,
             "similarity_scores": similarity_scores,
+            "weights": {
+                "bm25": bm25_weight,
+                "skills": skills_weight,
+                "experience": experience_weight,
+                "education": education_weight,
+                "miscellaneous": miscellaneous_weight
+            },
             "final_score": final_score
         })
 

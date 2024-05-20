@@ -1,6 +1,11 @@
 import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { X, ChevronLeft, ChevronRight } from "react-bootstrap-icons";
+import {
+  X,
+  ChevronLeft,
+  ChevronRight,
+  ArrowRightCircle,
+} from "react-bootstrap-icons";
 import "bootstrap/dist/css/bootstrap.min.css";
 import Tiptap from "./Tiptap";
 import {
@@ -18,7 +23,7 @@ import spectrumGradient from "../assets/img/spectrum-gradient.svg";
 const CreateJob = () => {
   const [skills, setSkills] = useState([]);
   const [inputValue, setInputValue] = useState("");
-  const [buttonText, setButtonText] = useState("Submit");
+  const [showScoreAlert, setShowScoreAlert] = useState(false);
   const [isLoading, setIsLoading] = useState(false); // Loading state
   const [showSuccess, setShowSuccess] = useState(false);
   const navigate = useNavigate();
@@ -40,6 +45,15 @@ const CreateJob = () => {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    const totalScore = Object.values(scores).reduce(
+      (total, score) => total + score,
+      0
+    );
+
+    if (totalScore !== 100) {
+      setShowScoreAlert(true); // Show score alert
+      return;
+    }
     setIsLoading(true); // Set loading to true
 
     const jobDescriptionJSON = tiptapEditorRef.current
@@ -205,6 +219,15 @@ const CreateJob = () => {
           Job posted successfully!
         </Alert>
       )}
+      {showScoreAlert && (
+        <Alert
+          variant="danger"
+          dismissible
+          className="fixed-top-alert alert-slide mt-3"
+        >
+          Please enter scores that add up to 100%.
+        </Alert>
+      )}
 
       <Container
         fluid="md"
@@ -225,7 +248,9 @@ const CreateJob = () => {
           style={{ borderRadius: "15px" }}
         >
           <div className="text-center mb-3">
-            <b>Fill in the job details and set CV category weights to equal 100%.</b>
+            <b>
+              Fill in the job details and set CV category weights to equal 100%.
+            </b>
           </div>
           <Row className="justify-content-center">
             <Col>
@@ -279,7 +304,9 @@ const CreateJob = () => {
             </Col>
           </Row>
           <Form.Group className="mb-1" controlId="jobTitle">
-            <Form.Label><b>Job Title</b></Form.Label>
+            <Form.Label>
+              <b>Job Title</b>
+            </Form.Label>
             <Form.Control
               type="text"
               placeholder="Enter job title"
@@ -289,7 +316,9 @@ const CreateJob = () => {
             />
           </Form.Group>
           <Form.Group className="mb-1" controlId="company">
-            <Form.Label><b>Company</b></Form.Label>
+            <Form.Label>
+              <b>Company</b>
+            </Form.Label>
             <Form.Control
               type="text"
               placeholder="Enter company name"
@@ -299,7 +328,9 @@ const CreateJob = () => {
             />
           </Form.Group>
           <Form.Group className="mb-1" controlId="location">
-            <Form.Label><b>Job Location</b></Form.Label>
+            <Form.Label>
+              <b>Job Location</b>
+            </Form.Label>
             <Form.Control
               type="text"
               placeholder="Enter location"
@@ -309,7 +340,9 @@ const CreateJob = () => {
             />
           </Form.Group>
           <Form.Group className="mb-1" controlId="jobType">
-            <Form.Label><b>Job Type</b></Form.Label>
+            <Form.Label>
+              <b>Job Type</b>
+            </Form.Label>
             <Form.Select
               aria-label="Employee type select"
               name="employeeType"
@@ -326,11 +359,15 @@ const CreateJob = () => {
             </Form.Select>
           </Form.Group>
           <Form.Group className="mb-1" controlId="jobDescription">
-            <Form.Label><b>Job Description</b></Form.Label>
+            <Form.Label>
+              <b>Job Description</b>
+            </Form.Label>
             <Tiptap ref={tiptapEditorRef} />
           </Form.Group>
           <Form.Group className="mb-1 mt-0" controlId="jobSkills">
-            <Form.Label><b>Add Skills</b></Form.Label>
+            <Form.Label>
+              <b>Add Skills</b>
+            </Form.Label>
             <Form.Text className="mx-1">(Select up to 10)</Form.Text>
             <div className="d-flex flex-wrap">
               {skills.map((skill, index) => (
@@ -381,7 +418,7 @@ const CreateJob = () => {
                   <span className="sr-only"> Loading...</span>
                 </>
               ) : (
-                buttonText
+                "Submit"
               )}
             </Button>
           </div>
@@ -396,7 +433,7 @@ const CreateJob = () => {
             size="lg"
             onClick={handleMatchClick}
           >
-            Match CVs
+            Match CVs <ArrowRightCircle size={25} />
           </Button>
         </div>
       )}

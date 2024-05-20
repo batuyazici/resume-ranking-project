@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Button, Container, Row, Col, Card, Image } from "react-bootstrap";
 import PropTypes from "prop-types";
 import { ArrowLeftCircle } from "react-bootstrap-icons";
