@@ -29,6 +29,7 @@ poetry.lock
 /app/model_pipeline/inputs/
 /app/data/
 /app/model_pipeline/jobs
+/app/model_pipeline/matches/
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

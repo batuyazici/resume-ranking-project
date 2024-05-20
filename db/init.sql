@@ -68,6 +68,8 @@ CREATE TABLE "ner_results" (
 CREATE TABLE "job_process" (
   "job_id" SERIAL PRIMARY KEY,
   "job_path" TEXT,
+  "job_title" VARCHAR(255),
+  "company_name" VARCHAR(255),
   "create_date" TIMESTAMP DEFAULT (CURRENT_TIMESTAMP),
   "status" VARCHAR(50)
 );
@@ -78,7 +80,8 @@ CREATE TABLE "match_process" (
   "job_id" INT NOT NULL,
   "match_name" VARCHAR(255),
   "match_path" TEXT,
-  "match_date" TIMESTAMP DEFAULT (CURRENT_TIMESTAMP)
+  "match_date" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE ("batch_id", "job_id")
 );
 
 CREATE TABLE "resume_embeddings" (

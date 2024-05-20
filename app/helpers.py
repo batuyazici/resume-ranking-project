@@ -71,3 +71,8 @@ async def conf_input_file():
 
 def format_record(record):
     return {key: (value.strftime('%Y-%m-%d %H:%M:%S') if isinstance(value, datetime) else value) for key, value in record.items()}
+
+def create_match_name():
+    match_id = str(uuid.uuid4())
+    filename = f"{match_id}.json"
+    return filename

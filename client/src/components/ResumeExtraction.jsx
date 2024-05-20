@@ -696,7 +696,7 @@ const headerText = progressSteps[currentStep].header;
               {!isCompleted && (
                 <Col md={6} className="highlight-section scrollable-column">
                   <div className="sticky-title text-center">
-                    <h3 className="fs-6 mb-1 text-dark">{headerText}</h3>
+                    <h3 className="fs-6 mb-1 text-dark"><b>{headerText}</b></h3>
                     <div className="px-3 py-1">
                       <ProgressBar
                         animated
@@ -904,41 +904,41 @@ const headerText = progressSteps[currentStep].header;
                     <div key={idx}>
                       <div className="sticky-title text-center">
                         <h4 className="fs-6 mb-2 mt-2 text-dark">
-                          Batch {selectedBatch.batchId}
+                          <b>Batch {selectedBatch.batchId}</b>
                           <br />
-                          Uploaded on {formatDate(selectedBatch.start_date)}
+                          <b>Uploaded on {formatDate(selectedBatch.start_date)}</b>
                         </h4>
                       </div>
                       {selectedBatch.files.map((file, index) => (
                         <Card key={index} className="mt-2">
                           <Card.Body>
                             <div className="mb-1" style={{ fontSize: "15px" }}>
-                              File ID:
+                              <b>File ID:</b>
                               <span className="info-text"> {file.file_id}</span>
                             </div>
                             <div className="mb-1" style={{ fontSize: "15px" }}>
-                              Process Type:
+                              <b>Process Type:</b>
                               <span className="info-text">
                                 {" "}
                                 {file.process_type}
                               </span>
                             </div>
                             <div className="mb-1" style={{ fontSize: "15px" }}>
-                              Upload Status:
+                              <b>Upload Status:</b>
                               <span className="info-text">
                                 {" "}
                                 {file.conversion_status}
                               </span>
                             </div>
                             <div className="mb-1" style={{ fontSize: "15px" }}>
-                              Number of Pages:
+                              <b>Number of Pages:</b>
                               <span className="info-text">
                                 {" "}
                                 {file.number_of_pages}
                               </span>
                             </div>
                             <div className="mb-1" style={{ fontSize: "15px" }}>
-                              File Name:
+                             <b> File Name:</b>
                               <span className="info-text">
                                 {" "}
                                 {file.original_name}

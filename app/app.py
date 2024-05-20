@@ -493,17 +493,18 @@ async def get_job_embed(submission: SubmissionData):
     from model_pipeline.embed import job_embed_impl
     try:
         job_title = submission.jobDetails.get("jobTitle", "")
+        company_name = submission.jobDetails.get("company", "")
         filename = edit_filename(job_title)
         file_path = os.path.join(file_handler.jobs_dir, filename)
         print(file_path)
         with open(file_path, 'w') as f:
             json.dump(submission.model_dump(), f, indent=2)
         job_process_query = """
-            INSERT INTO job_process (job_path) 
-            VALUES ($1) 
+            INSERT INTO job_process (job_path, job_title, company_name, status) 
+            VALUES ($1, $2, $3, $4) 
             RETURNING job_id
             """
-        job_id = await fetch_single_query(job_process_query, filename)   
+        job_id = await fetch_single_query(job_process_query, filename, job_title, company_name,"pending")   
             
         combined_text = f"Job Title: {submission.jobDetails['jobTitle']}\n" \
                         f"Company: {submission.jobDetails['company']}\n" \
@@ -565,7 +566,9 @@ async def get_match_data():
     job_query = """
         SELECT 
             job_id, 
-            job_path, 
+            job_path,
+            job_title,
+            company_name,
             create_date 
         FROM 
             job_process 
@@ -606,12 +609,11 @@ async def get_match_results(match_request: MatchRequest):
         files_data = []
         for batch_id in batch_ids:
             files = await fetch_query("""
-                SELECT f.file_id, f.storage_name, f.original_name b.results_path 
+                SELECT f.file_id, f.storage_name, f.original_name, b.results_path 
                 FROM uploaded_files f 
                 JOIN batch_process b ON f.batch_id = b.batch_id 
                 WHERE f.batch_id = $1
             """, int(batch_id))
-            
             for file in files:
                 files_data.append({
                     "file_id": file["file_id"],
@@ -619,19 +621,39 @@ async def get_match_results(match_request: MatchRequest):
                     "results_path": file["results_path"],
                     "original_name": file["original_name"]
                 })
+                match_data = await fetch_query("""
+                    INSERT INTO match_process (batch_id, job_id)
+                    VALUES ($1, $2)
+                    ON CONFLICT (batch_id, job_id) DO UPDATE 
+                    SET match_date = CURRENT_TIMESTAMP
+                    RETURNING match_id, match_date
+                """, int(batch_id), int(job_id))
+            
+        match_id = match_data[0]["match_id"]
+        match_date = match_data[0]["match_date"]
 
         # Fetching job_id and job_path
-        job = await fetch_query("SELECT job_id, job_path FROM job_process WHERE job_id = $1", job_id)
+        job = await fetch_query("SELECT job_id, job_path, company_name, job_title FROM job_process WHERE job_id = $1", job_id)
         if job is None:
             raise HTTPException(status_code=404, detail="Job not found")
-        
+
         job_data = {
             "job_id": job[0]["job_id"],
-            "job_path": job[0]["job_path"]
+            "job_path": job[0]["job_path"],
+            "job_title": job[0]["job_title"],
+            "company_name": job[0]["company_name"]
         }
         
-        results = await match_impl(file_handler.jobs_dir, files_data, job_data) 
-                # Ensure all data is JSON serializable
+        results = await match_impl(file_handler, files_data, job_data) 
+        match_date = match_date.strftime("%Y-%m-%d %H:%M:%S")
+        results["match_date"] = match_date
+
+        await execute_query("""
+            UPDATE match_process
+            SET match_path = $1
+            WHERE match_id = $2
+        """, results["match_name"], match_id)
+
         def make_serializable(obj):
             if isinstance(obj, np.ndarray):
                 return obj.tolist()

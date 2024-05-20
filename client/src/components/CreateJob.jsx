@@ -200,7 +200,7 @@ const CreateJob = () => {
         <Alert
           variant="success"
           dismissible
-          className="fixed-top-alert alert-slide"
+          className="fixed-top-alert alert-slide mt-3"
         >
           Job posted successfully!
         </Alert>
@@ -225,7 +225,7 @@ const CreateJob = () => {
           style={{ borderRadius: "15px" }}
         >
           <div className="text-center mb-3">
-            Fill in the job details and set CV category weights to equal 100%.
+            <b>Fill in the job details and set CV category weights to equal 100%.</b>
           </div>
           <Row className="justify-content-center">
             <Col>
@@ -279,7 +279,7 @@ const CreateJob = () => {
             </Col>
           </Row>
           <Form.Group className="mb-1" controlId="jobTitle">
-            <Form.Label>Job Title</Form.Label>
+            <Form.Label><b>Job Title</b></Form.Label>
             <Form.Control
               type="text"
               placeholder="Enter job title"
@@ -289,7 +289,7 @@ const CreateJob = () => {
             />
           </Form.Group>
           <Form.Group className="mb-1" controlId="company">
-            <Form.Label>Company</Form.Label>
+            <Form.Label><b>Company</b></Form.Label>
             <Form.Control
               type="text"
               placeholder="Enter company name"
@@ -299,7 +299,7 @@ const CreateJob = () => {
             />
           </Form.Group>
           <Form.Group className="mb-1" controlId="location">
-            <Form.Label>Job Location</Form.Label>
+            <Form.Label><b>Job Location</b></Form.Label>
             <Form.Control
               type="text"
               placeholder="Enter location"
@@ -309,7 +309,7 @@ const CreateJob = () => {
             />
           </Form.Group>
           <Form.Group className="mb-1" controlId="jobType">
-            <Form.Label>Job Type</Form.Label>
+            <Form.Label><b>Job Type</b></Form.Label>
             <Form.Select
               aria-label="Employee type select"
               name="employeeType"
@@ -326,11 +326,11 @@ const CreateJob = () => {
             </Form.Select>
           </Form.Group>
           <Form.Group className="mb-1" controlId="jobDescription">
-            <Form.Label>Job Description</Form.Label>
+            <Form.Label><b>Job Description</b></Form.Label>
             <Tiptap ref={tiptapEditorRef} />
           </Form.Group>
           <Form.Group className="mb-1 mt-0" controlId="jobSkills">
-            <Form.Label>Add Skills</Form.Label>
+            <Form.Label><b>Add Skills</b></Form.Label>
             <Form.Text className="mx-1">(Select up to 10)</Form.Text>
             <div className="d-flex flex-wrap">
               {skills.map((skill, index) => (

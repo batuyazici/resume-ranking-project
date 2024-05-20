@@ -6,9 +6,7 @@ import json
 import db
 import string
 import numpy as np
-
-nltk.download('punkt')
-nltk.download('stopwords')
+from helpers import create_match_name
 
 def tokenize_doc(text):
     tokens = nltk.word_tokenize(text.lower())
@@ -67,7 +65,7 @@ async def fetch_job_embeddings(job_id):
     job_embeddings = [np.array(embedding['embedding']) for embedding in embeddings]  # Convert to numpy array
     return job_embeddings[0]  # Assume only one job embedding
 
-async def match_impl(jobs_dir, files_data, job_data):
+async def match_impl(file_handler, files_data, job_data):
     files_list = []
     # Loop through each file and load the NER data
     for file in files_data:
@@ -82,6 +80,7 @@ async def match_impl(jobs_dir, files_data, job_data):
                 embeddings = await fetch_cv_embeddings(file["file_id"])
                 files_list.append({
                     "file_id": file["file_id"],
+                     "original_name": file["original_name"],
                     "extracted_info": extracted_info,
                     "embeddings": embeddings
                 })
@@ -90,7 +89,7 @@ async def match_impl(jobs_dir, files_data, job_data):
         except json.JSONDecodeError:
             return {"status": "error", "message": f"Error decoding job description JSON at {job_path}"}
             
-    job_path = os.path.join(jobs_dir, job_data["job_path"])
+    job_path = os.path.join(file_handler.jobs_dir, job_data["job_path"])
         
     try:
         with open(job_path, 'r') as job_file:
@@ -123,6 +122,8 @@ async def match_impl(jobs_dir, files_data, job_data):
     
     match_results = {
         "job_id": job_data["job_id"],
+        "job_title": job_data["job_title"],
+        "company": job_data["company_name"],
         "matches": []
     }
 
@@ -168,6 +169,17 @@ async def match_impl(jobs_dir, files_data, job_data):
             "final_score": final_score
         })
 
+    match_name = create_match_name()
+    match_results["match_name"] = match_name
+    match_path = os.path.join(file_handler.match_dir, match_name)
+    
+
+    try:
+         with open(match_path, 'w') as json_file:
+            json.dump(match_results, json_file, indent=4)
+    except IOError as e:
+         return {"status": "error", "message": f"Failed to write match results to {match_path}: {str(e)}"}
+        
     return match_results
     
 
