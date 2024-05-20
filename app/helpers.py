@@ -3,7 +3,10 @@ from config import SAVE_DIR, INPUT_DIR
 from db import execute_query, fetch_query 
 import pathlib
 from datetime import datetime
+import json
+import os
 import re
+
 def clean_filename(filename):
     extension = filename.rsplit('.', 1)[1] if '.' in filename else ''
     sanitized_name = f"{uuid.uuid4()}.{extension}"
@@ -76,3 +79,19 @@ def create_match_name():
     match_id = str(uuid.uuid4())
     filename = f"{match_id}.json"
     return filename
+
+async def update_match_data(record, match_dir):
+    match_path = record['match_path']
+    match_name = record['match_name']
+    match_id = record['match_id']
+    
+    match_file = os.path.join(match_path, match_name)
+    if os.path.exists(match_file):
+        with open(match_file, 'r') as file:
+            match_data = json.load(file)
+            match_data['match_id'] = match_id
+            record.update(match_data)
+    else:
+        record['error'] = f"File {match_path} not found"
+    
+    return record

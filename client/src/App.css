@@ -671,7 +671,16 @@ span.navbar-text {
   border: 1px solid #ccc; /* Example grey border */
   display: none;
 }
-
+.accordion-button {
+  padding-left: 0.3rem !important;
+  padding-right: 0.3rem !important;
+  padding-top: 0.75rem !important;
+  padding-bottom: 0.75rem !important;
+}
+.accordion-button.collapsed {
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
 /***** Text Editor ****/
 
 .ProseMirror:focus {

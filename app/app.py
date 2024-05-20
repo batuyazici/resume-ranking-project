@@ -7,7 +7,7 @@ import shutil
 import glob
 import json
 from db import init_connection_pool, close_connection_pool, execute_query, fetch_query, fetch_single_query, executemany_query
-from helpers import clean_filename, edit_filename, init_upload_batch, check_batch_exists, conf_input_file, format_record
+from helpers import clean_filename, edit_filename, init_upload_batch, check_batch_exists, conf_input_file, format_record, update_match_data
 from file_processing import docx_conv, pdf_conv
 from config import UPLOAD_DIR, SAVE_DIR, SAVE_DIR_API
 from model_pipeline.utils.files import FileHandler
@@ -621,14 +621,11 @@ async def get_match_results(match_request: MatchRequest):
                     "results_path": file["results_path"],
                     "original_name": file["original_name"]
                 })
-                match_data = await fetch_query("""
-                    INSERT INTO match_process (batch_id, job_id)
-                    VALUES ($1, $2)
-                    ON CONFLICT (batch_id, job_id) DO UPDATE 
-                    SET match_date = CURRENT_TIMESTAMP
-                    RETURNING match_id, match_date
-                """, int(batch_id), int(job_id))
-            
+
+        match_data = await fetch_query("""
+            INSERT INTO match_process DEFAULT VALUES
+            RETURNING match_id, match_date
+        """)
         match_id = match_data[0]["match_id"]
         match_date = match_data[0]["match_date"]
 
@@ -650,9 +647,9 @@ async def get_match_results(match_request: MatchRequest):
 
         await execute_query("""
             UPDATE match_process
-            SET match_path = $1
-            WHERE match_id = $2
-        """, results["match_name"], match_id)
+            SET match_path = $1, match_name = $2
+            WHERE match_id = $3
+        """, str(file_handler.match_dir), results["match_name"], match_id)
 
         def make_serializable(obj):
             if isinstance(obj, np.ndarray):
@@ -669,7 +666,24 @@ async def get_match_results(match_request: MatchRequest):
         return JSONResponse(content=serializable_results) 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-    
+
+@app.get("/match/results/")
+async def get_match_results():
+    try:
+        query = """
+            SELECT 
+            match_id, match_date, match_name, match_path
+            FROM 
+                match_process
+            ORDER BY match_date DESC;
+        """
+        results = await fetch_query(query)
+        formatted_results = [await update_match_data(format_record(record), file_handler.match_dir) for record in results]
+
+        return JSONResponse(content=formatted_results)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
     
 if __name__ == "__main__":
     uvicorn.run(app, host="127.0.0.1", port=8000)

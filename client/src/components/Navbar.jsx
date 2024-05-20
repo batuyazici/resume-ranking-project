@@ -70,7 +70,7 @@ function HeaderNavbar() {
             >
               Match Results
             </Nav.Link>
-            <Nav.Link
+            {/* <Nav.Link
               as={Link}
               to="/results/cvs"
               className={
@@ -79,7 +79,7 @@ function HeaderNavbar() {
               onClick={() => onUpdateActiveLink("results/cv")}
             >
               CV Results
-            </Nav.Link>
+            </Nav.Link> */}
           </Nav>
           <span className="navbar-text">
             <button className="vvd" onClick={() => navigate("/match")}>

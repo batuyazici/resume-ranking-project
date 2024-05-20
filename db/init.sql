@@ -76,12 +76,9 @@ CREATE TABLE "job_process" (
 
 CREATE TABLE "match_process" (
   "match_id" SERIAL PRIMARY KEY,
-  "batch_id" INT NOT NULL,
-  "job_id" INT NOT NULL,
   "match_name" VARCHAR(255),
   "match_path" TEXT,
-  "match_date" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  UNIQUE ("batch_id", "job_id")
+  "match_date" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE "resume_embeddings" (
@@ -118,10 +115,6 @@ ALTER TABLE "ocr_results" ADD FOREIGN KEY ("batch_id") REFERENCES "batch_process
 ALTER TABLE "classification_results" ADD FOREIGN KEY ("batch_id") REFERENCES "batch_process" ("batch_id");
 
 ALTER TABLE "ner_results" ADD FOREIGN KEY ("batch_id") REFERENCES "batch_process" ("batch_id");
-
-ALTER TABLE "match_process" ADD FOREIGN KEY ("batch_id") REFERENCES "batch_process" ("batch_id");
-
-ALTER TABLE "match_process" ADD FOREIGN KEY ("job_id") REFERENCES "job_process" ("job_id");
 
 ALTER TABLE "resume_embeddings" ADD FOREIGN KEY ("file_id") REFERENCES "uploaded_files" ("file_id");
 

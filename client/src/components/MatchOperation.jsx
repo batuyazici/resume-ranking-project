@@ -12,7 +12,11 @@ import {
   ListGroup,
   Badge,
 } from "react-bootstrap";
-import { ArrowRightCircle, CheckCircleFill } from "react-bootstrap-icons";
+import {
+  ArrowRightCircle,
+  CheckCircleFill,
+  ArrowLeftCircle,
+} from "react-bootstrap-icons";
 import { generateHTML } from "@tiptap/html";
 import Document from "@tiptap/extension-document";
 import Paragraph from "@tiptap/extension-paragraph";
@@ -446,21 +450,25 @@ const MatchOperation = () => {
         <div className="form-continue-section d-flex justify-content-center">
           <div style={{ width: "100%", maxWidth: "800px" }}>
             <Container>
-              <Row className=" mb-3">
-              <Col>
-                <Button
-                  variant="outline-dark"
-                  className="mb-2"
-                  size="sm"
-                  onClick={() => setShowResultButton(false)}
+              <Row className="justify-content-center mt-3 mb-3">
+                <div
+                  className="text-white py-2 align-items-center"
+                  style={{
+                    border: "1px solid #942cd2",
+                    backgroundColor: "#942cd2",
+                    borderRadius: "5px",
+                  }}
                 >
-                  <b>Return</b>
-                </Button>
-                </Col>
-                <Col className="col align-self-center"><h3 style={{ color: "#000" }}>Match Results</h3> </Col>
+                  <h3 style={{ margin: "0", textAlign: "center" }}>
+                    Match Results
+                  </h3>
+                </div>
               </Row>
               <Row className="justify-content-center mb-4">
-                <Accordion defaultActiveKey="0" style={{ width: "100%" }}>
+                <Accordion
+                  defaultActiveKey="0"
+                  style={{ width: "100%", padding: "0" }}
+                >
                   <Accordion.Item eventKey="0">
                     <Accordion.Header>
                       <div
@@ -575,7 +583,7 @@ const MatchOperation = () => {
                                             }}
                                           >
                                             <strong>{key}:</strong> {value}{" "}
-                                            (BM25 Score)
+                                            {(value === 0 && "No matches")}
                                           </ListGroup.Item>
                                         )
                                       )
@@ -613,6 +621,15 @@ const MatchOperation = () => {
                   </Accordion.Item>
                 </Accordion>
               </Row>
+              <div className="d-flex justify-content-center align-items-center vh-50">
+                <Button
+                  variant="outline-dark"
+                  size="sm"
+                  onClick={() => setShowResultButton(false)}
+                >
+                  <b>Return</b> <ArrowLeftCircle size={25}/>
+                </Button>
+              </div>
             </Container>
           </div>
         </div>
