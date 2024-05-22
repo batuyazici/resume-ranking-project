@@ -15,7 +15,7 @@ export const Banner = () => {
   const [text, setText] = useState("");
   const [delta, setDelta] = useState(300 - Math.random() * 100);
 
-  const toRotate = ["Job Seekers", "Employers"];
+  const toRotate = ["HR Professionals", "Employers"];
   const period = 2000;
 
   useEffect(() => {
@@ -69,14 +69,14 @@ export const Banner = () => {
                     {`Welcome!`}{" "}
                     <span
                       className="txt-rotate"
-                      data-rotate='[ "Job Seekers", "Employers"]'
+                      data-rotate='[ "HR Professionals", "Employers"]'
                     >
                       <span className="wrap">{text}</span>
                     </span>
                   </h1>
                   <p>
                     Resume Ranking is a comprehensive and innovative platform
-                    for job seekers and employers. Our goal is to facilitate and
+                    for HR Professionals and Employers. Our goal is to facilitate and
                     accelerate the recruitment process with tools carefully
                     designed to meet the needs of both parties.{" "}
                   </p>

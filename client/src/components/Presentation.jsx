@@ -36,15 +36,14 @@ export const Presentation = () => {
         <Row>
           <Col>
             <div className="present-bx p-5 mx-5">
-              <h2>For Job Seekers</h2>
+              <h2>For HR Professionals</h2>
               <Col className="mx-5">
                 <p>
-                  Upload your CV, highlight your skills and experience! Our
-                  system automatically matches you with job postings that match
-                  your profile and expectations. Discover positions that match
-                  your career goals and apply now. Take advantage of our career
-                  tips and resume editing tools to guide you through your job
-                  search.
+                  Enhance your recruitment with our platform: invite candidates
+                  to upload their resumes and let our system automatically match
+                  them to suitable job vacancies. Utilize our tools to
+                  streamline the hiring process and secure top talent
+                  efficiently. Start optimizing your recruitment strategy today!
                 </p>
               </Col>
 
@@ -55,19 +54,19 @@ export const Presentation = () => {
               >
                 <div className="item">
                   <img src={resume1} alt="Image" />
-                  <h5>Find a suitable job</h5>
+                  <h5>Post Current Job Openings</h5>
                 </div>
                 <div className="item">
                   <img src={resume3} alt="Image" />
-                  <h5>Prepare a CV</h5>
+                  <h5>Attract Suitable Candidates</h5>
                 </div>
                 <div className="item">
                   <img src={resume4} alt="Image" />
-                  <h5>Upload CV</h5>
+                  <h5>Request CV Submission</h5>
                 </div>
                 <div className="item">
                   <img src={resume5} alt="Image" />
-                  <h5>Explore current job openings</h5>
+                  <h5>Match Resumes with Jobs</h5>
                 </div>
               </Carousel>
             </div>

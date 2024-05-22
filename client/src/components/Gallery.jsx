@@ -39,7 +39,7 @@ export const Gallery = () => {
               <p>
                 Create your job posting and quickly find ideal candidates from
                 our CV database. Our technology automatically matches
-                candidates`&apos;` skills and experience to your job
+                candidate&apos;s  skills and experience to your job
                 requirements, so you can easily track and assess the process
                 with our candidate management tools.
               </p>
