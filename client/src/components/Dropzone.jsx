@@ -318,7 +318,7 @@ function Dropzone({ onStepChange }) {
         >
           <div
             {...getRootProps({
-              className: "p-2 mt-2  dropzone font-monospace",
+              className: "p-2 mt-2  dropzone",
             })}
           >
             <input {...getInputProps()} />
@@ -332,7 +332,7 @@ function Dropzone({ onStepChange }) {
               variant="outline-dark"
               onClick={open}
               size="sm"
-              className="mt-2 font-monospace"
+              className="mt-2"
             >
               Add File <CloudArrowUp size={20} />
             </Button>
