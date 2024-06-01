@@ -678,6 +678,9 @@ async def get_match_results():
             ORDER BY match_date DESC;
         """
         results = await fetch_query(query)
+        if not results:
+            return JSONResponse(content=[])
+        
         formatted_results = [await update_match_data(format_record(record), file_handler.match_dir) for record in results]
 
         return JSONResponse(content=formatted_results)

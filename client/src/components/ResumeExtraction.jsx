@@ -487,13 +487,12 @@ function ResumeExtraction({ onStepChange }) {
     ]);
   };
 
-  const handleNerDelete = (batchId, category, index) => {
+  const handleNerDelete = (batchId, category, item) => {
     const batchData = nerResults.results[batchId];
-    const item = batchData[category][index];
     const updatedCategory = batchData[category].filter(
-      (_, idx) => idx !== index
+      (i) => !(i.start === item.start && i.end === item.end && i.text === item.text)
     );
-
+  
     setNerResults((prev) => ({
       ...prev,
       results: {
@@ -504,7 +503,7 @@ function ResumeExtraction({ onStepChange }) {
         },
       },
     }));
-
+  
     setChangedNerWords((prev) => [
       ...prev,
       {
@@ -515,6 +514,7 @@ function ResumeExtraction({ onStepChange }) {
       },
     ]);
   };
+  
 
   const handleNerChange = (batchId, category, itemIndex, newText, newLabel) => {
     const batchData = nerResults.results[batchId];
@@ -1229,107 +1229,106 @@ function ResumeExtraction({ onStepChange }) {
                         </Accordion.Item>
                       </Accordion>
                     ) : isNer ? (
-                      <Accordion className="mb-3 font-monospace">
-                        {Object.entries(categoriesNer).map(
-                          ([category, items], idx) => (
-                            <Accordion.Item eventKey={`${idx}`} key={category}>
-                              <Accordion.Header>
-                                <th>{category.toUpperCase()} </th>
-                                <Badge
-                                  bg=""
-                                  style={{
-                                    backgroundColor: "#cc71c4",
-                                    marginLeft: "5px",
-                                  }}
-                                >
-                                  {items.length}
-                                </Badge>
-                              </Accordion.Header>
-                              <Accordion.Body>
-                                {items.map((item, subIndex) => (
-                                  <Form.Group className="mb-3" key={subIndex}>
-                                    <Form.Label className="fw-bold">
-                                      Text (Current Label:{" "}
-                                      <Badge
-                                        bg=""
-                                        style={{
-                                          backgroundColor: "rgba(130, 38, 158)",
-                                        }}
-                                      >
-                                        {item.label}
-                                      </Badge>
-                                      )
-                                    </Form.Label>
-                                    <Stack direction="horizontal" gap={3}>
-                                      <Form.Control
-                                        defaultValue={item.text}
-                                        onBlur={(e) =>
-                                          handleNerChange(
-                                            currentFileId.fileId,
-                                            category,
-                                            subIndex,
-                                            e.target.value
-                                          )
-                                        }
-                                        className="me-auto"
-                                      />
-                                      <DropdownButton
-                                        id={`dropdown-label-change-${subIndex}`}
-                                        title="Change Label"
-                                        size="sm"
-                                        variant="secondary"
-                                        align="end"
-                                      >
-                                        {[
-                                          "person",
-                                          "job title",
-                                          "location",
-                                          "email",
-                                          "phone_number",
-                                          "link",
-                                          "university",
-                                          "degree",
-                                          "date",
-                                          "designation",
-                                          "years of experience",
-                                        ].map((label, labelIndex) => (
-                                          <Dropdown.Item
-                                            key={labelIndex}
-                                            onClick={() =>
-                                              handleNerChange(
-                                                currentFileId.fileId,
-                                                category,
-                                                subIndex,
-                                                undefined,
-                                                label
-                                              )
-                                            }
-                                          >
-                                            {label}
-                                          </Dropdown.Item>
-                                        ))}
-                                      </DropdownButton>
-                                      <Button
-                                        variant="danger"
-                                        size="sm"
-                                        onClick={() =>
-                                          handleNerDelete(
-                                            currentFileId.fileId,
-                                            category,
-                                            subIndex
-                                          )
-                                        }
-                                      >
-                                        <Trash />
-                                      </Button>
-                                    </Stack>
-                                  </Form.Group>
-                                ))}
-                              </Accordion.Body>
-                            </Accordion.Item>
-                          )
-                        )}
-                      </Accordion>
+<Accordion className="mb-3 font-monospace">
+  {Object.entries(categoriesNer).map(([category, items], idx) => (
+    <Accordion.Item eventKey={`${idx}`} key={category}>
+      <Accordion.Header>
+        <th>{category.toUpperCase()} </th>
+        <Badge
+          bg=""
+          style={{
+            backgroundColor: "#cc71c4",
+            marginLeft: "5px",
+          }}
+        >
+          {items.length}
+        </Badge>
+      </Accordion.Header>
+      <Accordion.Body>
+        {items.map((item, subIndex) => (
+          <Form.Group className="mb-3" key={`${item.start}-${item.end}-${item.text}`}>
+            <Form.Label className="fw-bold">
+              Text (Current Label:{" "}
+              <Badge
+                bg=""
+                style={{
+                  backgroundColor: "rgba(130, 38, 158)",
+                }}
+              >
+                {item.label}
+              </Badge>
+              )
+            </Form.Label>
+            <Stack direction="horizontal" gap={3}>
+              <Form.Control
+                defaultValue={item.text}
+                onBlur={(e) =>
+                  handleNerChange(
+                    currentFileId.fileId,
+                    category,
+                    subIndex,
+                    e.target.value
+                  )
+                }
+                className="me-auto"
+              />
+              <DropdownButton
+                id={`dropdown-label-change-${subIndex}`}
+                title="Change Label"
+                size="sm"
+                variant="secondary"
+                align="end"
+              >
+                {[
+                  "person",
+                  "job title",
+                  "location",
+                  "email",
+                  "phone_number",
+                  "link",
+                  "university",
+                  "degree",
+                  "date",
+                  "designation",
+                  "years of experience",
+                ].map((label, labelIndex) => (
+                  <Dropdown.Item
+                    key={labelIndex}
+                    onClick={() =>
+                      handleNerChange(
+                        currentFileId.fileId,
+                        category,
+                        subIndex,
+                        undefined,
+                        label
+                      )
+                    }
+                  >
+                    {label}
+                  </Dropdown.Item>
+                ))}
+              </DropdownButton>
+              <Button
+                variant="danger"
+                size="sm"
+                onClick={() =>
+                  handleNerDelete(
+                    currentFileId.fileId,
+                    category,
+                    item
+                  )
+                }
+              >
+                <Trash />
+              </Button>
+            </Stack>
+          </Form.Group>
+        ))}
+      </Accordion.Body>
+    </Accordion.Item>
+  ))}
+</Accordion>
+                   
                     ) : isClassification ? (
                       <Accordion defaultActiveKey="">
                         {categories.map((category, index) => (

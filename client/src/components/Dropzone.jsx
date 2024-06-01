@@ -256,9 +256,9 @@ function Dropzone({ onStepChange }) {
 
       if (response.ok) {
         setBatchId(data.batch_id);
-
         setIsUploading(false);
         setUploadSuccess(true);
+        console.log("File upload successful");
         setShowUploadSuccessAlert(true);
         sessionStorage.setItem("uploadSuccess", "true");
         setShowFileRejectionMessage(false);

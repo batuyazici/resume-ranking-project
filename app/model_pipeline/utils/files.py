@@ -8,6 +8,7 @@ class FileHandler:
         FILE = Path(__file__).resolve()
         ROOT = FILE.parents[1]
         self.source_dir = ROOT / 'data' 
+        self.source_dir.mkdir(exist_ok=True)
         results_base = ROOT / "results"
         results_base.mkdir(exist_ok=True)  # Ensure the base directory exists
         run_number = 1
@@ -16,7 +17,9 @@ class FileHandler:
         self.results_dir = results_base / f"run{run_number}"
         self.results_dir.mkdir()  # Create the new run directory
         self.jobs_dir = ROOT / "jobs"
+        self.jobs_dir.mkdir(exist_ok=True)
         self.match_dir = ROOT / "matches"
+        self.match_dir.mkdir(exist_ok=True)
         self.file_groups = None
         self.crops_dir = None
 

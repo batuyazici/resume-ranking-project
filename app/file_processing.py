@@ -55,7 +55,7 @@ async def docx_conv(file_id, docx_path, pdf_path, batch_id, save_dir, background
     try:
         convert_docx_to_pdf(abs_docx_path, pdf_path)
         conv_id = await fetch_single_query("INSERT INTO conversion_status (batch_id, process_type, status, file_id) VALUES ($1, 'docx-jpg', 'pending', $2) RETURNING conv_id", batch_id, file_id)
-        background_tasks.add_task(run_async(pdf_conv), file_id, pdf_path, save_dir, batch_id, conv_id)
+        background_tasks.add_task(pdf_conv, file_id, pdf_path, save_dir, batch_id, conv_id)
     except Exception as e:
         logging.error(f"Failed to convert PDF to JPG {pdf_path}: {str(e)}")
         await execute_query("INSERT INTO conversion_status (batch_id, process_type, status, file_id) VALUES ($1, 'Convert DOCX to PDF', 'failed', $2)", batch_id, file_id)
