@@ -12,6 +12,7 @@ import {
   Modal,
 } from "react-bootstrap";
 import { useEditor, EditorContent } from "@tiptap/react";
+import { ArrowLeftCircleFill, ArrowRightCircleFill } from 'react-bootstrap-icons';
 import Document from "@tiptap/extension-document";
 import Paragraph from "@tiptap/extension-paragraph";
 import Text from "@tiptap/extension-text";
@@ -172,7 +173,7 @@ function MatchResults() {
 
   return (
     <div className="form-continue-section d-flex justify-content-center">
-      <div style={{ width: "100%", maxWidth: "800px" }}>
+      <div style={{ width: "100%", maxWidth: "900px" }}>
         <Container>
           <Row className="justify-content-center mt-3 mb-3">
             <div
@@ -214,8 +215,17 @@ function MatchResults() {
                         {formatDate(matchResult.match_date)}
                       </div>
                       <Button
-                        variant="outline-light"
-                        size="sm"
+                         variant="outline-dark"
+                         size="sm"
+                         style={{ backgroundColor: "white", color: "black", borderColor: "black" }} // Default styles
+                         onMouseOver={e => {
+                           e.currentTarget.style.backgroundColor = 'black';
+                           e.currentTarget.style.color = 'white';
+                         }}
+                         onMouseOut={e => {
+                           e.currentTarget.style.backgroundColor = 'white';
+                           e.currentTarget.style.color = 'black';
+                         }}
                         onClick={(e) => {
                           e.stopPropagation();
                           handleViewJob(matchResult.job_id);
@@ -242,11 +252,12 @@ function MatchResults() {
                               }}
                             >
                               <div className="d-flex justify-content-between">
-                                <div>
+                                <div className="align-self-center">
                                   <strong>File ID:</strong> {match.file_id}
                                 </div>
                                 <Button
-                                  variant="link"
+                                  variant="outline-dark"
+                                  size="sm"
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     handleViewPdf(match.file_id);
@@ -254,8 +265,8 @@ function MatchResults() {
                                 >
                                   View PDF
                                 </Button>
-                                <div>{match.original_name}</div>
-                                <div>
+                                <div className="align-self-center ">{match.original_name}</div>
+                                <div className="align-self-center">
                                   <strong>Final Score:</strong>{" "}
                                   {match.final_score}
                                 </div>
@@ -418,7 +429,8 @@ function MatchResults() {
             alignItems: "center",
           }}
         >
-          <Modal.Title>
+          <Modal.Title  style={{ width: "100%" }}>
+          <div className="d-flex justify-content-center">
             <div
               className="sticky-title text-center text-white"
               style={{
@@ -430,6 +442,7 @@ function MatchResults() {
               }}
             >
               Job Details
+            </div>
             </div>
           </Modal.Title>
         </Modal.Header>
@@ -477,7 +490,7 @@ function MatchResults() {
             alignItems: "center",
           }}
         >
-          <Modal.Title>
+          <Modal.Title style={{width:"100%"}}>
             <div
               className="sticky-title text-center text-white"
               style={{
@@ -487,50 +500,54 @@ function MatchResults() {
                 borderRadius: "5px",
                 width: "100%",
               }}
-            ></div>
+            >Resume Informatıion</div>
           </Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <div className="d-flex justify-content-center mb-2">
-            <Button
-              size="sm"
-              className="mx-2"
-              variant="primary"
-              onClick={() => window.open(pdfFile)}
-              style={{ backgroundColor: "rgb(148, 44, 210)",border:"none" }}
-            >
-              Download PDF
-            </Button>
-            <Button
-              className="mx-2"
-              variant="secondary"
-              onClick={previousPage}
-              disabled={pageNumber <= 1}
-              size="sm"
-            >
-              Previous
-            </Button>
-            <div className="align-self-center mx-1">
-              <p className="text-black">
-                Page {pageNumber} of {numPages}
-              </p>
-            </div>
-            <Button
-              variant="secondary"
-              onClick={nextPage}
-              disabled={pageNumber >= numPages}
-              size="em"
-              className="mx-1"
-            >
-              Next
-            </Button>
-          </div>
-          <div className="w-25">
-            <PDFDocument file={pdfFile} onLoadSuccess={onDocumentLoadSuccess}>
-              <Page width="750" pageNumber={pageNumber} />
-            </PDFDocument>
-          </div>
-        </Modal.Body>
+    <div className="d-flex justify-content-center mb-2">
+      <Button
+        size="sm"
+        className="mx-2"
+        variant="primary"
+        onClick={() => window.open(pdfFile)}
+        style={{ backgroundColor: "rgb(148, 44, 210)", border: "none" }}
+      >
+        Download PDF
+      </Button>
+    </div>
+    <div className="d-flex justify-content-center mb-2">
+      <Button
+        className="mx-1"
+        variant="secondary"
+        onClick={previousPage}
+        disabled={pageNumber <= 1}
+        size="sm"
+        style={{ backgroundColor: "rgb(148, 44, 210)", border: "none" }}
+      >
+        <ArrowLeftCircleFill size={30} />
+      </Button>
+      <Button
+        variant="secondary"
+        onClick={nextPage}
+        disabled={pageNumber >= numPages}
+        size="sm"
+        className="mx-1"
+        style={{ backgroundColor: "rgb(148, 44, 210)", border: "none" }}
+      >
+        <ArrowRightCircleFill size={30} />
+      </Button>
+    </div>
+    <div className="d-flex justify-content-center mb-0">
+      <p className="text-black">
+        Page {pageNumber} of {numPages}
+      </p>
+    </div>
+    <div>
+      <PDFDocument file={pdfFile} onLoadSuccess={onDocumentLoadSuccess}>
+        <Page width="750" height="750" pageNumber={pageNumber} />
+      </PDFDocument>
+    </div>
+  </Modal.Body>
       </Modal>
     </div>
   );
