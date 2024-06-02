@@ -153,9 +153,17 @@ function MatchResults() {
   if (loading) {
     return (
       <div className="d-flex justify-content-center mt-5">
-        <Spinner animation="border" role="status">
-          <span className="sr-only">Loading...</span>
-        </Spinner>
+      <Container className="mt-4 d-flex justify-content-center">
+      <Spinner animation="grow" className="big-spinner" />
+      <Spinner animation="grow" className="big-spinner" />
+      <Spinner animation="grow" className="big-spinner" />
+      <Spinner animation="grow" className="big-spinner" />
+      <Spinner animation="grow" className="big-spinner" />
+      <Spinner animation="grow" className="big-spinner" />
+      <Spinner animation="grow" className="big-spinner" />
+      <Spinner animation="grow" className="big-spinner" />
+      <Spinner animation="grow" className="big-spinner" />
+    </Container>
       </div>
     );
   }
