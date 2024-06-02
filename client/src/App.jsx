@@ -16,8 +16,8 @@ function App() {
         <Route path="/jobs" element={<JobsPage />} />
         <Route path="/cvs" element={<ResumesPage/>} />
         <Route path="/match" element={<MatchPage/>} />
-        <Route path="/results/match" element={<MatchResultsPage/>} />
-        <Route path="/results/cvs" element={<ResumeResultsPage/>} />
+        <Route path="/match/results" element={<MatchResultsPage/>} />
+        <Route path="/cvs/results" element={<ResumeResultsPage/>} />
         </Routes>  
       </BrowserRouter>
     </>

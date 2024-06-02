@@ -22,8 +22,8 @@ import BulletList from "@tiptap/extension-bullet-list";
 import ListItem from "@tiptap/extension-list-item";
 import Heading from "@tiptap/extension-heading";
 import HardBreak from "@tiptap/extension-hard-break";
-
-import "react-pdf/dist/Page/TextLayer.css";
+import 'react-pdf/dist/esm/Page/AnnotationLayer.css'; 
+import 'react-pdf/dist/esm/Page/TextLayer.css';
 import { Document as PDFDocument, Page, pdfjs } from "react-pdf";
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
@@ -252,7 +252,8 @@ function MatchResults() {
                               }}
                             >
                               <div className="d-flex justify-content-between">
-                                <div className="align-self-center">
+                                <div className="w-25 d-flex justify-content-between">
+                                <div className="align-self-center flex-grow-1">
                                   <strong>File ID:</strong> {match.file_id}
                                 </div>
                                 <Button
@@ -265,6 +266,7 @@ function MatchResults() {
                                 >
                                   View PDF
                                 </Button>
+                                </div>
                                 <div className="align-self-center ">{match.original_name}</div>
                                 <div className="align-self-center">
                                   <strong>Final Score:</strong>{" "}
@@ -500,10 +502,10 @@ function MatchResults() {
                 borderRadius: "5px",
                 width: "100%",
               }}
-            >Resume Informatıion</div>
+            >Resume Information</div>
           </Modal.Title>
         </Modal.Header>
-        <Modal.Body>
+      <Modal.Body>
     <div className="d-flex justify-content-center mb-2">
       <Button
         size="sm"
@@ -516,35 +518,59 @@ function MatchResults() {
       </Button>
     </div>
     <div className="d-flex justify-content-center mb-2">
-      <Button
-        className="mx-1"
-        variant="secondary"
-        onClick={previousPage}
-        disabled={pageNumber <= 1}
-        size="sm"
-        style={{ backgroundColor: "rgb(148, 44, 210)", border: "none" }}
-      >
-        <ArrowLeftCircleFill size={30} />
+    <Button
+  className="mx-1"
+  variant="outline-alert"
+  style={{ 
+    backgroundColor: "white", 
+    color: "black",
+    border: "solid 1px rgb(148, 44, 210)" // Default styles
+  }}
+  onMouseOver={e => {
+    e.currentTarget.style.backgroundColor = 'rgba(130, 38, 158, 0.5)';
+    e.currentTarget.style.color = 'white';
+  }}
+  onMouseOut={e => {
+    e.currentTarget.style.backgroundColor = 'white';
+    e.currentTarget.style.color = 'black';
+  }}
+  onClick={previousPage}
+  disabled={pageNumber <= 1}
+  size="sm"
+>
+        <ArrowLeftCircleFill style={{color: "rgb(148, 44, 210)"}} size={23} />
       </Button>
       <Button
-        variant="secondary"
+        variant="outline-alert"
         onClick={nextPage}
         disabled={pageNumber >= numPages}
         size="sm"
         className="mx-1"
-        style={{ backgroundColor: "rgb(148, 44, 210)", border: "none" }}
+        style={{ 
+          backgroundColor: "white", 
+          color: "black",
+          border: "solid 1px rgb(148, 44, 210)" // Default styles
+        }}
+        onMouseOver={e => {
+          e.currentTarget.style.backgroundColor = 'rgba(130, 38, 158, 0.5)';
+          e.currentTarget.style.color = 'white';
+        }}
+        onMouseOut={e => {
+          e.currentTarget.style.backgroundColor = 'white';
+          e.currentTarget.style.color = 'black';
+        }}
       >
-        <ArrowRightCircleFill size={30} />
+        <ArrowRightCircleFill style={{color: "rgb(148, 44, 210)"}} size={23} />
       </Button>
     </div>
-    <div className="d-flex justify-content-center mb-0">
-      <p className="text-black">
-        Page {pageNumber} of {numPages}
+    <div className="d-flex justify-content-center mb-n5">
+      <p className="text-black m-1">
+        Page <strong>{pageNumber}</strong> of <strong>{numPages}</strong>
       </p>
     </div>
-    <div>
+    <div className="">
       <PDFDocument file={pdfFile} onLoadSuccess={onDocumentLoadSuccess}>
-        <Page width="750" height="750" pageNumber={pageNumber} />
+        <Page width={775}  pageNumber={pageNumber}/>
       </PDFDocument>
     </div>
   </Modal.Body>

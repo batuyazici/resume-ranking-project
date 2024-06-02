@@ -663,7 +663,7 @@ span.navbar-text {
   background-position: top center;
   background-size: cover;
   background-repeat: no-repeat;
-  padding: 13px 5px 13px 5px;
+  padding: 15px 5px 15px 5px;
   border-radius: 10px;
 }
 
@@ -696,3 +696,6 @@ span.navbar-text {
   background-color: #fff; /* White background for text area */
   font-family: "Arial", sans-serif; /* Default font */
 }
+
+/****** Results Page *******/
+

@@ -62,23 +62,23 @@ function HeaderNavbar() {
             </Nav.Link>
             <Nav.Link
               as={Link}
-              to="/results/match"
+              to="/match/results"
               className={
-                activeLink === "/results/match"
+                activeLink === "/match/results"
                   ? "active navbar-link"
                   : "navbar-link"
               }
-              onClick={() => onUpdateActiveLink("results/match")}
+              onClick={() => onUpdateActiveLink("match/results")}
             >
               Match Results
             </Nav.Link>
             {/* <Nav.Link
               as={Link}
-              to="/results/cvs"
+              to="/cvs/results"
               className={
-                activeLink === "/results/cvs" ? "active navbar-link" : "navbar-link"
+                activeLink === "/cvs/results" ? "active navbar-link" : "navbar-link"
               }
-              onClick={() => onUpdateActiveLink("results/cv")}
+              onClick={() => onUpdateActiveLink("cvs/results")}
             >
               CV Results
             </Nav.Link> */}

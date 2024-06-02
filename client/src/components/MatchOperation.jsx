@@ -27,6 +27,7 @@ import BulletList from "@tiptap/extension-bullet-list";
 import ListItem from "@tiptap/extension-list-item";
 import HardBreak from "@tiptap/extension-hard-break";
 import Heading from "@tiptap/extension-heading";
+import { useNavigate } from "react-router-dom";
 
 const extensions = [
   Heading,
@@ -50,6 +51,8 @@ const MatchOperation = () => {
   const [jobDescriptions, setJobDescriptions] = useState({});
   const [buttonLoading, setButtonLoading] = useState(false);
   const [open, setOpen] = useState({});
+  const [loading, setLoading] = useState(true); // Add loading state
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -83,6 +86,8 @@ const MatchOperation = () => {
         setJobs(data.jobs);
       } catch (error) {
         console.error("Error fetching data:", error);
+      } finally {
+        setLoading(false); // Set loading to false after data is fetched
       }
     };
 
@@ -257,6 +262,26 @@ const MatchOperation = () => {
     return jobDescriptions[jobId] ? "Hide Details" : "Job Details";
   };
 
+  const handleResultsClick = () => {
+    navigate("/match/results");
+  };
+
+  if (loading) { // Display loading indicator while fetching data
+    return (
+      <Container className="mt-4 d-flex justify-content-center">
+      <Spinner animation="grow" className="big-spinner" />
+      <Spinner animation="grow" className="big-spinner" />
+      <Spinner animation="grow" className="big-spinner" />
+      <Spinner animation="grow" className="big-spinner" />
+      <Spinner animation="grow" className="big-spinner" />
+      <Spinner animation="grow" className="big-spinner" />
+      <Spinner animation="grow" className="big-spinner" />
+      <Spinner animation="grow" className="big-spinner" />
+      <Spinner animation="grow" className="big-spinner" />
+    </Container>
+    );
+  }
+
   if (batches.length === 0 && jobs.length === 0) {
     return (
       <Container
@@ -267,6 +292,7 @@ const MatchOperation = () => {
       </Container>
     );
   }
+
   return (
     <Container fluid="md" className="mt-4">
       {!showResultButton ? (
@@ -655,13 +681,24 @@ const MatchOperation = () => {
                   </Accordion.Item>
                 </Accordion>
               </Row>
-              <div className="d-flex justify-content-center align-items-center vh-50 mb-4">
+              <div className="d-flex justify-content-around w-50 mx-auto align-items-center mb-4">
                 <Button
                   variant="outline-dark"
                   size="sm"
-                  onClick={() => setShowResultButton(false)}
+                  
+                  onClick={() => {
+                    setShowResultButton(false);
+                    setSelectedContainers([]);
+                  }}
                 >
                   <b>Return</b> <ArrowLeftCircle size={25} />
+                </Button>
+                <Button
+                  variant="outline-dark"
+                  size="sm"
+                  onClick={handleResultsClick}
+                >
+                  <b>All Results</b> <ArrowRightCircle size={25} />
                 </Button>
               </div>
             </Container>
