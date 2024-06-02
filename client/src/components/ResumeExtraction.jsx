@@ -134,7 +134,7 @@ function ResumeExtraction({ onStepChange }) {
     fetchData();
 
     if (!isDetected) {
-      intervalId = setInterval(fetchData, 5000);
+      intervalId = setInterval(fetchData, 2500);
     }
 
     return () => {

@@ -7,8 +7,6 @@ class FileHandler:
     def __init__(self):
         FILE = Path(__file__).resolve()
         ROOT = FILE.parents[1]
-        self.source_dir = ROOT / 'data' 
-        self.source_dir.mkdir(exist_ok=True)
         results_base = ROOT / "results"
         results_base.mkdir(exist_ok=True)  # Ensure the base directory exists
         run_number = 1

@@ -108,7 +108,9 @@ async def match_impl(file_handler, files_data, job_data):
 
     job_embeddings = await fetch_job_embeddings(job_data["job_id"])
     
-    bm25_weight = job_scores['necessities'] / 2 / 100   
+    bm25_weight = job_scores['necessities'] / 100  
+    location_weight = bm25_weight * 0.5 
+    language_weight = bm25_weight * 0.5 
     skills_weight = job_scores['skills'] / 100
     experience_weight = job_scores['experience'] / 100
     education_weight = job_scores['education'] / 100
@@ -130,18 +132,27 @@ async def match_impl(file_handler, files_data, job_data):
     # Iterate over each file and compute BM25 scores for queries based on extracted_info
     for file_info in files_list:
         extracted_info = file_info["extracted_info"]
-        queries = extracted_info["locations"] + extracted_info["languages"] 
-        file_scores = {}
+        location_queries = extracted_info["locations"]
+        language_queries = extracted_info["languages"]
         similarity_scores = {}
-        for query in queries:
-            tokenized_query = tokenize_doc(query)
-            scores = bm25.get_scores(tokenized_query)
-            for score in scores:
-                if score > 0:
-                    file_scores[query] = bm25_weight
-                    break
-            else:
-                file_scores[query] = 0
+        bm25_scores = {}
+
+        if location_queries:
+            location_key = ", ".join(location_queries)
+            combined_scores = [bm25.get_scores(tokenize_doc(query)) for query in location_queries]
+            location_match_found = any(any(score > 0 for score in scores) for scores in combined_scores)
+            bm25_scores[location_key] = location_weight if location_match_found else 0
+
+        # Process language matches
+        if language_queries:
+            language_key = ", ".join(language_queries)
+            combined_scores = [bm25.get_scores(tokenize_doc(query)) for query in language_queries]
+            language_match_found = any(any(score > 0 for score in scores) for scores in combined_scores)
+            bm25_scores[language_key] = language_weight if language_match_found else 0
+
+        #
+        if not location_queries and not language_queries:
+            bm25_scores = {}
         
         for category, category_embeddings in file_info["embeddings"].items():
             category_embeddings_array = np.array(category_embeddings)  # Convert to numpy array
@@ -158,16 +169,16 @@ async def match_impl(file_handler, files_data, job_data):
                 weight = 0
             similarity_scores[category] = round(weight * max_cos_sim_score, 3)
             
-        final_score = round(sum(file_scores.values()) + sum(similarity_scores.values()), 2)
+        final_score = round(sum(bm25_scores.values()) + sum(similarity_scores.values()), 2)
 
         match_results["matches"].append({
             "file_id": file_info["file_id"],
             "original_name": file_info["original_name"],  
             "extracted_info": extracted_info,
-            "bm25_scores": file_scores,
+            "bm25_scores": bm25_scores,
             "similarity_scores": similarity_scores,
             "weights": {
-                "bm25": bm25_weight * 2,
+                "bm25": bm25_weight,
                 "skills": skills_weight,
                 "experience": experience_weight,
                 "education": education_weight,

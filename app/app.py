@@ -9,7 +9,7 @@ import json
 from db import init_connection_pool, close_connection_pool, execute_query, fetch_query, fetch_single_query, executemany_query
 from helpers import clean_filename, edit_filename, init_upload_batch, check_batch_exists, conf_input_file, format_record, update_match_data
 from file_processing import docx_conv, pdf_conv
-from config import UPLOAD_DIR, SAVE_DIR, SAVE_DIR_API
+from config import UPLOAD_DIR, SAVE_DIR, UPLOAD_DIR
 from model_pipeline.utils.files import FileHandler
 from model_pipeline.utils.params import YOLOParameters
 from pydantic import BaseModel
@@ -173,7 +173,7 @@ async def detect_run(batch_ids: dict):
         
 
         for file in files:
-            file_pattern = os.path.join(SAVE_DIR_API, f"{file['storage_name']}_page*.jpg")
+            file_pattern = os.path.join(SAVE_DIR, f"{file['storage_name']}_page*.jpg")
             file_paths = glob.glob(file_pattern)
 
             if not file_paths:
@@ -687,6 +687,34 @@ async def get_match_results():
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.get("/match/job/{job_id}")
+async def get_job_definition(job_id: int):
+    try:
+        query = """
+            SELECT job_path FROM job_process WHERE job_id = $1;
+        """
+        job_path = await fetch_single_query(query, job_id)
+        if not job_path:
+            raise HTTPException(status_code=404, detail="Job description not found.")
+        with open(os.path.join(file_handler.jobs_dir, job_path), 'r') as f:
+            job_data = json.load(f)
+        return JSONResponse(content=job_data)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+@app.get("/match/pdf/{file_id}")
+async def get_file_pdf(file_id: int):
+    try:
+        query = """
+            SELECT storage_name FROM uploaded_files WHERE file_id = $1;
+        """
+        storage_name = await fetch_single_query(query, file_id)
+        if not storage_name:
+            raise HTTPException(status_code=404, detail="File not found.")
+        file_path = os.path.join(UPLOAD_DIR, f"{storage_name}.pdf")
+        return FileResponse(file_path)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
     
 if __name__ == "__main__":
     uvicorn.run(app, host="127.0.0.1", port=8000)

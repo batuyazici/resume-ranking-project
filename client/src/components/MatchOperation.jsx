@@ -583,7 +583,7 @@ const MatchOperation = () => {
                                         }}
                                       >
                                         <tr>
-                                          <th>Keyword</th>
+                                          <th>Keyword (Location / Language)</th>
                                           <th>Score</th>
                                         </tr>
                                       </thead>
@@ -593,7 +593,16 @@ const MatchOperation = () => {
                                           Object.entries(match.bm25_scores).map(
                                             ([key, value]) => (
                                               <tr key={key}>
-                                                <td>{key}</td>
+                                                <td
+                                                  style={{
+                                                    color:
+                                                      value > 0
+                                                        ? "green"
+                                                        : "inherit",
+                                                  }}
+                                                >
+                                                  {key}
+                                                </td>
                                                 <td
                                                   style={{
                                                     color:
