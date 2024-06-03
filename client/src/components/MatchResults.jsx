@@ -181,7 +181,7 @@ function MatchResults() {
 
   return (
     <div className="form-continue-section d-flex justify-content-center">
-      <div style={{ width: "100%", maxWidth: "900px" }}>
+      <div style={{ width: "100%", maxWidth: "1000px" }}>
         <Container>
           <Row className="justify-content-center mt-3 mb-3">
             <div
