@@ -15,7 +15,7 @@ export const Banner = () => {
   const [text, setText] = useState("");
   const [delta, setDelta] = useState(300 - Math.random() * 100);
 
-  const toRotate = ["HR Professionals", "Employers"];
+  const toRotate = ["HR Professionals"];
   const period = 2000;
 
   useEffect(() => {
@@ -76,9 +76,9 @@ export const Banner = () => {
                   </h1>
                   <p>
                     Resume Ranking is a comprehensive and innovative platform
-                    for HR Professionals and Employers. Our goal is to facilitate and
+                    for HR Professionals. Our goal is to facilitate and
                     accelerate the recruitment process with tools carefully
-                    designed to meet the needs of both parties.{" "}
+                    designed to meet their specific needs.{" "}
                   </p>
                   <button onClick={() => navigate("/cvs")}>
                     Let&apos;s Go

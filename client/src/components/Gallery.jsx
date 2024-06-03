@@ -34,14 +34,11 @@ export const Gallery = () => {
       <Container>
         <Row>
           <Col>
-            <h2>For Employers</h2>
             <Col className="mx-5">
               <p>
-                Create your job posting and quickly find ideal candidates from
-                our CV database. Our technology automatically matches
-                candidate&apos;s  skills and experience to your job
-                requirements, so you can easily track and assess the process
-                with our candidate management tools.
+                Our technology automatically matches candidate&apos;s skills and
+                experience to your job requirements, so you can easily track and
+                assess the process with our candidate management tools.
               </p>
             </Col>
 

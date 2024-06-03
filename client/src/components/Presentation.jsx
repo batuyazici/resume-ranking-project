@@ -53,20 +53,20 @@ export const Presentation = () => {
                 className="Presentation-slider"
               >
                 <div className="item">
-                  <img src={resume1} alt="Image" />
-                  <h5>Post Current Job Openings</h5>
-                </div>
-                <div className="item">
-                  <img src={resume3} alt="Image" />
-                  <h5>Attract Suitable Candidates</h5>
-                </div>
-                <div className="item">
                   <img src={resume4} alt="Image" />
-                  <h5>Request CV Submission</h5>
+                  <h5>Submit Resumes</h5>
+                </div>
+                <div className="item">
+                  <img src={resume1} alt="Image" />
+                  <h5>Post Job Advert</h5>
                 </div>
                 <div className="item">
                   <img src={resume5} alt="Image" />
-                  <h5>Match Resumes with Jobs</h5>
+                  <h5>Match Resumes to Jobs</h5>
+                </div>
+                <div className="item">
+                  <img src={resume3} alt="Image" />
+                  <h5>Find Attract Candidates</h5>
                 </div>
               </Carousel>
             </div>
