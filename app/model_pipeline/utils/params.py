@@ -26,7 +26,7 @@ class YOLOParameters:
         self.exist_ok = False
         self.project = FILE.parents[1] / 'models' /'runs/detect'
         self.name = 'exp'
-        self.line_thickness = 1
+        self.line_thickness = 3
         self.hide_labels = False
         self.hide_conf = False
         self.vid_stride = 1
