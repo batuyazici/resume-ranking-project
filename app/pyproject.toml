@@ -1,9 +1,9 @@
 [tool.poetry]
-name = "app"
+name = "resume-ranker-api"
 version = "0.1.0"
 description = ""
 authors = ["batuyazici <92368839+batuyazici@users.noreply.github.com>"]
-package-mode = false
+readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.10"
@@ -15,7 +15,31 @@ pdf2image = "^1.17.0"
 comtypes = "^1.4.1"
 sentence-transformers = "^2.7.0"
 pgvector = "^0.2.5"
+torch = {version = "^2.3.0+cu118", source = "torch"}
+torchvision = {version = "^0.18.0+cu118", source = "torch"}
+torchaudio = {version = "^2.3.0+cu118", source = "torch"}
+opencv-python = "^4.9.0.80"
+pandas = "^2.2.2"
+requests = "^2.31.0"
+ipython = "^8.24.0"
+psutil = "^5.9.8"
+pyyaml = "^6.0.1"
+tqdm = "^4.66.2"
+setuptools = "^69.5.1"
+matplotlib = "^3.8.4"
+seaborn = "^0.13.2"
+easyocr = "^1.7.1"
+transformers = "^4.40.1"
+gliner = "^0.1.12"
+nltk = "^3.8.1"
+rank-bm25 = "^0.2.2"
+einops = "^0.8.0"
+numpy = "^1.26.4"
 
+[[tool.poetry.source]]
+name = "torch"
+url = "https://download.pytorch.org/whl/cu118"
+priority = "explicit"
 
 [build-system]
 requires = ["poetry-core"]
