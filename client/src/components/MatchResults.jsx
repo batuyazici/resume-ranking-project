@@ -249,7 +249,7 @@ function MatchResults() {
                       .sort((a, b) => b.final_score - a.final_score)
                       .map((match, fileIndex) => (
                         <div key={fileIndex}>
-                          <Card>
+                          <Card className>
                             <Card.Header
                               onClick={() => toggleFile(match.file_id)}
                               aria-controls={`file-details-${match.file_id}`}
